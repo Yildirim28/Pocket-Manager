@@ -193,7 +193,7 @@ function personChipsHtml(selectedNames) {
                 `<button type="button" data-chip-person="${escapeHTML(p.name)}" ` +
                 'class="person-chip inline-flex items-center rounded-full px-3 py-1 text-sm font-medium transition-colors ' +
                 (selected
-                    ? 'bg-indigo-600 text-white shadow-sm'
+                    ? 'selected bg-indigo-600 text-white shadow-sm'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200') +
                 `">${escapeHTML(p.name)}</button>`
             );
@@ -823,13 +823,13 @@ function initFormEvents() {
 
         const chip = event.target.closest('.person-chip');
         if (chip) {
-            chip.classList.toggle('selected');
-            const selected = chip.classList.contains('selected');
-            chip.className =
-                'person-chip inline-flex items-center rounded-full px-3 py-1 text-sm font-medium transition-colors ' +
-                (selected
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200');
+            const selected = chip.classList.toggle('selected');
+            chip.classList.toggle('bg-indigo-600', selected);
+            chip.classList.toggle('text-white', selected);
+            chip.classList.toggle('shadow-sm', selected);
+            chip.classList.toggle('bg-slate-100', !selected);
+            chip.classList.toggle('text-slate-600', !selected);
+            chip.classList.toggle('hover:bg-slate-200', !selected);
             updateSplitPreview(row);
         }
     });
