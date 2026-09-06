@@ -1,34 +1,21 @@
 /* =============================================================
-   Pocket Manager — app.js
-   Vanilla JavaScript (ES6+) client for Supabase PostgREST.
-   Loaded with `defer` after the Supabase UMD SDK, so
-   window.supabase.createClient is available at startup.
+   Pocket Manager — js/app.js
+   Dashboard logic (app.html). Requires a signed-in user; the
+   page redirects to login.html otherwise. Uses the shared
+   client `sb` and helpers from js/config.js and js/site.js.
    ============================================================= */
 
 'use strict';
 
 /* -------------------------------------------------------------
-   1. CONFIGURATION — replace with your Supabase project values
-   Dashboard -> Project Settings -> API
+   APPLICATION STATE
 ------------------------------------------------------------- */
-const SUPABASE_URL = 'https://nsxfulzwojdyyppypmcw.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_CQW-N2r5gzZTQRE5Fq2y1A_q69IbKNN';
-
-const EXPENSES_TABLE = 'expenses';
-const BUDGET_STORAGE_KEY = 'pocket-manager:monthly-budget';
-const DEFAULT_MONTHLY_BUDGET = 2000;
-const DELETE_ARM_TIMEOUT_MS = 3000;
-
-/* -------------------------------------------------------------
-   2. APPLICATION STATE
-------------------------------------------------------------- */
-let supabaseClient = null;
 let expenses = [];
 let monthlyBudget = loadBudget();
 let armTimer = null;
 
 /* -------------------------------------------------------------
-   3. DOM REFERENCES
+   DOM REFERENCES
 ------------------------------------------------------------- */
 const statusDot = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
@@ -64,10 +51,8 @@ const expenseTableBody = document.getElementById('expenseTableBody');
 const expenseListEl = document.getElementById('expenseList');
 const refreshButton = document.getElementById('refreshButton');
 
-const toastContainer = document.getElementById('toastContainer');
-
 /* -------------------------------------------------------------
-   4. CONSTANTS
+   CONSTANTS
 ------------------------------------------------------------- */
 const CATEGORY_COLORS = {
     Food: 'bg-green-100 text-green-800',
@@ -94,110 +79,7 @@ const DELETE_ARMED_CLASSES =
     'font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500';
 
 /* -------------------------------------------------------------
-   5. UTILITY LOGIC
-------------------------------------------------------------- */
-function formatCurrency(value) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
-    }).format(Number(value) || 0);
-}
-
-function todayLocalISO() {
-    const now = new Date();
-    return [
-        now.getFullYear(),
-        String(now.getMonth() + 1).padStart(2, '0'),
-        String(now.getDate()).padStart(2, '0')
-    ].join('-');
-}
-
-function currentMonthKey() {
-    return todayLocalISO().slice(0, 7);
-}
-
-/* Parse a 'YYYY-MM-DD' string as a LOCAL date to avoid
-   UTC off-by-one shifts, then format it for display. */
-function formatDate(dateStr) {
-    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr));
-    if (!match) return '—';
-    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function formatTimestamp(iso) {
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) return '';
-    return date.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit'
-    });
-}
-
-function escapeHTML(value) {
-    return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
-}
-
-function loadBudget() {
-    const stored = Number(localStorage.getItem(BUDGET_STORAGE_KEY));
-    return Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_MONTHLY_BUDGET;
-}
-
-function isConfigured() {
-    return (
-        typeof SUPABASE_URL === 'string' &&
-        SUPABASE_URL.startsWith('https://') &&
-        !SUPABASE_URL.includes('YOUR_') &&
-        typeof SUPABASE_ANON_KEY === 'string' &&
-        SUPABASE_ANON_KEY.length > 20 &&
-        !SUPABASE_ANON_KEY.includes('YOUR_')
-    );
-}
-
-function sortExpenses() {
-    expenses.sort(
-        (a, b) =>
-            String(b.expense_date).localeCompare(String(a.expense_date)) ||
-            String(b.created_at).localeCompare(String(a.created_at))
-    );
-}
-
-/* -------------------------------------------------------------
-   6. TOAST NOTIFICATIONS
-------------------------------------------------------------- */
-function showToast(message, type = 'info') {
-    const styles = {
-        success: 'bg-emerald-600',
-        error: 'bg-red-600',
-        info: 'bg-slate-800'
-    };
-    const toast = document.createElement('div');
-    toast.setAttribute('role', 'status');
-    toast.className =
-        `${styles[type] || styles.info} pointer-events-auto w-full max-w-sm rounded-lg px-4 py-3 ` +
-        'text-sm font-medium text-white shadow-lg opacity-0 translate-y-2 transition-all duration-300';
-    toast.textContent = message;
-    toastContainer.appendChild(toast);
-
-    requestAnimationFrame(() => {
-        toast.classList.remove('opacity-0', 'translate-y-2');
-    });
-
-    setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
-
-/* -------------------------------------------------------------
-   7. CONNECTION STATUS & FORM STATE
+   CONNECTION STATUS & FORM STATE
 ------------------------------------------------------------- */
 function setStatus(state, text) {
     const dotColors = {
@@ -225,7 +107,7 @@ function setLoading(loading) {
 }
 
 /* -------------------------------------------------------------
-   8. FIELD VALIDATION HELPERS
+   FIELD VALIDATION HELPERS
 ------------------------------------------------------------- */
 function setFieldError(input, errorEl, message) {
     input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
@@ -271,15 +153,22 @@ function validateExpenseForm() {
 }
 
 /* -------------------------------------------------------------
-   9. METRICS & RENDERING
+   METRICS & RENDERING
 ------------------------------------------------------------- */
+function sortExpenses() {
+    expenses.sort(
+        (a, b) =>
+            String(b.expense_date).localeCompare(String(a.expense_date)) ||
+            String(b.created_at).localeCompare(String(a.created_at))
+    );
+}
+
 function renderSummary() {
     const monthKey = currentMonthKey();
     const monthExpenses = expenses.filter(
         (expense) => String(expense.expense_date).slice(0, 7) === monthKey
     );
 
-    // Total spent this month
     const totalThisMonth = monthExpenses.reduce(
         (sum, expense) => sum + Number(expense.amount),
         0
@@ -290,7 +179,6 @@ function renderSummary() {
         year: 'numeric'
     });
 
-    // Highest expense category this month
     const totalsByCategory = monthExpenses.reduce((acc, expense) => {
         const category = expense.category || 'General';
         acc[category] = (acc[category] || 0) + Number(expense.amount);
@@ -310,11 +198,9 @@ function renderSummary() {
         topCategoryAmountEl.textContent = 'No spending yet this month';
     }
 
-    // Total transactions
     totalCountEl.textContent = expenses.length;
     historyCountEl.textContent = expenses.length;
 
-    // Budget progress
     const percent = monthlyBudget > 0 ? (totalThisMonth / monthlyBudget) * 100 : 0;
     budgetBar.style.width = `${Math.min(percent, 100)}%`;
     budgetBar.className =
@@ -385,12 +271,12 @@ function renderAll() {
 }
 
 /* -------------------------------------------------------------
-   10. CRUD OPERATIONS (async/await)
+   CRUD OPERATIONS (async/await)
 ------------------------------------------------------------- */
 async function fetchExpenses() {
     setLoading(true);
     try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await sb
             .from(EXPENSES_TABLE)
             .select('*')
             .order('expense_date', { ascending: false })
@@ -410,11 +296,6 @@ async function fetchExpenses() {
 async function addExpense(event) {
     event.preventDefault();
 
-    if (!supabaseClient) {
-        showToast('Database is not connected. Check your Supabase configuration in app.js.', 'error');
-        return;
-    }
-
     clearAllFieldErrors();
     if (!validateExpenseForm()) return;
 
@@ -427,7 +308,7 @@ async function addExpense(event) {
 
     setSubmitting(true);
     try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await sb
             .from(EXPENSES_TABLE)
             .insert(payload)
             .select()
@@ -458,13 +339,8 @@ async function deleteExpense(id) {
     renderAll();
 
     try {
-        const { error } = await supabaseClient
-            .from(EXPENSES_TABLE)
-            .delete()
-            .eq('id', id);
-
+        const { error } = await sb.from(EXPENSES_TABLE).delete().eq('id', id);
         if (error) throw error;
-
         showToast('Expense deleted.', 'success');
     } catch (error) {
         // Roll back the optimistic removal on failure.
@@ -483,7 +359,7 @@ function resetForm() {
 }
 
 /* -------------------------------------------------------------
-   11. INLINE DELETE CONFIRMATION (two-stage)
+   INLINE DELETE CONFIRMATION (two-stage)
 ------------------------------------------------------------- */
 function resetDeleteButton(button) {
     button.setAttribute('data-armed', 'false');
@@ -496,9 +372,7 @@ function disarmAllDeleteButtons() {
         clearTimeout(armTimer);
         armTimer = null;
     }
-    document
-        .querySelectorAll('button[data-armed="true"]')
-        .forEach(resetDeleteButton);
+    document.querySelectorAll('button[data-armed="true"]').forEach(resetDeleteButton);
 }
 
 function armDeleteButton(button) {
@@ -514,29 +388,34 @@ function armDeleteButton(button) {
 }
 
 /* -------------------------------------------------------------
-   12. INITIALIZATION
+   INITIALIZATION (auth-guarded)
 ------------------------------------------------------------- */
-async function initializeConnection() {
-    if (!isConfigured()) {
+async function init() {
+    dateInput.value = todayLocalISO();
+    budgetInput.value = monthlyBudget;
+    renderAll();
+
+    if (!sb) {
         setStatus('unconfigured', 'Not configured');
         setFormEnabled(false);
-        showToast('Please set SUPABASE_URL and SUPABASE_ANON_KEY at the top of app.js.', 'error');
+        showToast('Missing Supabase credentials in js/config.js.', 'error');
         return;
     }
 
     setStatus('connecting', 'Connecting…');
 
-    try {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } catch (error) {
-        setStatus('offline', 'Offline');
-        setFormEnabled(false);
-        showToast(`Failed to initialize Supabase client: ${error.message}`, 'error');
-        return;
-    }
+    // Auth guard: dashboard requires a signed-in user.
+    const session = await requireAuth();
+    if (!session) return;
+
+    // If the session expires or is revoked while browsing,
+    // send the user back to the login page.
+    sb.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_OUT') window.location.replace('login.html');
+    });
 
     try {
-        const { error } = await supabaseClient
+        const { error } = await sb
             .from(EXPENSES_TABLE)
             .select('id', { count: 'exact', head: true });
 
@@ -548,14 +427,6 @@ async function initializeConnection() {
         setStatus('offline', 'Offline');
         showToast(`Database connection failed: ${error.message}`, 'error');
     }
-}
-
-function init() {
-    // Default the date field to today and sync the budget input
-    // with the locally persisted value.
-    dateInput.value = todayLocalISO();
-    budgetInput.value = monthlyBudget;
-    renderAll();
 
     // Event listeners
     expenseForm.addEventListener('submit', addExpense);
@@ -572,13 +443,10 @@ function init() {
         renderSummary();
     });
 
-    // Real-time validation feedback: clear an error as soon as
-    // the user edits the offending field.
     descriptionInput.addEventListener('input', () => clearFieldError(descriptionInput, descriptionErrorEl));
     amountInput.addEventListener('input', () => clearFieldError(amountInput, amountErrorEl));
     dateInput.addEventListener('change', () => clearFieldError(dateInput, dateErrorEl));
 
-    // Delegated listener for both desktop table and mobile feed.
     historySection.addEventListener('click', (event) => {
         const button = event.target.closest('button[data-id]');
         if (!button) return;
@@ -591,11 +459,7 @@ function init() {
         }
     });
 
-    refreshButton.addEventListener('click', () => {
-        if (supabaseClient) fetchExpenses();
-    });
-
-    initializeConnection();
+    refreshButton.addEventListener('click', fetchExpenses);
 }
 
-init();
+document.addEventListener('DOMContentLoaded', init);

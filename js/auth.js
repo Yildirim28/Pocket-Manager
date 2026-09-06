@@ -1,0 +1,117 @@
+/* =============================================================
+   Pocket Manager — js/auth.js
+   Shared logic for login.html and signup.html.
+   ============================================================= */
+
+'use strict';
+
+(function authPage() {
+    const isSignup = document.body.dataset.page === 'signup';
+
+    const form = document.getElementById('authForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const errorEl = document.getElementById('authError');
+    const noticeEl = document.getElementById('authNotice');
+    const submitButton = document.getElementById('authSubmit');
+    const submitButtonText = document.getElementById('authSubmitText');
+
+    function showError(message) {
+        errorEl.textContent = message;
+        errorEl.classList.remove('hidden');
+    }
+
+    function clearMessages() {
+        errorEl.textContent = '';
+        errorEl.classList.add('hidden');
+        noticeEl.textContent = '';
+        noticeEl.classList.add('hidden');
+    }
+
+    function setSubmitting(submitting) {
+        submitButton.disabled = submitting;
+        submitButtonText.textContent = submitting
+            ? isSignup ? 'Creating account…' : 'Signing in…'
+            : isSignup ? 'Create account' : 'Sign in';
+    }
+
+    async function handleLogin(email, password) {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+            showError(
+                error.message === 'Invalid login credentials'
+                    ? 'Wrong email or password. Please try again.'
+                    : error.message
+            );
+            return;
+        }
+        if (data.session) {
+            window.location.href = 'app.html';
+        } else {
+            noticeEl.textContent = 'Signed in. Redirecting…';
+            noticeEl.classList.remove('hidden');
+        }
+    }
+
+    async function handleSignup(email, password) {
+        const { data, error } = await sb.auth.signUp({ email, password });
+        if (error) {
+            showError(error.message);
+            return;
+        }
+        if (data.session) {
+            // Email confirmation disabled — signed up and signed in.
+            window.location.href = 'app.html';
+        } else {
+            // Email confirmation enabled — account created, needs verification.
+            noticeEl.textContent =
+                'Account created! Please check your inbox at ' + email +
+                ' and click the confirmation link, then sign in.';
+            noticeEl.classList.remove('hidden');
+            form.reset();
+        }
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!sb) {
+            showError('App is not configured. Missing Supabase credentials in js/config.js.');
+            return;
+        }
+
+        clearMessages();
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showError('Please enter a valid email address.');
+            return;
+        }
+        if (password.length < 6) {
+            showError('Password must be at least 6 characters.');
+            return;
+        }
+        if (isSignup && password !== confirmPasswordInput.value) {
+            showError('Passwords do not match.');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            if (isSignup) await handleSignup(email, password);
+            else await handleLogin(email, password);
+        } catch (err) {
+            showError(`Something went wrong: ${err.message}`);
+        } finally {
+            setSubmitting(false);
+        }
+    });
+
+    // Already signed in? Go straight to the dashboard.
+    document.addEventListener('DOMContentLoaded', async () => {
+        const session = await getSession();
+        if (session) window.location.replace('app.html');
+    });
+})();
