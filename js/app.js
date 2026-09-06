@@ -81,7 +81,6 @@ const CATEGORY_COLORS = {
 const CATEGORIES = [
     'Food',
     'Transport',
-    'Bills',
     'Utilities',
     'Entertainment',
     'Shopping',
@@ -89,6 +88,8 @@ const CATEGORIES = [
 ];
 
 const UTILITIES_CATEGORY = 'Utilities';
+
+const UTILITY_TYPES = ['Wifi', 'Gas', 'Electricity', 'Other'];
 
 const TRASH_ICON =
     '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" ' +
@@ -121,6 +122,12 @@ function categoryOptionsHtml(selected) {
     ).join('');
 }
 
+function utilityOptionsHtml(selected) {
+    return UTILITY_TYPES.map(
+        (t) => `<option value="${t}"${t === selected ? ' selected' : ''}>${t}</option>`
+    ).join('');
+}
+
 function expenseRowHtml(rowId) {
     return (
         '<div class="expense-row rounded-xl border border-slate-200 bg-slate-50/60 p-4" data-row="' + rowId + '">' +
@@ -140,6 +147,12 @@ function expenseRowHtml(rowId) {
         '<label class="mb-1 block text-sm font-medium text-slate-700">Category</label>' +
         '<select data-field="category" class="' + INPUT_CLASSES + '">' +
         categoryOptionsHtml('Food') +
+        '</select>' +
+        '</div>' +
+        '<div class="utility-type-wrap md:col-span-2 hidden">' +
+        '<label class="mb-1 block text-sm font-medium text-slate-700">Utility type</label>' +
+        '<select data-field="utility_type" class="' + INPUT_CLASSES + '">' +
+        utilityOptionsHtml('Wifi') +
         '</select>' +
         '</div>' +
         '<div class="md:col-span-2">' +
@@ -278,11 +291,14 @@ function readRow(row) {
     const names = selectedPersonsIn(row);
     const amount = Number(row.querySelector('[data-field="amount"]').value);
     const participants = Number.isFinite(amount) && amount > 0 ? computeShares(amount, names) : [];
+    const category = row.querySelector('[data-field="category"]').value;
+    const utilitySelect = row.querySelector('[data-field="utility_type"]');
     return {
         description: row.querySelector('[data-field="description"]').value.trim(),
         amountInput: row.querySelector('[data-field="amount"]'),
         amount,
-        category: row.querySelector('[data-field="category"]').value,
+        category,
+        utilityType: utilitySelect ? utilitySelect.value : null,
         date: row.querySelector('[data-field="date"]').value,
         participants
     };
@@ -460,7 +476,7 @@ function renderSummary() {
         year: 'numeric'
     });
 
-    // Utilities this month
+    // Utilities this month, broken down by sub-type
     const utilitiesExpenses = monthExpenses.filter(
         (expense) => (expense.category || '') === UTILITIES_CATEGORY
     );
@@ -470,9 +486,16 @@ function renderSummary() {
     );
     utilitiesTotalMonthEl.textContent = formatCurrency(utilitiesTotal);
     if (utilitiesExpenses.length > 0) {
-        utilitiesSubEl.textContent =
-            `${utilitiesExpenses.length} utilit${utilitiesExpenses.length === 1 ? 'y' : 'ies'} ` +
-            `expense${utilitiesExpenses.length === 1 ? '' : 's'} this month`;
+        const byType = {};
+        utilitiesExpenses.forEach((expense) => {
+            const type = expense.utility_type || 'Other';
+            byType[type] = (byType[type] || 0) + Number(expense.amount);
+        });
+        const breakdown = Object.entries(byType)
+            .sort((a, b) => b[1] - a[1])
+            .map(([type, value]) => `${type} ${formatCurrency(value)}`)
+            .join(' · ');
+        utilitiesSubEl.textContent = breakdown;
     } else {
         utilitiesSubEl.textContent = 'No utilities expenses yet this month';
     }
@@ -605,6 +628,15 @@ function participantsSummaryHtml(expense) {
         .join(' ');
 }
 
+function utilityChipHtml(expense) {
+    if ((expense.category || '') !== UTILITIES_CATEGORY) return '';
+    const type = expense.utility_type || 'Other';
+    return (
+        '<span class="inline-flex items-center rounded-md bg-sky-50 px-1.5 py-0.5 text-xs font-medium text-sky-700">' +
+        `${escapeHTML(type)}</span>`
+    );
+}
+
 function deleteButtonHtml(id) {
     return (
         `<button type="button" data-id="${id}" data-armed="false" title="Delete expense" ` +
@@ -617,7 +649,7 @@ function tableRowHtml(expense) {
         '<tr class="transition-colors hover:bg-slate-50">' +
         `<td class="px-6 py-4"><p class="font-medium text-slate-800">${escapeHTML(expense.description)}</p>` +
         `<p class="text-xs text-slate-400">Added ${formatTimestamp(expense.created_at)}</p></td>` +
-        `<td class="px-6 py-4">${badgeHtml(expense.category)}</td>` +
+        `<td class="px-6 py-4"><div class="flex flex-wrap items-center gap-1">${badgeHtml(expense.category)}${utilityChipHtml(expense)}</div></td>` +
         `<td class="px-6 py-4"><div class="flex max-w-xs flex-wrap gap-1">${participantsSummaryHtml(expense)}</div></td>` +
         `<td class="px-6 py-4 text-slate-600">${formatDate(expense.expense_date)}</td>` +
         `<td class="px-6 py-4 text-right font-semibold tabular-nums text-slate-800">${formatCurrency(expense.amount)}</td>` +
@@ -632,7 +664,7 @@ function listItemHtml(expense) {
         '<div class="flex items-start justify-between gap-3">' +
         '<div class="min-w-0">' +
         `<p class="truncate font-medium text-slate-800">${escapeHTML(expense.description)}</p>` +
-        `<div class="mt-2 flex flex-wrap items-center gap-2">${badgeHtml(expense.category)}` +
+        `<div class="mt-2 flex flex-wrap items-center gap-2">${badgeHtml(expense.category)}${utilityChipHtml(expense)}` +
         `<span class="text-xs text-slate-500">${formatDate(expense.expense_date)}</span></div>` +
         `<div class="mt-2 flex flex-wrap gap-1">${participantsSummaryHtml(expense)}</div>` +
         '</div>' +
@@ -697,6 +729,7 @@ async function addExpenses(event) {
             description: data.description,
             amount: Math.round(data.amount * 100) / 100,
             category: data.category,
+            utility_type: data.category === UTILITIES_CATEGORY ? (data.utilityType || 'Other') : null,
             expense_date: data.date,
             participants: data.participants.length > 0 ? data.participants : null
         });
@@ -839,6 +872,15 @@ function initFormEvents() {
         if (!row) return;
         if (event.target.matches('[data-field="amount"]')) {
             updateSplitPreview(row);
+        }
+    });
+
+    expenseRowsEl.addEventListener('change', (event) => {
+        const row = event.target.closest('.expense-row');
+        if (!row) return;
+        if (event.target.matches('[data-field="category"]')) {
+            const isUtilities = event.target.value === UTILITIES_CATEGORY;
+            row.querySelector('.utility-type-wrap')?.classList.toggle('hidden', !isUtilities);
         }
     });
 }

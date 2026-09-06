@@ -32,6 +32,18 @@ alter table public.expenses
 comment on column public.expenses.participants
     is 'Optional per-person shares: JSON array of {name, amount}';
 
+-- v4: utility sub-types for the Utilities category.
+alter table public.expenses
+    add column if not exists utility_type text;
+
+comment on column public.expenses.utility_type
+    is 'Utilities sub-type: Wifi, Gas, Electricity, Other';
+
+-- The Bills category is replaced by Utilities sub-types.
+update public.expenses
+   set category = 'Utilities', utility_type = 'Other'
+ where category = 'Bills';
+
 -- NOTE: rows created under the old permissive v1 setup have no
 -- owner (user_id null) and become invisible to every account.
 -- They were public test data; uncomment to remove them:

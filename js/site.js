@@ -140,6 +140,9 @@ function renderNavbar(session) {
     const current = document.body.dataset.page || '';
     const user = session?.user ?? null;
     const email = user ? user.email : null;
+    const rawNickname = user?.user_metadata?.nickname;
+    const nickname = typeof rawNickname === 'string' ? rawNickname.trim() : '';
+    const displayName = user ? (nickname || email) : null;
 
     const publicLinks = [
         { page: 'home', href: 'index.html', label: 'Home' },
@@ -157,7 +160,7 @@ function renderNavbar(session) {
 
     const authArea = user
         ? `<div class="hidden items-center gap-3 md:flex">
-               <span class="max-w-[200px] truncate text-sm text-slate-500" title="${escapeHTML(email)}">${escapeHTML(email)}</span>
+               <span class="max-w-[200px] truncate text-sm font-medium text-slate-700" title="${escapeHTML(email)}">${escapeHTML(displayName)}</span>
                <button id="signOutBtn" type="button"
                    class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200">
                    Sign out
@@ -174,7 +177,7 @@ function renderNavbar(session) {
 
     const mobileAuth = user
         ? `<div class="border-t border-slate-200 pt-3">
-               <p class="mb-2 truncate px-3 text-xs text-slate-400">${escapeHTML(email)}</p>
+               <p class="mb-2 truncate px-3 text-xs text-slate-400">${escapeHTML(displayName)}</p>
                <button id="signOutBtnMobile" type="button"
                    class="w-full rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">Sign out</button>
            </div>`

@@ -7,7 +7,12 @@
 
 (function settingsPage() {
     const accountEmailEl = document.getElementById('accountEmail');
+    const accountNicknameEl = document.getElementById('accountNickname');
     const accountAvatarEl = document.getElementById('accountAvatar');
+
+    const nicknameInput = document.getElementById('nicknameInput');
+    const saveNicknameButton = document.getElementById('saveNicknameButton');
+    const saveNicknameText = document.getElementById('saveNicknameText');
 
     const settingsBudgetInput = document.getElementById('settingsBudgetInput');
     const saveBudgetButton = document.getElementById('saveBudgetButton');
@@ -37,17 +42,49 @@
         return /[",\n]/.test(str) ? `"${str.replaceAll('"', '""')}"` : str;
     }
 
+    function applyAccountDisplay(user) {
+        const email = user.email ?? 'unknown';
+        const nickname = String(user.user_metadata?.nickname ?? '').trim();
+        accountEmailEl.textContent = email;
+        accountNicknameEl.textContent = nickname || email;
+        accountAvatarEl.textContent = (nickname || email)[0]?.toUpperCase() || '?';
+        if (nicknameInput && document.activeElement !== nicknameInput) {
+            nicknameInput.value = nickname;
+        }
+    }
+
+    async function saveNickname() {
+        const nickname = nicknameInput.value.trim();
+        saveNicknameButton.disabled = true;
+        saveNicknameText.textContent = 'Saving…';
+        try {
+            const { error } = await sb.auth.updateUser({ data: { nickname } });
+            if (error) throw error;
+            showToast(nickname ? 'Nickname saved.' : 'Nickname cleared.', 'success');
+            const session = await getSession();
+            if (session) {
+                applyAccountDisplay(session.user);
+                renderNavbar(session);
+            }
+        } catch (error) {
+            showToast(`Could not save nickname: ${error.message}`, 'error');
+        } finally {
+            saveNicknameButton.disabled = false;
+            saveNicknameText.textContent = 'Save nickname';
+        }
+    }
+
     async function exportCsv() {
         exportCsvButton.disabled = true;
         try {
             const { data, error } = await sb
                 .from(EXPENSES_TABLE)
-                .select('expense_date, description, category, amount, participants, created_at')
+                .select('expense_date, description, category, utility_type, amount, participants, created_at')
                 .order('expense_date', { ascending: false });
 
             if (error) throw error;
 
-            const header = 'Date,Description,Category,Amount,People,Added At';
+            const header = 'Date,Description,Category,Utility Type,Amount,People,Added At';
             const rows = (data ?? []).map((e) => {
                 const people = Array.isArray(e.participants)
                     ? e.participants.map((p) => `${p.name}: ${p.amount}`).join('; ')
@@ -56,6 +93,7 @@
                     csvEscape(e.expense_date),
                     csvEscape(e.description),
                     csvEscape(e.category),
+                    csvEscape(e.utility_type ?? ''),
                     csvEscape(e.amount),
                     csvEscape(people),
                     csvEscape(e.created_at)
@@ -131,8 +169,12 @@
         if (!session) return;
 
         const email = session.user.email ?? 'unknown';
-        accountEmailEl.textContent = email;
-        accountAvatarEl.textContent = (email[0] || '?').toUpperCase();
+        applyAccountDisplay(session.user);
+
+        saveNicknameButton.addEventListener('click', saveNickname);
+        nicknameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') saveNickname();
+        });
 
         settingsBudgetInput.value = loadBudget();
         saveBudgetButton.addEventListener('click', saveBudget);
