@@ -508,14 +508,14 @@ function renderSummary() {
     const topEntry = Object.entries(totalsByCategory).sort((a, b) => b[1] - a[1])[0];
     if (topEntry) {
         const colors = CATEGORY_COLORS[topEntry[0]] || CATEGORY_COLORS.General;
+        topCategoryAmountEl.textContent = formatCurrency(topEntry[1]);
         topCategoryBadgeEl.innerHTML =
-            `<span class="inline-flex items-center rounded-full px-3 py-1 text-lg font-semibold ${colors}">` +
+            `<span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${colors}">` +
             `${escapeHTML(topEntry[0])}</span>`;
-        topCategoryAmountEl.textContent = `${formatCurrency(topEntry[1])} this month`;
     } else {
+        topCategoryAmountEl.textContent = formatCurrency(0);
         topCategoryBadgeEl.innerHTML =
-            '<span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-lg font-semibold text-slate-500">—</span>';
-        topCategoryAmountEl.textContent = 'No spending yet this month';
+            '<span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-500">—</span>';
     }
 
     totalCountEl.textContent = expenses.length;

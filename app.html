@@ -21,9 +21,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="js/config.js" defer></script>
-    <script src="js/site.js" defer></script>
-    <script src="js/app.js" defer></script>
+    <script src="js/config.js?v=7" defer></script>
+    <script src="js/site.js?v=7" defer></script>
+    <script src="js/app.js?v=7" defer></script>
 </head>
 <body class="min-h-full bg-slate-50 font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="dashboard">
 
@@ -64,10 +64,10 @@
                             <i data-lucide="trophy" class="h-5 w-5"></i>
                         </span>
                     </div>
-                    <div id="topCategoryBadge" class="mt-3">
-                        <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-lg font-semibold text-slate-500">&mdash;</span>
+                    <p id="topCategoryAmount" class="mt-3 text-3xl font-extrabold tabular-nums tracking-tight text-slate-900">$0.00</p>
+                    <div id="topCategoryBadge" class="mt-1.5">
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-500">&mdash;</span>
                     </div>
-                    <p id="topCategoryAmount" class="mt-1 text-xs text-slate-400">No spending yet this month</p>
                 </div>
 
                 <!-- Card: Total Transactions -->
