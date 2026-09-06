@@ -91,11 +91,7 @@ const UTILITIES_CATEGORY = 'Utilities';
 
 const UTILITY_TYPES = ['Wifi', 'Gas', 'Electricity', 'Other'];
 
-const TRASH_ICON =
-    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" ' +
-    'stroke="currentColor" class="h-4 w-4" aria-hidden="true">' +
-    '<path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />' +
-    '</svg>';
+const TRASH_ICON = '<i data-lucide="trash-2" class="h-4 w-4"></i>';
 
 const DELETE_BUTTON_CLASSES =
     'inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition-colors ' +
@@ -106,11 +102,11 @@ const DELETE_ARMED_CLASSES =
     'font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500';
 
 const INPUT_CLASSES =
-    'w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 ' +
+    'w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 ' +
     'focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
 
 const PERSON_AMOUNT_CLASSES =
-    'w-24 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm placeholder-slate-400 ' +
+    'w-24 rounded-xl border border-slate-300 bg-white px-2.5 py-1.5 text-sm placeholder-slate-400 ' +
     'focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
 
 /* -------------------------------------------------------------
@@ -140,7 +136,7 @@ function expenseRowHtml(rowId) {
         '<label class="mb-1 block text-sm font-medium text-slate-700">Amount ($) <span class="text-red-500">*</span></label>' +
         '<div class="relative">' +
         '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-400">$</span>' +
-        '<input type="number" data-field="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="rounded-lg border border-slate-300 bg-white py-2.5 pl-7 pr-3 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-full" />' +
+        '<input type="number" data-field="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="rounded-xl border border-slate-300 bg-white py-2.5 pl-7 pr-3 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-full" />' +
         '</div>' +
         '</div>' +
         '<div class="md:col-span-2">' +
@@ -168,7 +164,7 @@ function expenseRowHtml(rowId) {
         '<div class="mt-3 border-t border-slate-200 pt-3">' +
         '<div class="flex items-center justify-between">' +
         '<button type="button" class="toggle-participants inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700">' +
-        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>' +
+        '<i data-lucide="users" class="h-4 w-4"></i>' +
         'Split by person' +
         '</button>' +
         '</div>' +
@@ -224,6 +220,7 @@ function renderPersonPicker(row) {
     );
     picker.innerHTML = personChipsHtml(selected);
     updateSplitPreview(row);
+    window.lucide?.createIcons();
 }
 
 /* Refresh every person picker after the persons roster changes,
@@ -261,6 +258,7 @@ function addExpenseRow() {
     rowSeq += 1;
     expenseRowsEl.insertAdjacentHTML('beforeend', expenseRowHtml(rowSeq));
     updateRemoveButtons();
+    window.lucide?.createIcons();
 }
 
 function removeExpenseRow(row) {
@@ -350,10 +348,11 @@ function renderPersons() {
                 `<button type="button" data-person-id="${p.id}" title="Remove ${escapeHTML(p.name)}" ` +
                 'class="inline-flex h-5 w-5 items-center justify-center rounded-full text-rose-400 transition-colors hover:bg-rose-200 hover:text-rose-700" ' +
                 'aria-label="Remove person">' +
-                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3 w-3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>' +
+                '<i data-lucide="x" class="h-3 w-3"></i>' +
                 '</button></span>'
         )
         .join('');
+    window.lucide?.createIcons();
 }
 
 async function addPerson(event) {
@@ -680,11 +679,14 @@ function renderExpenses() {
     emptyStateEl.classList.toggle('hidden', hasExpenses);
     expenseTableBody.innerHTML = hasExpenses ? expenses.map(tableRowHtml).join('') : '';
     expenseListEl.innerHTML = hasExpenses ? expenses.map(listItemHtml).join('') : '';
+    window.lucide?.createIcons();
 }
 
 function renderAll() {
     renderSummary();
     renderExpenses();
+    if (typeof renderPersons === 'function') renderPersons();
+    window.lucide?.createIcons();
 }
 
 /* -------------------------------------------------------------

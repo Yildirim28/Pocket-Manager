@@ -6,12 +6,25 @@
     <title>Settings — Pocket Manager</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+                }
+            }
+        };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="js/config.js" defer></script>
     <script src="js/site.js" defer></script>
     <script src="js/settings.js" defer></script>
 </head>
-<body class="min-h-full bg-slate-100 font-sans text-slate-800 antialiased" data-page="settings">
+<body class="min-h-full bg-slate-50 font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="settings">
 
     <div id="navbar"></div>
 
@@ -35,9 +48,9 @@
                 <p class="mb-2 text-xs text-slate-400">Shown in the navbar and dashboard instead of your email.</p>
                 <div class="flex flex-wrap items-center gap-3">
                     <input id="nicknameInput" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Shamim"
-                        class="w-full max-w-xs rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                        class="w-full max-w-xs rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                     <button id="saveNicknameButton" type="button"
-                        class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                        class="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
                         <span id="saveNicknameText">Save nickname</span>
                     </button>
                 </div>
@@ -45,14 +58,13 @@
 
             <div class="mt-6 flex flex-wrap gap-3">
                 <button id="exportCsvButton" type="button"
-                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
+                    class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">
+                    <i data-lucide="download" class="h-4 w-4"></i>
                     Export expenses (CSV)
                 </button>
                 <button id="signOutButton" type="button"
-                    class="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200">
+                    class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition-all hover:bg-red-50 hover:text-red-600 active:scale-[0.98]">
+                    <i data-lucide="log-out" class="h-4 w-4"></i>
                     Sign out
                 </button>
             </div>
@@ -66,10 +78,10 @@
                 <div class="relative">
                     <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-400">$</span>
                     <input id="settingsBudgetInput" type="number" min="1" step="50"
-                        class="w-40 rounded-lg border border-slate-300 py-2 pl-7 pr-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                        class="w-40 rounded-xl border border-slate-300 py-2 pl-7 pr-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                 </div>
                 <button id="saveBudgetButton" type="button"
-                    class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700">
+                    class="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:brightness-110 active:scale-[0.98]">
                     Save
                 </button>
             </div>
@@ -83,16 +95,16 @@
                 <div>
                     <label for="newPassword" class="mb-1 block text-sm font-medium text-slate-700">New password</label>
                     <input id="newPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="At least 6 characters"
-                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                        class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                 </div>
                 <div>
                     <label for="confirmNewPassword" class="mb-1 block text-sm font-medium text-slate-700">Confirm new password</label>
                     <input id="confirmNewPassword" type="password" autocomplete="new-password" required placeholder="Repeat new password"
-                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                        class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                 </div>
-                <p id="passwordError" class="hidden rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert"></p>
+                <p id="passwordError" class="hidden rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert"></p>
                 <button id="passwordSubmit" type="submit"
-                    class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                    class="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
                     <span id="passwordSubmitText">Update password</span>
                 </button>
             </form>

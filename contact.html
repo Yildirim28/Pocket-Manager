@@ -6,12 +6,25 @@
     <title>Contact — Pocket Manager</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+                }
+            }
+        };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="js/config.js" defer></script>
     <script src="js/site.js" defer></script>
     <script src="js/contact.js" defer></script>
 </head>
-<body class="min-h-full bg-slate-100 font-sans text-slate-800 antialiased" data-page="contact">
+<body class="min-h-full bg-slate-50 font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="contact">
 
     <div id="navbar"></div>
 
@@ -34,10 +47,8 @@
                     </div>
                 </div>
                 <a id="ownerEmailLink" href="#"
-                    class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                    </svg>
+                    class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 transition-colors hover:text-indigo-700">
+                    <i data-lucide="mail" class="h-4 w-4"></i>
                     <span id="ownerEmailText">—</span>
                 </a>
                 <p class="mt-4 text-xs leading-relaxed text-slate-400">
@@ -52,31 +63,31 @@
                         <div>
                             <label for="contactName" class="mb-1 block text-sm font-medium text-slate-700">Name <span class="text-red-500">*</span></label>
                             <input id="contactName" type="text" autocomplete="name" required placeholder="Your name"
-                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                         </div>
                         <div>
                             <label for="contactEmail" class="mb-1 block text-sm font-medium text-slate-700">Email <span class="text-red-500">*</span></label>
                             <input id="contactEmail" type="email" autocomplete="email" required placeholder="you@example.com"
-                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                         </div>
                     </div>
 
                     <div>
                         <label for="contactSubject" class="mb-1 block text-sm font-medium text-slate-700">Subject <span class="text-red-500">*</span></label>
                         <input id="contactSubject" type="text" required placeholder="What is this about?"
-                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                            class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                     </div>
 
                     <div>
                         <label for="contactMessage" class="mb-1 block text-sm font-medium text-slate-700">Message <span class="text-red-500">*</span></label>
                         <textarea id="contactMessage" rows="5" required placeholder="Tell me what's on your mind…"
-                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"></textarea>
+                            class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"></textarea>
                     </div>
 
-                    <p id="contactError" class="hidden rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert"></p>
+                    <p id="contactError" class="hidden rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert"></p>
 
                     <button id="contactSubmit" type="submit"
-                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                        class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
                         <span id="contactSubmitText">Send message</span>
                     </button>
                 </form>

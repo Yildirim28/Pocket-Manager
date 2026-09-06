@@ -1,13 +1,30 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full scroll-smooth">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pocket Manager — Simple, private expense tracking</title>
-    <meta name="description" content="Pocket Manager — a lightweight, private expense tracker with budgets, categories and insights. Free, open, and powered by Supabase." />
+    <meta name="description" content="Pocket Manager — a lightweight, private expense tracker with budgets, categories, splits and insights. Free, open, and powered by Supabase." />
 
     <!-- Tailwind CSS v3 (Play CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+                }
+            }
+        };
+    </script>
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Lucide icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 
     <!-- Supabase JS SDK v2 (UMD build, exposes window.supabase) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -16,74 +33,120 @@
     <script src="js/config.js" defer></script>
     <script src="js/site.js" defer></script>
 </head>
-<body class="min-h-full bg-slate-50 font-sans text-slate-800 antialiased" data-page="home">
+<body class="min-h-full bg-slate-50 font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="home">
 
     <!-- Navbar (injected by js/site.js) -->
     <div id="navbar"></div>
 
     <main>
         <!-- ===================== HERO ===================== -->
-        <section class="bg-gradient-to-b from-indigo-50 via-slate-50 to-slate-50">
-            <div class="mx-auto max-w-6xl px-4 py-20 text-center md:py-28">
-                <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-4 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm">
+        <section class="relative overflow-hidden">
+            <!-- decorative background -->
+            <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+                <div class="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-gradient-to-tr from-indigo-200/60 via-violet-200/50 to-sky-200/60 blur-3xl"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(15,23,42,0.04)_1px,transparent_0)] [background-size:24px_24px]"></div>
+            </div>
+
+            <div class="relative mx-auto max-w-6xl px-4 pb-20 pt-20 text-center md:pb-28 md:pt-28">
+                <span class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-4 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm backdrop-blur">
+                    <span class="relative flex h-2 w-2">
+                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                    </span>
                     Free &middot; Private &middot; No ads
                 </span>
-                <h1 class="mx-auto mt-6 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">
-                    Know exactly where your money goes.
+                <h1 class="mx-auto mt-7 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 md:text-6xl md:leading-[1.1]">
+                    Know exactly where your
+                    <span class="bg-gradient-to-r from-indigo-600 via-violet-600 to-sky-500 bg-clip-text text-transparent">money goes.</span>
                 </h1>
-                <p class="mx-auto mt-5 max-w-xl text-lg text-slate-600">
+                <p class="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
                     Pocket Manager is a simple, manual expense tracker. Log spending in seconds,
-                    set a monthly budget, and see your top categories at a glance.
+                    split with people, set a monthly budget, and see insights at a glance.
                 </p>
-                <div class="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                     <a id="heroCta" href="signup.html"
-                        class="w-full rounded-xl bg-indigo-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-600/20 transition-colors hover:bg-indigo-700 sm:w-auto">
+                        class="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:shadow-xl hover:shadow-indigo-600/30 hover:brightness-110 active:scale-[0.98] sm:w-auto">
                         Get started — it's free
+                        <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
                     </a>
                     <a href="login.html"
-                        class="w-full rounded-xl border border-slate-300 bg-white px-8 py-3.5 text-base font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-100 sm:w-auto">
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-3.5 text-base font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] sm:w-auto">
+                        <i data-lucide="log-in" class="h-4 w-4"></i>
                         Sign in
                     </a>
                 </div>
-                <p class="mt-4 text-xs text-slate-400">Your data stays in your own private account.</p>
+                <p class="mt-5 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+                    <i data-lucide="shield-check" class="h-3.5 w-3.5"></i>
+                    Your data stays in your own private account.
+                </p>
             </div>
         </section>
 
         <!-- ===================== FEATURES ===================== -->
-        <section class="mx-auto max-w-6xl px-4 py-16 md:py-20" aria-labelledby="features-heading">
-            <h2 id="features-heading" class="text-center text-2xl font-bold text-slate-900 md:text-3xl">
-                Everything you need, nothing you don't
+        <section class="mx-auto max-w-6xl px-4 py-16 md:py-24" aria-labelledby="features-heading">
+            <h2 id="features-heading" class="text-center text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+                Everything you need, <span class="text-slate-400">nothing you don't</span>
             </h2>
-            <p class="mx-auto mt-3 max-w-lg text-center text-slate-500">
+            <p class="mx-auto mt-4 max-w-lg text-center text-slate-500">
                 No bank connections, no automatic scraping — just quick manual entry that actually sticks.
             </p>
 
-            <div class="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+            <div class="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
+                <div class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/30">
+                        <i data-lucide="zap" class="h-6 w-6"></i>
                     </span>
-                    <h3 class="mt-4 text-lg font-semibold text-slate-900">Quick entry</h3>
+                    <h3 class="mt-5 text-lg font-semibold text-slate-900">Quick entry</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-500">
-                        Add an expense in under five seconds: description, amount, category, date. Done.
+                        Add multiple expenses in one go — description, amount, category, date. Done in seconds.
                     </p>
                 </div>
 
-                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" /></svg>
+                <div class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-500/30">
+                        <i data-lucide="gauge" class="h-6 w-6"></i>
                     </span>
-                    <h3 class="mt-4 text-lg font-semibold text-slate-900">Budget tracking</h3>
+                    <h3 class="mt-5 text-lg font-semibold text-slate-900">Budget tracking</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-500">
                         Set a monthly target and watch a live progress bar change color as you approach your limit.
                     </p>
                 </div>
 
-                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
+                <div class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-md shadow-rose-500/30">
+                        <i data-lucide="users" class="h-6 w-6"></i>
                     </span>
-                    <h3 class="mt-4 text-lg font-semibold text-slate-900">Private by default</h3>
+                    <h3 class="mt-5 text-lg font-semibold text-slate-900">Split with people</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                        Share expenses across people with automatic equal splits and per-person totals.
+                    </p>
+                </div>
+
+                <div class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-md shadow-sky-500/30">
+                        <i data-lucide="plug-zap" class="h-6 w-6"></i>
+                    </span>
+                    <h3 class="mt-5 text-lg font-semibold text-slate-900">Utilities section</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                        Track Wifi, Gas and Electricity separately with a dedicated monthly breakdown.
+                    </p>
+                </div>
+
+                <div class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/30">
+                        <i data-lucide="pie-chart" class="h-6 w-6"></i>
+                    </span>
+                    <h3 class="mt-5 text-lg font-semibold text-slate-900">Instant insights</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                        Top categories, per-person spending and transaction history — all on one dashboard.
+                    </p>
+                </div>
+
+                <div class="group rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-md shadow-violet-500/30">
+                        <i data-lucide="shield-check" class="h-6 w-6"></i>
+                    </span>
+                    <h3 class="mt-5 text-lg font-semibold text-slate-900">Private by default</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-500">
                         Every account only ever sees its own expenses, enforced by row-level security in the database.
                     </p>
@@ -92,29 +155,29 @@
         </section>
 
         <!-- ===================== HOW IT WORKS ===================== -->
-        <section class="border-y border-slate-200 bg-white" aria-labelledby="how-heading">
-            <div class="mx-auto max-w-6xl px-4 py-16 md:py-20">
-                <h2 id="how-heading" class="text-center text-2xl font-bold text-slate-900 md:text-3xl">
+        <section class="border-y border-slate-200/80 bg-white" aria-labelledby="how-heading">
+            <div class="mx-auto max-w-6xl px-4 py-16 md:py-24">
+                <h2 id="how-heading" class="text-center text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
                     How it works
                 </h2>
-                <ol class="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
+                <ol class="mt-14 grid grid-cols-1 gap-10 md:grid-cols-3">
                     <li class="relative">
-                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-lg font-bold text-white">1</span>
-                        <h3 class="mt-4 text-base font-semibold text-slate-900">Create your free account</h3>
+                        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-lg font-bold text-white shadow-md shadow-indigo-600/30">1</span>
+                        <h3 class="mt-4 flex items-center gap-2 text-base font-semibold text-slate-900"><i data-lucide="user-plus" class="h-4 w-4 text-indigo-500"></i> Create your free account</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-500">
                             Sign up with just an email and password. No credit card, no personal data harvesting.
                         </p>
                     </li>
                     <li>
-                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-lg font-bold text-white">2</span>
-                        <h3 class="mt-4 text-base font-semibold text-slate-900">Log expenses as you spend</h3>
+                        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-lg font-bold text-white shadow-md shadow-indigo-600/30">2</span>
+                        <h3 class="mt-4 flex items-center gap-2 text-base font-semibold text-slate-900"><i data-lucide="pencil-line" class="h-4 w-4 text-indigo-500"></i> Log expenses as you spend</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-500">
                             A quick form and a clean history list keep manual tracking painless on desktop and mobile.
                         </p>
                     </li>
                     <li>
-                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-lg font-bold text-white">3</span>
-                        <h3 class="mt-4 text-base font-semibold text-slate-900">Stay on budget</h3>
+                        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-lg font-bold text-white shadow-md shadow-indigo-600/30">3</span>
+                        <h3 class="mt-4 flex items-center gap-2 text-base font-semibold text-slate-900"><i data-lucide="trending-up" class="h-4 w-4 text-indigo-500"></i> Stay on budget</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-500">
                             Monthly totals, top categories and a color-coded budget bar show where you stand instantly.
                         </p>
@@ -124,27 +187,29 @@
         </section>
 
         <!-- ===================== CTA ===================== -->
-        <section class="mx-auto max-w-6xl px-4 py-16 md:py-20">
-            <div class="rounded-3xl bg-indigo-600 px-6 py-14 text-center shadow-xl shadow-indigo-600/20 md:px-12">
-                <h2 class="text-2xl font-bold text-white md:text-3xl">Start tracking today</h2>
-                <p class="mx-auto mt-3 max-w-md text-indigo-100">
+        <section class="mx-auto max-w-6xl px-4 py-16 md:py-24">
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 px-6 py-14 text-center shadow-2xl shadow-indigo-600/30 md:px-12">
+                <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:24px_24px]"></div>
+                <h2 class="relative text-2xl font-bold text-white md:text-4xl">Start tracking today</h2>
+                <p class="relative mx-auto mt-3 max-w-md text-indigo-100">
                     It takes about thirty seconds to set up your account and log your first expense.
                 </p>
                 <a href="signup.html"
-                    class="mt-8 inline-block rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-indigo-700 shadow-lg transition-colors hover:bg-indigo-50">
+                    class="relative mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-indigo-700 shadow-lg transition-all hover:bg-indigo-50 active:scale-[0.98]">
                     Create your account
+                    <i data-lucide="arrow-right" class="h-4 w-4"></i>
                 </a>
             </div>
         </section>
     </main>
 
     <!-- ===================== FOOTER ===================== -->
-    <footer class="border-t border-slate-200 bg-white">
+    <footer class="border-t border-slate-200/80 bg-white">
         <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-400 sm:flex-row">
             <p>&copy; <span id="footerYear"></span> Pocket Manager. Static frontend on GitHub Pages, data in Supabase.</p>
             <div class="flex items-center gap-4">
-                <a href="contact.html" class="font-medium text-slate-500 hover:text-slate-700">Contact</a>
-                <a href="https://github.com/Yildirim28/Pocket-Manager" class="font-medium text-slate-500 hover:text-slate-700">GitHub</a>
+                <a href="contact.html" class="font-medium text-slate-500 transition-colors hover:text-indigo-600">Contact</a>
+                <a href="https://github.com/Yildirim28/Pocket-Manager" class="font-medium text-slate-500 transition-colors hover:text-indigo-600">GitHub</a>
             </div>
         </div>
     </footer>

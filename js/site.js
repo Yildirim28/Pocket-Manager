@@ -113,11 +113,7 @@ async function requireAuth() {
 /* -------------------------------------------------------------
    NAVBAR (auth-aware, injected into #navbar placeholder)
 ------------------------------------------------------------- */
-const NAV_LOGO =
-    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" ' +
-    'stroke="currentColor" class="h-6 w-6" aria-hidden="true">' +
-    '<path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" />' +
-    '</svg>';
+const NAV_LOGO = '<i data-lucide="wallet" class="h-6 w-6"></i>';
 
 function navLinkClass(page, current) {
     return (
@@ -160,15 +156,19 @@ function renderNavbar(session) {
 
     const authArea = user
         ? `<div class="hidden items-center gap-3 md:flex">
-               <span class="max-w-[200px] truncate text-sm font-medium text-slate-700" title="${escapeHTML(email)}">${escapeHTML(displayName)}</span>
+               <span class="max-w-[180px] truncate rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700" title="${escapeHTML(email)}">${escapeHTML(displayName)}</span>
                <button id="signOutBtn" type="button"
-                   class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200">
+                   class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600">
+                   <i data-lucide="log-out" class="h-4 w-4"></i>
                    Sign out
                </button>
            </div>`
         : `<div class="hidden items-center gap-2 md:flex">
                <a href="login.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">Sign in</a>
-               <a href="signup.html" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700">Get started</a>
+               <a href="signup.html" class="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-indigo-600/25 transition-all hover:brightness-110">
+                   Get started
+                   <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+               </a>
            </div>`;
 
     const mobileLinks = links
@@ -176,34 +176,38 @@ function renderNavbar(session) {
         .join('');
 
     const mobileAuth = user
-        ? `<div class="border-t border-slate-200 pt-3">
-               <p class="mb-2 truncate px-3 text-xs text-slate-400">${escapeHTML(displayName)}</p>
+        ? `<div class="border-t border-slate-100 pt-3">
+               <p class="mb-2 truncate px-3 text-xs font-medium text-slate-400">${escapeHTML(displayName)}</p>
                <button id="signOutBtnMobile" type="button"
-                   class="w-full rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">Sign out</button>
+                   class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">
+                   <i data-lucide="log-out" class="h-4 w-4"></i> Sign out
+               </button>
            </div>`
-        : `<div class="border-t border-slate-200 pt-3">
+        : `<div class="border-t border-slate-100 pt-3">
                <a href="login.html" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Sign in</a>
-               <a href="signup.html" class="mt-1 block rounded-lg bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white">Get started</a>
+               <a href="signup.html" class="mt-1 flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-2 text-sm font-semibold text-white">Get started <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i></a>
            </div>`;
 
     mount.innerHTML =
-        '<header class="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">' +
+        '<header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-md">' +
         '<nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4" aria-label="Main navigation">' +
         '<a href="index.html" class="flex items-center gap-3">' +
-        `<span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">${NAV_LOGO}</span>` +
-        '<span><span class="block text-lg font-bold leading-tight text-slate-900">Pocket Manager</span>' +
-        '<span class="block text-xs text-slate-500">Manual expense tracking</span></span>' +
+        '<span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/30">' + NAV_LOGO + '</span>' +
+        '<span><span class="block text-lg font-extrabold leading-tight tracking-tight text-slate-900">Pocket Manager</span>' +
+        '<span class="block text-xs font-medium text-slate-400">Manual expense tracking</span></span>' +
         '</a>' +
         `<div class="hidden items-center gap-1 md:flex">${desktopLinks}</div>` +
         authArea +
         '<button id="navToggle" type="button" aria-label="Toggle menu" aria-expanded="false" ' +
-        'class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden">' +
-        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">' +
-        '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>' +
+        'class="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden">' +
+        '<i data-lucide="menu" class="h-6 w-6"></i>' +
         '</button>' +
         '</nav>' +
-        `<div id="navMobileMenu" class="hidden border-t border-slate-200 bg-white px-4 py-3 md:hidden">${mobileLinks}${mobileAuth}</div>` +
+        `<div id="navMobileMenu" class="hidden border-t border-slate-100 bg-white px-4 py-3 md:hidden">${mobileLinks}${mobileAuth}</div>` +
         '</header>';
+
+    // Render Lucide icons inside the injected markup.
+    window.lucide?.createIcons();
 
     const toggle = document.getElementById('navToggle');
     const menu = document.getElementById('navMobileMenu');
