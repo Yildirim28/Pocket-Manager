@@ -168,29 +168,31 @@ function initAccent() {
 }
 
 /* Renders swatch buttons into #accentPicker (settings page). */
+/* Marks the active swatch in #accentPicker (static HTML on the
+   settings page) and wires click handlers. */
 function initAccentPicker() {
     const mount = document.getElementById('accentPicker');
     if (!mount) return;
     const current = localStorage.getItem(ACCENT_STORAGE_KEY) || 'indigo';
 
-    mount.innerHTML = Object.entries(ACCENTS)
-        .map(([key, a]) => {
-            const active = key === current;
-            const ring = active ? `box-shadow:0 0 0 2px #fff,0 0 0 4px ${a.from};` : '';
-            return (
-                `<button type="button" data-accent="${key}" title="${a.label}" aria-label="${a.label}" ` +
-                `class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95" ` +
-                `style="background:linear-gradient(135deg, ${a.from}, ${a.to});${ring}"></button>`
-            );
-        })
-        .join('');
-
     mount.querySelectorAll('button[data-accent]').forEach((button) => {
-        button.addEventListener('click', () => {
-            applyAccent(button.getAttribute('data-accent'));
-            initAccentPicker();
-            showToast(`Accent set to ${ACCENTS[button.getAttribute('data-accent')].label}.`, 'success');
-        });
+        const key = button.getAttribute('data-accent');
+        const accent = ACCENTS[key];
+        if (!accent) return;
+        const active = key === current;
+        button.style.boxShadow = active
+            ? `0 0 0 2px #fff, 0 0 0 4px ${accent.from}`
+            : '';
+        button.setAttribute('aria-pressed', String(active));
+
+        if (!button.dataset.wired) {
+            button.dataset.wired = '1';
+            button.addEventListener('click', () => {
+                applyAccent(key);
+                initAccentPicker();
+                showToast(`Accent set to ${ACCENTS[key].label}.`, 'success');
+            });
+        }
     });
 }
 
