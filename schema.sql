@@ -23,6 +23,15 @@ create table if not exists public.expenses (
 alter table public.expenses
     add column if not exists user_id uuid default auth.uid() references auth.users (id) on delete cascade;
 
+-- v3: optional per-person cost breakdown for an expense.
+-- Stored as a JSON array of {name, amount} shares, e.g.
+-- [{"name":"Alice","amount":30},{"name":"Bob","amount":30}]
+alter table public.expenses
+    add column if not exists participants jsonb default null;
+
+comment on column public.expenses.participants
+    is 'Optional per-person shares: JSON array of {name, amount}';
+
 -- NOTE: rows created under the old permissive v1 setup have no
 -- owner (user_id null) and become invisible to every account.
 -- They were public test data; uncomment to remove them:

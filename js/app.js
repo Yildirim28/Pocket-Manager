@@ -3,6 +3,9 @@
    Dashboard logic (app.html). Requires a signed-in user; the
    page redirects to login.html otherwise. Uses the shared
    client `sb` and helpers from js/config.js and js/site.js.
+
+   Supports bulk entry (multiple expense rows at once) and an
+   optional per-person cost breakdown on each row.
    ============================================================= */
 
 'use strict';
@@ -13,6 +16,7 @@
 let expenses = [];
 let monthlyBudget = loadBudget();
 let armTimer = null;
+let rowSeq = 0;
 
 /* -------------------------------------------------------------
    DOM REFERENCES
@@ -25,6 +29,10 @@ const totalSpentSubEl = document.getElementById('totalSpentSub');
 const topCategoryBadgeEl = document.getElementById('topCategoryBadge');
 const topCategoryAmountEl = document.getElementById('topCategoryAmount');
 const totalCountEl = document.getElementById('totalCount');
+const utilitiesTotalMonthEl = document.getElementById('utilitiesTotalMonth');
+const utilitiesSubEl = document.getElementById('utilitiesSub');
+const peopleCardEl = document.getElementById('peopleCard');
+const peopleBreakdownEl = document.getElementById('peopleBreakdown');
 
 const budgetInput = document.getElementById('budgetInput');
 const budgetBar = document.getElementById('budgetBar');
@@ -33,13 +41,9 @@ const budgetSpentLabelEl = document.getElementById('budgetSpentLabel');
 
 const expenseForm = document.getElementById('expenseForm');
 const expenseFields = document.getElementById('expenseFields');
-const descriptionInput = document.getElementById('description');
-const descriptionErrorEl = document.getElementById('descriptionError');
-const amountInput = document.getElementById('amount');
-const amountErrorEl = document.getElementById('amountError');
-const categorySelect = document.getElementById('category');
-const dateInput = document.getElementById('expenseDate');
-const dateErrorEl = document.getElementById('dateError');
+const expenseRowsEl = document.getElementById('expenseRows');
+const addRowButton = document.getElementById('addRowButton');
+const rowErrorEl = document.getElementById('rowError');
 const submitButton = document.getElementById('submitButton');
 const submitButtonText = document.getElementById('submitButtonText');
 
@@ -58,11 +62,24 @@ const CATEGORY_COLORS = {
     Food: 'bg-green-100 text-green-800',
     Transport: 'bg-blue-100 text-blue-800',
     Bills: 'bg-red-100 text-red-800',
+    Utilities: 'bg-sky-100 text-sky-800',
     Entertainment: 'bg-purple-100 text-purple-800',
     Shopping: 'bg-amber-100 text-amber-800',
     Other: 'bg-slate-100 text-slate-800',
     General: 'bg-indigo-100 text-indigo-800'
 };
+
+const CATEGORIES = [
+    'Food',
+    'Transport',
+    'Bills',
+    'Utilities',
+    'Entertainment',
+    'Shopping',
+    'Other'
+];
+
+const UTILITIES_CATEGORY = 'Utilities';
 
 const TRASH_ICON =
     '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" ' +
@@ -77,6 +94,181 @@ const DELETE_BUTTON_CLASSES =
 const DELETE_ARMED_CLASSES =
     'inline-flex items-center justify-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs ' +
     'font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500';
+
+const INPUT_CLASSES =
+    'w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 ' +
+    'focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
+
+const PERSON_INPUT_CLASSES =
+    'w-28 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm placeholder-slate-400 ' +
+    'focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
+
+const PERSON_AMOUNT_CLASSES =
+    'w-24 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm placeholder-slate-400 ' +
+    'focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
+
+/* -------------------------------------------------------------
+   DYNAMIC EXPENSE ROWS (bulk entry)
+------------------------------------------------------------- */
+function categoryOptionsHtml(selected) {
+    return CATEGORIES.map(
+        (c) => `<option value="${c}"${c === selected ? ' selected' : ''}>${c}</option>`
+    ).join('');
+}
+
+function expenseRowHtml(rowId) {
+    return (
+        '<div class="expense-row rounded-xl border border-slate-200 bg-slate-50/60 p-4" data-row="' + rowId + '">' +
+        '<div class="grid grid-cols-1 gap-3 md:grid-cols-12">' +
+        '<div class="md:col-span-4">' +
+        '<label class="mb-1 block text-sm font-medium text-slate-700">Description <span class="text-red-500">*</span></label>' +
+        '<input type="text" data-field="description" autocomplete="off" placeholder="e.g. Grocery run" class="' + INPUT_CLASSES + '" />' +
+        '</div>' +
+        '<div class="md:col-span-2">' +
+        '<label class="mb-1 block text-sm font-medium text-slate-700">Amount ($) <span class="text-red-500">*</span></label>' +
+        '<div class="relative">' +
+        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-400">$</span>' +
+        '<input type="number" data-field="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="rounded-lg border border-slate-300 bg-white py-2.5 pl-7 pr-3 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-full" />' +
+        '</div>' +
+        '</div>' +
+        '<div class="md:col-span-2">' +
+        '<label class="mb-1 block text-sm font-medium text-slate-700">Category</label>' +
+        '<select data-field="category" class="' + INPUT_CLASSES + '">' +
+        categoryOptionsHtml('Food') +
+        '</select>' +
+        '</div>' +
+        '<div class="md:col-span-2">' +
+        '<label class="mb-1 block text-sm font-medium text-slate-700">Date <span class="text-red-500">*</span></label>' +
+        '<input type="date" data-field="date" value="' + todayLocalISO() + '" class="' + INPUT_CLASSES + '" />' +
+        '</div>' +
+        '<div class="flex items-end md:col-span-2">' +
+        '<button type="button" class="remove-row-button inline-flex w-full items-center justify-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-500 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600">' +
+        'Remove' +
+        '</button>' +
+        '</div>' +
+        '</div>' +
+        '<div class="mt-3 border-t border-slate-200 pt-3">' +
+        '<div class="flex items-center justify-between">' +
+        '<button type="button" class="toggle-participants inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>' +
+        'Split by person' +
+        '</button>' +
+        '<span class="participants-total text-xs font-medium text-slate-400"></span>' +
+        '</div>' +
+        '<div class="participants mt-3 hidden space-y-2">' +
+        '<p class="text-xs text-slate-400">Enter each person\'s share, e.g. Alice $30, Bob $30. Total should match the amount.</p>' +
+        '<div class="participant-rows space-y-2"></div>' +
+        '<button type="button" class="add-participant inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">+ Add person</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>'
+    );
+}
+
+function participantRowHtml() {
+    return (
+        '<div class="participant-row flex items-center gap-2">' +
+        '<input type="text" data-pfield="name" placeholder="Name (e.g. Alice)" class="' + PERSON_INPUT_CLASSES + '" />' +
+        '<div class="relative">' +
+        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-xs text-slate-400">$</span>' +
+        '<input type="number" data-pfield="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="rounded-lg border border-slate-300 bg-white py-1.5 pl-5 pr-2 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-24" />' +
+        '</div>' +
+        '<button type="button" class="remove-participant inline-flex items-center justify-center rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label="Remove person">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>' +
+        '</button>' +
+        '</div>'
+    );
+}
+
+function addExpenseRow() {
+    rowSeq += 1;
+    expenseRowsEl.insertAdjacentHTML('beforeend', expenseRowHtml(rowSeq));
+    updateRemoveButtons();
+}
+
+function removeExpenseRow(row) {
+    if (document.querySelectorAll('.expense-row').length <= 1) {
+        showToast('At least one expense row is required.', 'info');
+        return;
+    }
+    row.remove();
+    updateRemoveButtons();
+}
+
+function updateRemoveButtons() {
+    const rows = document.querySelectorAll('.expense-row');
+    const single = rows.length <= 1;
+    rows.forEach((row) => {
+        const btn = row.querySelector('.remove-row-button');
+        if (btn) btn.disabled = single;
+        if (btn) btn.classList.toggle('opacity-40', single);
+        btn.classList.toggle('cursor-not-allowed', single);
+    });
+}
+
+function updateParticipantsTotal(row) {
+    const totalEl = row.querySelector('.participants-total');
+    if (!totalEl) return;
+    let sum = 0;
+    let count = 0;
+    row.querySelectorAll('.participant-row').forEach((p) => {
+        const amount = Number(p.querySelector('[data-pfield="amount"]').value);
+        if (Number.isFinite(amount) && amount > 0) {
+            sum += amount;
+            count += 1;
+        }
+    });
+    const amount = Number(row.querySelector('[data-field="amount"]').value) || 0;
+    if (count === 0) {
+        totalEl.textContent = '';
+    } else {
+        totalEl.textContent = `People total: ${formatCurrency(sum)} of ${formatCurrency(amount)}`;
+        totalEl.className =
+            'participants-total text-xs font-semibold ' +
+            (Math.abs(sum - amount) < 0.005 ? 'text-emerald-600' : 'text-amber-600');
+    }
+}
+
+function readRow(row) {
+    const participants = [];
+    row.querySelectorAll('.participant-row').forEach((p) => {
+        const name = p.querySelector('[data-pfield="name"]').value.trim();
+        const amount = Number(p.querySelector('[data-pfield="amount"]').value);
+        if (name && Number.isFinite(amount) && amount > 0) {
+            participants.push({ name, amount: Math.round(amount * 100) / 100 });
+        }
+    });
+    return {
+        description: row.querySelector('[data-field="description"]').value.trim(),
+        amountInput: row.querySelector('[data-field="amount"]'),
+        amount: Number(row.querySelector('[data-field="amount"]').value),
+        category: row.querySelector('[data-field="category"]').value,
+        date: row.querySelector('[data-field="date"]').value,
+        participants
+    };
+}
+
+function validateRow(row) {
+    const data = readRow(row);
+    const issues = [];
+
+    if (!data.description) issues.push('a description');
+    if (!Number.isFinite(data.amount) || data.amount <= 0) issues.push('a valid amount');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) issues.push('a valid date');
+
+    if (issues.length > 0) {
+        return `"${data.description || 'Untitled'}" needs ${issues.join(', ')}.`;
+    }
+
+    if (data.participants.length > 0) {
+        const sum = data.participants.reduce((acc, p) => acc + p.amount, 0);
+        if (Math.abs(sum - data.amount) > 0.005) {
+            return `"${data.description}": person shares total ${formatCurrency(sum)} but the expense amount is ${formatCurrency(data.amount)}. Adjust them to match.`;
+        }
+    }
+
+    return null;
+}
 
 /* -------------------------------------------------------------
    CONNECTION STATUS & FORM STATE
@@ -98,7 +290,8 @@ function setFormEnabled(enabled) {
 
 function setSubmitting(submitting) {
     submitButton.disabled = submitting;
-    submitButtonText.textContent = submitting ? 'Adding…' : 'Add Expense';
+    addRowButton.disabled = submitting;
+    submitButtonText.textContent = submitting ? 'Adding…' : 'Add Expenses';
 }
 
 function setLoading(loading) {
@@ -106,50 +299,14 @@ function setLoading(loading) {
     refreshButton.disabled = loading;
 }
 
-/* -------------------------------------------------------------
-   FIELD VALIDATION HELPERS
-------------------------------------------------------------- */
-function setFieldError(input, errorEl, message) {
-    input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-    input.setAttribute('aria-invalid', 'true');
-    errorEl.textContent = message;
-    errorEl.classList.remove('hidden');
+function showRowError(message) {
+    rowErrorEl.textContent = message;
+    rowErrorEl.classList.remove('hidden');
 }
 
-function clearFieldError(input, errorEl) {
-    input.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
-    input.removeAttribute('aria-invalid');
-    errorEl.textContent = '';
-    errorEl.classList.add('hidden');
-}
-
-function clearAllFieldErrors() {
-    clearFieldError(descriptionInput, descriptionErrorEl);
-    clearFieldError(amountInput, amountErrorEl);
-    clearFieldError(dateInput, dateErrorEl);
-}
-
-function validateExpenseForm() {
-    let valid = true;
-
-    const description = descriptionInput.value.trim();
-    if (!description) {
-        setFieldError(descriptionInput, descriptionErrorEl, 'Please enter a description.');
-        valid = false;
-    }
-
-    const amount = Number(amountInput.value);
-    if (amountInput.value.trim() === '' || !Number.isFinite(amount) || amount <= 0) {
-        setFieldError(amountInput, amountErrorEl, 'Enter a valid amount greater than $0.');
-        valid = false;
-    }
-
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateInput.value)) {
-        setFieldError(dateInput, dateErrorEl, 'Please choose a valid date.');
-        valid = false;
-    }
-
-    return valid;
+function hideRowError() {
+    rowErrorEl.textContent = '';
+    rowErrorEl.classList.add('hidden');
 }
 
 /* -------------------------------------------------------------
@@ -179,11 +336,31 @@ function renderSummary() {
         year: 'numeric'
     });
 
-    const totalsByCategory = monthExpenses.reduce((acc, expense) => {
-        const category = expense.category || 'General';
-        acc[category] = (acc[category] || 0) + Number(expense.amount);
-        return acc;
-    }, {});
+    // Utilities this month
+    const utilitiesExpenses = monthExpenses.filter(
+        (expense) => (expense.category || '') === UTILITIES_CATEGORY
+    );
+    const utilitiesTotal = utilitiesExpenses.reduce(
+        (sum, expense) => sum + Number(expense.amount),
+        0
+    );
+    utilitiesTotalMonthEl.textContent = formatCurrency(utilitiesTotal);
+    if (utilitiesExpenses.length > 0) {
+        utilitiesSubEl.textContent =
+            `${utilitiesExpenses.length} utilit${utilitiesExpenses.length === 1 ? 'y' : 'ies'} ` +
+            `expense${utilitiesExpenses.length === 1 ? '' : 's'} this month`;
+    } else {
+        utilitiesSubEl.textContent = 'No utilities expenses yet this month';
+    }
+
+    // Highest category (excluding Utilities, which has its own card)
+    const totalsByCategory = monthExpenses
+        .filter((expense) => (expense.category || '') !== UTILITIES_CATEGORY)
+        .reduce((acc, expense) => {
+            const category = expense.category || 'General';
+            acc[category] = (acc[category] || 0) + Number(expense.amount);
+            return acc;
+        }, {});
 
     const topEntry = Object.entries(totalsByCategory).sort((a, b) => b[1] - a[1])[0];
     if (topEntry) {
@@ -201,6 +378,10 @@ function renderSummary() {
     totalCountEl.textContent = expenses.length;
     historyCountEl.textContent = expenses.length;
 
+    // Per-person totals this month
+    renderPeopleBreakdown(monthExpenses, totalThisMonth);
+
+    // Budget progress
     const percent = monthlyBudget > 0 ? (totalThisMonth / monthlyBudget) * 100 : 0;
     budgetBar.style.width = `${Math.min(percent, 100)}%`;
     budgetBar.className =
@@ -213,6 +394,49 @@ function renderSummary() {
         `${formatCurrency(totalThisMonth)} of ${formatCurrency(monthlyBudget)} budget`;
 }
 
+function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
+    const totalsByPerson = {};
+    let hasAny = false;
+
+    monthExpenses.forEach((expense) => {
+        const participants = Array.isArray(expense.participants) ? expense.participants : [];
+        participants.forEach((p) => {
+            if (!p || !p.name) return;
+            const key = String(p.name).trim();
+            if (!key) return;
+            totalsByPerson[key] = (totalsByPerson[key] || 0) + Number(p.amount || 0);
+            hasAny = true;
+        });
+    });
+
+    if (!hasAny) {
+        peopleCardEl.classList.add('hidden');
+        return;
+    }
+
+    peopleCardEl.classList.remove('hidden');
+    const entries = Object.entries(totalsByPerson).sort((a, b) => b[1] - a[1]);
+    const max = entries[0][1] || 1;
+
+    peopleBreakdownEl.innerHTML = entries
+        .map(([name, amount]) => {
+            const width = Math.max(4, Math.round((amount / max) * 100));
+            const share = totalThisMonth > 0 ? Math.round((amount / totalThisMonth) * 100) : 0;
+            return (
+                '<div>' +
+                '<div class="mb-1 flex items-center justify-between text-sm">' +
+                `<span class="font-medium text-slate-700">${escapeHTML(name)}</span>` +
+                `<span class="tabular-nums text-slate-500">${formatCurrency(amount)} <span class="text-xs text-slate-400">(${share}%)</span></span>` +
+                '</div>' +
+                '<div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">' +
+                `<div class="h-full rounded-full bg-rose-400" style="width: ${width}%"></div>` +
+                '</div>' +
+                '</div>'
+            );
+        })
+        .join('');
+}
+
 function badgeHtml(category) {
     const name = category || 'General';
     const colors = CATEGORY_COLORS[name] || CATEGORY_COLORS.General;
@@ -220,6 +444,18 @@ function badgeHtml(category) {
         `<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${colors}">` +
         `${escapeHTML(name)}</span>`
     );
+}
+
+function participantsSummaryHtml(expense) {
+    const participants = Array.isArray(expense.participants) ? expense.participants : [];
+    if (participants.length === 0) return '<span class="text-xs text-slate-400">—</span>';
+    return participants
+        .map(
+            (p) =>
+                `<span class="inline-flex items-center rounded-md bg-rose-50 px-1.5 py-0.5 text-xs font-medium text-rose-700">` +
+                `${escapeHTML(p.name)} ${formatCurrency(p.amount)}</span>`
+        )
+        .join(' ');
 }
 
 function deleteButtonHtml(id) {
@@ -235,6 +471,7 @@ function tableRowHtml(expense) {
         `<td class="px-6 py-4"><p class="font-medium text-slate-800">${escapeHTML(expense.description)}</p>` +
         `<p class="text-xs text-slate-400">Added ${formatTimestamp(expense.created_at)}</p></td>` +
         `<td class="px-6 py-4">${badgeHtml(expense.category)}</td>` +
+        `<td class="px-6 py-4"><div class="flex max-w-xs flex-wrap gap-1">${participantsSummaryHtml(expense)}</div></td>` +
         `<td class="px-6 py-4 text-slate-600">${formatDate(expense.expense_date)}</td>` +
         `<td class="px-6 py-4 text-right font-semibold tabular-nums text-slate-800">${formatCurrency(expense.amount)}</td>` +
         `<td class="px-6 py-4 text-right">${deleteButtonHtml(expense.id)}</td>` +
@@ -250,6 +487,7 @@ function listItemHtml(expense) {
         `<p class="truncate font-medium text-slate-800">${escapeHTML(expense.description)}</p>` +
         `<div class="mt-2 flex flex-wrap items-center gap-2">${badgeHtml(expense.category)}` +
         `<span class="text-xs text-slate-500">${formatDate(expense.expense_date)}</span></div>` +
+        `<div class="mt-2 flex flex-wrap gap-1">${participantsSummaryHtml(expense)}</div>` +
         '</div>' +
         '<div class="flex flex-col items-end gap-2">' +
         `<span class="font-semibold tabular-nums text-slate-800">${formatCurrency(expense.amount)}</span>` +
@@ -293,36 +531,58 @@ async function fetchExpenses() {
     }
 }
 
-async function addExpense(event) {
+async function addExpenses(event) {
     event.preventDefault();
+    hideRowError();
 
-    clearAllFieldErrors();
-    if (!validateExpenseForm()) return;
+    const rows = Array.from(document.querySelectorAll('.expense-row'));
+    const payloads = [];
+    const errors = [];
 
-    const payload = {
-        description: descriptionInput.value.trim(),
-        amount: Math.round(Number(amountInput.value) * 100) / 100,
-        category: categorySelect.value,
-        expense_date: dateInput.value
-    };
+    rows.forEach((row) => {
+        const issue = validateRow(row);
+        if (issue) {
+            errors.push(issue);
+            return;
+        }
+        const data = readRow(row);
+        payloads.push({
+            description: data.description,
+            amount: Math.round(data.amount * 100) / 100,
+            category: data.category,
+            expense_date: data.date,
+            participants: data.participants.length > 0 ? data.participants : null
+        });
+    });
+
+    if (errors.length > 0) {
+        showRowError(errors[0] + (errors.length > 1 ? ` (+${errors.length - 1} more issue${errors.length > 2 ? 's' : ''})` : ''));
+        return;
+    }
+
+    if (payloads.length === 0) return;
 
     setSubmitting(true);
     try {
         const { data, error } = await sb
             .from(EXPENSES_TABLE)
-            .insert(payload)
-            .select()
-            .single();
+            .insert(payloads)
+            .select();
 
         if (error) throw error;
 
-        expenses.unshift(data);
+        expenses.unshift(...(data ?? []));
         sortExpenses();
         renderAll();
         resetForm();
-        showToast('Expense added successfully.', 'success');
+        showToast(
+            payloads.length === 1
+                ? 'Expense added successfully.'
+                : `${payloads.length} expenses added successfully.`,
+            'success'
+        );
     } catch (error) {
-        showToast(`Failed to add expense: ${error.message}`, 'error');
+        showToast(`Failed to add expenses: ${error.message}`, 'error');
     } finally {
         setSubmitting(false);
     }
@@ -352,10 +612,9 @@ async function deleteExpense(id) {
 }
 
 function resetForm() {
-    expenseForm.reset();
-    clearAllFieldErrors();
-    dateInput.value = todayLocalISO();
-    descriptionInput.focus();
+    expenseRowsEl.innerHTML = '';
+    addExpenseRow();
+    hideRowError();
 }
 
 /* -------------------------------------------------------------
@@ -388,10 +647,55 @@ function armDeleteButton(button) {
 }
 
 /* -------------------------------------------------------------
+   FORM EVENT DELEGATION
+------------------------------------------------------------- */
+function initFormEvents() {
+    addRowButton.addEventListener('click', addExpenseRow);
+
+    expenseRowsEl.addEventListener('click', (event) => {
+        const row = event.target.closest('.expense-row');
+        if (!row) return;
+
+        if (event.target.closest('.remove-row-button')) {
+            removeExpenseRow(row);
+            return;
+        }
+
+        if (event.target.closest('.toggle-participants')) {
+            const box = row.querySelector('.participants');
+            box.classList.toggle('hidden');
+            if (!box.classList.contains('hidden') && row.querySelectorAll('.participant-row').length === 0) {
+                row.querySelector('.participant-rows').insertAdjacentHTML('beforeend', participantRowHtml());
+            }
+            updateParticipantsTotal(row);
+            return;
+        }
+
+        if (event.target.closest('.add-participant')) {
+            row.querySelector('.participant-rows').insertAdjacentHTML('beforeend', participantRowHtml());
+            return;
+        }
+
+        const removePerson = event.target.closest('.remove-participant');
+        if (removePerson) {
+            removePerson.closest('.participant-row').remove();
+            updateParticipantsTotal(row);
+        }
+    });
+
+    expenseRowsEl.addEventListener('input', (event) => {
+        const row = event.target.closest('.expense-row');
+        if (!row) return;
+        if (event.target.matches('[data-field="amount"], [data-pfield="amount"]')) {
+            updateParticipantsTotal(row);
+        }
+    });
+}
+
+/* -------------------------------------------------------------
    INITIALIZATION (auth-guarded)
 ------------------------------------------------------------- */
 async function init() {
-    dateInput.value = todayLocalISO();
     budgetInput.value = monthlyBudget;
     renderAll();
 
@@ -429,7 +733,9 @@ async function init() {
     }
 
     // Event listeners
-    expenseForm.addEventListener('submit', addExpense);
+    expenseForm.addEventListener('submit', addExpenses);
+    initFormEvents();
+    addExpenseRow();
 
     budgetInput.addEventListener('change', () => {
         const value = Number(budgetInput.value);
@@ -442,10 +748,6 @@ async function init() {
         localStorage.setItem(BUDGET_STORAGE_KEY, String(value));
         renderSummary();
     });
-
-    descriptionInput.addEventListener('input', () => clearFieldError(descriptionInput, descriptionErrorEl));
-    amountInput.addEventListener('input', () => clearFieldError(amountInput, amountErrorEl));
-    dateInput.addEventListener('change', () => clearFieldError(dateInput, dateErrorEl));
 
     historySection.addEventListener('click', (event) => {
         const button = event.target.closest('button[data-id]');
