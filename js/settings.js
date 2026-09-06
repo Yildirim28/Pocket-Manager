@@ -42,21 +42,25 @@
         try {
             const { data, error } = await sb
                 .from(EXPENSES_TABLE)
-                .select('expense_date, description, category, amount, created_at')
+                .select('expense_date, description, category, amount, participants, created_at')
                 .order('expense_date', { ascending: false });
 
             if (error) throw error;
 
-            const header = 'Date,Description,Category,Amount,Added At';
-            const rows = (data ?? []).map((e) =>
-                [
+            const header = 'Date,Description,Category,Amount,People,Added At';
+            const rows = (data ?? []).map((e) => {
+                const people = Array.isArray(e.participants)
+                    ? e.participants.map((p) => `${p.name}: ${p.amount}`).join('; ')
+                    : '';
+                return [
                     csvEscape(e.expense_date),
                     csvEscape(e.description),
                     csvEscape(e.category),
                     csvEscape(e.amount),
+                    csvEscape(people),
                     csvEscape(e.created_at)
-                ].join(',')
-            );
+                ].join(',');
+            });
             const csv = [header, ...rows].join('\n');
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });

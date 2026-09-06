@@ -158,50 +158,90 @@ function expenseRowHtml(rowId) {
         '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>' +
         'Split by person' +
         '</button>' +
-        '<span class="participants-total text-xs font-medium text-slate-400"></span>' +
         '</div>' +
-        '<div class="participants mt-3 hidden space-y-2">' +
-        '<p class="text-xs text-slate-400">Enter each person\'s share, e.g. Alice $30, Bob $30. Total should match the amount.</p>' +
-        '<div class="participant-rows space-y-2"></div>' +
-        '<button type="button" class="add-participant inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">+ Add person</button>' +
+        '<div class="participants mt-3 hidden">' +
+        '<p class="mb-2 text-xs text-slate-400">Tap the people who share this expense &mdash; the amount splits equally between them.</p>' +
+        '<div class="person-picker flex flex-wrap gap-2"></div>' +
+        '<p class="split-preview mt-2 hidden text-xs font-medium text-slate-500"></p>' +
         '</div>' +
         '</div>' +
         '</div>'
     );
 }
 
-function participantRowHtml() {
-    const options =
-        '<option value="">Select person…</option>' +
-        persons
-            .map((p) => `<option value="${escapeHTML(p.name)}">${escapeHTML(p.name)}</option>`)
-            .join('');
-    return (
-        '<div class="participant-row flex flex-wrap items-center gap-2">' +
-        '<select data-pfield="name" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-36">' +
-        options +
-        '</select>' +
-        '<div class="relative">' +
-        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-xs text-slate-400">$</span>' +
-        '<input type="number" data-pfield="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="rounded-lg border border-slate-300 bg-white py-1.5 pl-5 pr-2 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-24" />' +
-        '</div>' +
-        '<button type="button" class="remove-participant inline-flex items-center justify-center rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label="Remove person">' +
-        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>' +
-        '</button>' +
-        '</div>'
-    );
+/* Equal-split helper: divides cents evenly, distributing the
+   remainder cent-by-cent so shares always sum to the total. */
+function computeShares(amount, names) {
+    const n = names.length;
+    if (n === 0) return [];
+    const cents = Math.round(amount * 100);
+    const base = Math.floor(cents / n);
+    const shares = new Array(n).fill(base);
+    let remainder = cents - base * n;
+    for (let i = 0; remainder > 0; i = (i + 1) % n, remainder -= 1) shares[i] += 1;
+    return names.map((name, i) => ({ name, amount: shares[i] / 100 }));
 }
 
-/* Refresh every participant dropdown after the persons
-   roster changes (add/remove), keeping current selections. */
+function personChipsHtml(selectedNames) {
+    if (persons.length === 0) {
+        return '<span class="text-xs text-slate-400">No people yet — add them in the People section above.</span>';
+    }
+    return persons
+        .map((p) => {
+            const selected = selectedNames.has(p.name);
+            return (
+                `<button type="button" data-chip-person="${escapeHTML(p.name)}" ` +
+                'class="person-chip inline-flex items-center rounded-full px-3 py-1 text-sm font-medium transition-colors ' +
+                (selected
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200') +
+                `">${escapeHTML(p.name)}</button>`
+            );
+        })
+        .join('');
+}
+
+function renderPersonPicker(row) {
+    const picker = row.querySelector('.person-picker');
+    if (!picker) return;
+    const selected = new Set(
+        Array.from(row.querySelectorAll('.person-chip.selected')).map((c) =>
+            c.getAttribute('data-chip-person')
+        )
+    );
+    picker.innerHTML = personChipsHtml(selected);
+    updateSplitPreview(row);
+}
+
+/* Refresh every person picker after the persons roster changes,
+   keeping current selections. */
 function refreshParticipantDropdowns() {
-    document.querySelectorAll('.participant-row select[data-pfield="name"]').forEach((select) => {
-        const current = select.value;
-        select.innerHTML =
-            '<option value="">Select person…</option>' +
-            persons.map((p) => `<option value="${escapeHTML(p.name)}">${escapeHTML(p.name)}</option>`).join('');
-        if (persons.some((p) => p.name === current)) select.value = current;
-    });
+    document.querySelectorAll('.expense-row').forEach(renderPersonPicker);
+}
+
+function selectedPersonsIn(row) {
+    return Array.from(row.querySelectorAll('.person-chip.selected')).map((c) =>
+        c.getAttribute('data-chip-person')
+    );
+}
+
+function updateSplitPreview(row) {
+    const preview = row.querySelector('.split-preview');
+    if (!preview) return;
+    const names = selectedPersonsIn(row);
+    const amount = Number(row.querySelector('[data-field="amount"]').value);
+
+    if (names.length === 0 || !Number.isFinite(amount) || amount <= 0) {
+        preview.classList.add('hidden');
+        preview.textContent = '';
+        return;
+    }
+
+    const shares = computeShares(amount, names);
+    preview.textContent = shares
+        .map((s) => `${s.name} ${formatCurrency(s.amount)}`)
+        .join('  ·  ');
+    preview.classList.remove('hidden');
 }
 
 function addExpenseRow() {
@@ -231,41 +271,17 @@ function updateRemoveButtons() {
 }
 
 function updateParticipantsTotal(row) {
-    const totalEl = row.querySelector('.participants-total');
-    if (!totalEl) return;
-    let sum = 0;
-    let count = 0;
-    row.querySelectorAll('.participant-row').forEach((p) => {
-        const amount = Number(p.querySelector('[data-pfield="amount"]').value);
-        if (Number.isFinite(amount) && amount > 0) {
-            sum += amount;
-            count += 1;
-        }
-    });
-    const amount = Number(row.querySelector('[data-field="amount"]').value) || 0;
-    if (count === 0) {
-        totalEl.textContent = '';
-    } else {
-        totalEl.textContent = `People total: ${formatCurrency(sum)} of ${formatCurrency(amount)}`;
-        totalEl.className =
-            'participants-total text-xs font-semibold ' +
-            (Math.abs(sum - amount) < 0.005 ? 'text-emerald-600' : 'text-amber-600');
-    }
+    updateSplitPreview(row);
 }
 
 function readRow(row) {
-    const participants = [];
-    row.querySelectorAll('.participant-row').forEach((p) => {
-        const name = p.querySelector('[data-pfield="name"]').value.trim();
-        const amount = Number(p.querySelector('[data-pfield="amount"]').value);
-        if (name && Number.isFinite(amount) && amount > 0) {
-            participants.push({ name, amount: Math.round(amount * 100) / 100 });
-        }
-    });
+    const names = selectedPersonsIn(row);
+    const amount = Number(row.querySelector('[data-field="amount"]').value);
+    const participants = Number.isFinite(amount) && amount > 0 ? computeShares(amount, names) : [];
     return {
         description: row.querySelector('[data-field="description"]').value.trim(),
         amountInput: row.querySelector('[data-field="amount"]'),
-        amount: Number(row.querySelector('[data-field="amount"]').value),
+        amount,
         category: row.querySelector('[data-field="category"]').value,
         date: row.querySelector('[data-field="date"]').value,
         participants
@@ -282,25 +298,6 @@ function validateRow(row) {
 
     if (issues.length > 0) {
         return `"${data.description || 'Untitled'}" needs ${issues.join(', ')}.`;
-    }
-
-    if (data.participants.length > 0) {
-        // Any participant row with a person selected but no amount,
-        // or an amount but no person, is incomplete.
-        let incomplete = false;
-        row.querySelectorAll('.participant-row').forEach((p) => {
-            const name = p.querySelector('[data-pfield="name"]').value.trim();
-            const amount = p.querySelector('[data-pfield="amount"]').value.trim();
-            if (!name || !amount) incomplete = true;
-        });
-        if (incomplete) {
-            return `"${data.description}": every split line needs a person and an amount.`;
-        }
-
-        const sum = data.participants.reduce((acc, p) => acc + p.amount, 0);
-        if (Math.abs(sum - data.amount) > 0.005) {
-            return `"${data.description}": person shares total ${formatCurrency(sum)} but the expense amount is ${formatCurrency(data.amount)}. Adjust them to match.`;
-        }
     }
 
     return null;
@@ -522,7 +519,7 @@ function renderSummary() {
 }
 
 function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
-    const totalsByPerson = {};
+    const byPerson = {};
     let hasAny = false;
 
     monthExpenses.forEach((expense) => {
@@ -531,7 +528,15 @@ function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
             if (!p || !p.name) return;
             const key = String(p.name).trim();
             if (!key) return;
-            totalsByPerson[key] = (totalsByPerson[key] || 0) + Number(p.amount || 0);
+            if (!byPerson[key]) byPerson[key] = { total: 0, details: [] };
+            const share = Number(p.amount || 0);
+            byPerson[key].total += share;
+            byPerson[key].details.push({
+                description: expense.description,
+                date: expense.expense_date,
+                category: expense.category,
+                share
+            });
             hasAny = true;
         });
     });
@@ -542,22 +547,37 @@ function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
     }
 
     peopleCardEl.classList.remove('hidden');
-    const entries = Object.entries(totalsByPerson).sort((a, b) => b[1] - a[1]);
-    const max = entries[0][1] || 1;
+    const entries = Object.entries(byPerson).sort((a, b) => b[1].total - a[1].total);
+    const max = entries[0][1].total || 1;
 
     peopleBreakdownEl.innerHTML = entries
-        .map(([name, amount]) => {
-            const width = Math.max(4, Math.round((amount / max) * 100));
-            const share = totalThisMonth > 0 ? Math.round((amount / totalThisMonth) * 100) : 0;
+        .map(([name, data]) => {
+            const width = Math.max(4, Math.round((data.total / max) * 100));
+            const share = totalThisMonth > 0 ? Math.round((data.total / totalThisMonth) * 100) : 0;
+            const details = data.details
+                .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+                .map(
+                    (d) =>
+                        '<li class="flex items-baseline justify-between gap-3 py-1.5">' +
+                        `<span class="min-w-0 truncate">${badgeHtml(d.category)} ` +
+                        `<span class="text-slate-600">${escapeHTML(d.description)}</span>` +
+                        `<span class="ml-1 whitespace-nowrap text-slate-400">${formatDate(d.date)}</span></span>` +
+                        `<span class="whitespace-nowrap font-semibold tabular-nums text-rose-700">${formatCurrency(d.share)}</span>` +
+                        '</li>'
+                )
+                .join('');
             return (
-                '<div>' +
-                '<div class="mb-1 flex items-center justify-between text-sm">' +
-                `<span class="font-medium text-slate-700">${escapeHTML(name)}</span>` +
-                `<span class="tabular-nums text-slate-500">${formatCurrency(amount)} <span class="text-xs text-slate-400">(${share}%)</span></span>` +
+                '<div class="rounded-xl border border-slate-100 bg-slate-50/50 p-3">' +
+                '<div class="mb-1.5 flex items-center justify-between text-sm">' +
+                `<span class="font-semibold text-slate-700">${escapeHTML(name)}</span>` +
+                `<span class="tabular-nums text-slate-600">${formatCurrency(data.total)} <span class="text-xs text-slate-400">(${share}% of month)</span></span>` +
                 '</div>' +
                 '<div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">' +
                 `<div class="h-full rounded-full bg-rose-400" style="width: ${width}%"></div>` +
                 '</div>' +
+                `<details class="mt-2"><summary class="cursor-pointer select-none text-xs font-medium text-indigo-600 hover:text-indigo-700">${data.details.length} expense${data.details.length === 1 ? '' : 's'} &mdash; view details</summary>` +
+                `<ul class="mt-1.5 divide-y divide-slate-100 border-t border-slate-100 pt-0.5 text-xs">${details}</ul>` +
+                '</details>' +
                 '</div>'
             );
         })
@@ -797,30 +817,28 @@ function initFormEvents() {
             }
             const box = row.querySelector('.participants');
             box.classList.toggle('hidden');
-            if (!box.classList.contains('hidden') && row.querySelectorAll('.participant-row').length === 0) {
-                row.querySelector('.participant-rows').insertAdjacentHTML('beforeend', participantRowHtml());
-            }
-            updateParticipantsTotal(row);
+            if (!box.classList.contains('hidden')) renderPersonPicker(row);
             return;
         }
 
-        if (event.target.closest('.add-participant')) {
-            row.querySelector('.participant-rows').insertAdjacentHTML('beforeend', participantRowHtml());
-            return;
-        }
-
-        const removePerson = event.target.closest('.remove-participant');
-        if (removePerson) {
-            removePerson.closest('.participant-row').remove();
-            updateParticipantsTotal(row);
+        const chip = event.target.closest('.person-chip');
+        if (chip) {
+            chip.classList.toggle('selected');
+            const selected = chip.classList.contains('selected');
+            chip.className =
+                'person-chip inline-flex items-center rounded-full px-3 py-1 text-sm font-medium transition-colors ' +
+                (selected
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200');
+            updateSplitPreview(row);
         }
     });
 
     expenseRowsEl.addEventListener('input', (event) => {
         const row = event.target.closest('.expense-row');
         if (!row) return;
-        if (event.target.matches('[data-field="amount"], [data-pfield="amount"]')) {
-            updateParticipantsTotal(row);
+        if (event.target.matches('[data-field="amount"]')) {
+            updateSplitPreview(row);
         }
     });
 }
