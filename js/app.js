@@ -102,12 +102,11 @@ const DELETE_ARMED_CLASSES =
     'font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500';
 
 const INPUT_CLASSES =
-    'w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 ' +
-    'focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
+    'w-full border-0 border-b border-slate-200 bg-transparent px-0 py-1.5 text-sm placeholder-slate-300 ' +
+    'transition-colors focus:border-indigo-500 focus:outline-none focus:ring-0';
 
-const PERSON_AMOUNT_CLASSES =
-    'w-24 rounded-xl border border-slate-300 bg-white px-2.5 py-1.5 text-sm placeholder-slate-400 ' +
-    'focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
+const LABEL_CLASSES =
+    'mb-0.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-400';
 
 /* -------------------------------------------------------------
    DYNAMIC EXPENSE ROWS (bulk entry)
@@ -126,50 +125,47 @@ function utilityOptionsHtml(selected) {
 
 function expenseRowHtml(rowId) {
     return (
-        '<div class="expense-row rounded-xl border border-slate-200 bg-slate-50/60 p-4" data-row="' + rowId + '">' +
-        '<div class="grid grid-cols-1 gap-3 md:grid-cols-12">' +
-        '<div class="md:col-span-4">' +
-        '<label class="mb-1 block text-sm font-medium text-slate-700">Description <span class="text-red-500">*</span></label>' +
+        '<div class="expense-row group relative rounded-xl px-3 py-4 transition-colors hover:bg-slate-50/80" data-row="' + rowId + '">' +
+        '<button type="button" title="Remove this expense" aria-label="Remove this expense" ' +
+        'class="remove-row-button absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500 md:right-2 md:top-3">' +
+        '<i data-lucide="x" class="h-4 w-4"></i>' +
+        '</button>' +
+        '<div class="grid grid-cols-2 gap-x-6 gap-y-4 md:grid-cols-[minmax(0,1fr)_130px_160px_150px_2rem]">' +
+        '<div class="col-span-2 md:col-span-1">' +
+        '<label class="' + LABEL_CLASSES + '">Description</label>' +
         '<input type="text" data-field="description" autocomplete="off" placeholder="e.g. Grocery run" class="' + INPUT_CLASSES + '" />' +
         '</div>' +
-        '<div class="md:col-span-2">' +
-        '<label class="mb-1 block text-sm font-medium text-slate-700">Amount ($) <span class="text-red-500">*</span></label>' +
+        '<div>' +
+        '<label class="' + LABEL_CLASSES + '">Amount</label>' +
         '<div class="relative">' +
-        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-400">$</span>' +
-        '<input type="number" data-field="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="rounded-xl border border-slate-300 bg-white py-2.5 pl-7 pr-3 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-full" />' +
+        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center text-sm text-slate-300">$</span>' +
+        '<input type="number" data-field="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="w-full border-0 border-b border-slate-200 bg-transparent py-1.5 pl-4 pr-0 text-sm placeholder-slate-300 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-0" />' +
         '</div>' +
         '</div>' +
-        '<div class="md:col-span-2">' +
-        '<label class="mb-1 block text-sm font-medium text-slate-700">Category</label>' +
-        '<select data-field="category" class="' + INPUT_CLASSES + '">' +
+        '<div>' +
+        '<label class="' + LABEL_CLASSES + '">Category</label>' +
+        '<select data-field="category" class="' + INPUT_CLASSES + ' cursor-pointer">' +
         categoryOptionsHtml('Food') +
         '</select>' +
         '</div>' +
-        '<div class="utility-type-wrap md:col-span-2 hidden">' +
-        '<label class="mb-1 block text-sm font-medium text-slate-700">Utility type</label>' +
-        '<select data-field="utility_type" class="' + INPUT_CLASSES + '">' +
+        '<div>' +
+        '<label class="' + LABEL_CLASSES + '">Date</label>' +
+        '<input type="date" data-field="date" value="' + todayLocalISO() + '" class="' + INPUT_CLASSES + ' cursor-pointer" />' +
+        '</div>' +
+        '<div class="hidden md:block"></div>' +
+        '</div>' +
+        '<div class="utility-type-wrap mt-4 hidden md:max-w-[220px]">' +
+        '<label class="' + LABEL_CLASSES + '">Utility type</label>' +
+        '<select data-field="utility_type" class="' + INPUT_CLASSES + ' cursor-pointer">' +
         utilityOptionsHtml('Wifi') +
         '</select>' +
         '</div>' +
-        '<div class="md:col-span-2">' +
-        '<label class="mb-1 block text-sm font-medium text-slate-700">Date <span class="text-red-500">*</span></label>' +
-        '<input type="date" data-field="date" value="' + todayLocalISO() + '" class="' + INPUT_CLASSES + '" />' +
-        '</div>' +
-        '<div class="flex items-end md:col-span-2">' +
-        '<button type="button" class="remove-row-button inline-flex w-full items-center justify-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-500 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600">' +
-        'Remove' +
-        '</button>' +
-        '</div>' +
-        '</div>' +
-        '<div class="mt-3 border-t border-slate-200 pt-3">' +
-        '<div class="flex items-center justify-between">' +
-        '<button type="button" class="toggle-participants inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700">' +
-        '<i data-lucide="users" class="h-4 w-4"></i>' +
+        '<div class="mt-4">' +
+        '<button type="button" class="toggle-participants inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-colors hover:text-indigo-600">' +
+        '<i data-lucide="users-round" class="h-4 w-4"></i>' +
         'Split by person' +
         '</button>' +
-        '</div>' +
         '<div class="participants mt-3 hidden">' +
-        '<p class="mb-2 text-xs text-slate-400">Tap the people who share this expense &mdash; the amount splits equally between them.</p>' +
         '<div class="person-picker flex flex-wrap gap-2"></div>' +
         '<p class="split-preview mt-2 hidden text-xs font-medium text-slate-500"></p>' +
         '</div>' +
@@ -200,10 +196,10 @@ function personChipsHtml(selectedNames) {
             const selected = selectedNames.has(p.name);
             return (
                 `<button type="button" data-chip-person="${escapeHTML(p.name)}" ` +
-                'class="person-chip inline-flex items-center rounded-full px-3 py-1 text-sm font-medium transition-colors ' +
+                'class="person-chip inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-all active:scale-95 ' +
                 (selected
-                    ? 'selected bg-indigo-600 text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200') +
+                    ? 'selected border-transparent bg-indigo-600 text-white shadow-sm'
+                    : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50') +
                 `">${escapeHTML(p.name)}</button>`
             );
         })
@@ -275,9 +271,10 @@ function updateRemoveButtons() {
     const single = rows.length <= 1;
     rows.forEach((row) => {
         const btn = row.querySelector('.remove-row-button');
-        if (btn) btn.disabled = single;
-        if (btn) btn.classList.toggle('opacity-40', single);
-        btn.classList.toggle('cursor-not-allowed', single);
+        if (!btn) return;
+        btn.disabled = single;
+        btn.classList.toggle('opacity-0', single);
+        btn.classList.toggle('pointer-events-none', single);
     });
 }
 
@@ -860,11 +857,12 @@ function initFormEvents() {
         if (chip) {
             const selected = chip.classList.toggle('selected');
             chip.classList.toggle('bg-indigo-600', selected);
+            chip.classList.toggle('border-transparent', selected);
             chip.classList.toggle('text-white', selected);
             chip.classList.toggle('shadow-sm', selected);
-            chip.classList.toggle('bg-slate-100', !selected);
-            chip.classList.toggle('text-slate-600', !selected);
-            chip.classList.toggle('hover:bg-slate-200', !selected);
+            chip.classList.toggle('bg-white', !selected);
+            chip.classList.toggle('border-slate-200', !selected);
+            chip.classList.toggle('text-slate-500', !selected);
             updateSplitPreview(row);
         }
     });

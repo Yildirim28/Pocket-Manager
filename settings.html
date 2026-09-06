@@ -32,6 +32,13 @@
 
         <h1 class="text-xl font-bold text-slate-900">Settings</h1>
 
+        <!-- ===================== APPEARANCE ===================== -->
+        <section aria-labelledby="appearance-heading" class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+            <h2 id="appearance-heading" class="text-lg font-bold text-slate-900">Appearance</h2>
+            <p class="mt-1 text-sm text-slate-500">Pick your accent color &mdash; it is applied instantly and remembered on this device.</p>
+            <div id="accentPicker" class="mt-5 flex flex-wrap gap-3"></div>
+        </section>
+
         <!-- ===================== ACCOUNT ===================== -->
         <section aria-labelledby="account-heading" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 id="account-heading" class="text-lg font-bold text-slate-900">Account</h2>
@@ -61,6 +68,11 @@
                     class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">
                     <i data-lucide="download" class="h-4 w-4"></i>
                     Export expenses (CSV)
+                </button>
+                <button id="exportPngButton" type="button"
+                    class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">
+                    <i data-lucide="image-down" class="h-4 w-4"></i>
+                    Export report (PNG)
                 </button>
                 <button id="signOutButton" type="button"
                     class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition-all hover:bg-red-50 hover:text-red-600 active:scale-[0.98]">

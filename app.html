@@ -163,23 +163,23 @@
         <!-- ===================== ADD TRANSACTIONS FORM ===================== -->
         <section aria-labelledby="form-heading">
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div class="mb-5 flex items-center gap-3">
+                <div class="mb-2 flex items-center gap-3">
                     <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/25">
-                        <i data-lucide="circle-plus" class="h-5 w-5"></i>
+                        <i data-lucide="clipboard-pen" class="h-5 w-5"></i>
                     </span>
                     <h2 id="form-heading" class="text-lg font-bold text-slate-900">Add Transactions</h2>
                 </div>
 
                 <form id="expenseForm" novalidate>
                     <fieldset id="expenseFields">
-                        <div id="expenseRows" class="space-y-6"></div>
+                        <div id="expenseRows" class="divide-y divide-slate-100"></div>
 
                         <p id="rowError" class="mt-4 hidden rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert"></p>
 
                         <div class="mt-5 flex flex-wrap items-center gap-3">
                             <button id="addRowButton" type="button"
-                                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">
-                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98]">
+                                <i data-lucide="list-plus" class="h-4 w-4"></i>
                                 Add another expense
                             </button>
                             <button id="submitButton" type="submit"

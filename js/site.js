@@ -111,6 +111,90 @@ async function requireAuth() {
 }
 
 /* -------------------------------------------------------------
+   ACCENT COLOR (user preference, persisted in localStorage)
+------------------------------------------------------------- */
+const ACCENT_STORAGE_KEY = 'pocket-manager:accent';
+
+const ACCENTS = {
+    indigo: { label: 'Indigo', from: '#4f46e5', to: '#8b5cf6', soft: '#eef2ff', text: '#4f46e5' },
+    blue: { label: 'Ocean', from: '#2563eb', to: '#06b6d4', soft: '#eff6ff', text: '#2563eb' },
+    emerald: { label: 'Emerald', from: '#059669', to: '#34d399', soft: '#ecfdf5', text: '#059669' },
+    rose: { label: 'Rose', from: '#e11d48', to: '#fb7185', soft: '#fff1f2', text: '#e11d48' },
+    amber: { label: 'Amber', from: '#d97706', to: '#fbbf24', soft: '#fffbeb', text: '#d97706' },
+    violet: { label: 'Violet', from: '#7c3aed', to: '#c084fc', soft: '#f5f3ff', text: '#7c3aed' }
+};
+
+/* The app is styled with indigo utilities; these overrides remap
+   them to CSS variables so the accent can change at runtime. */
+function injectAccentStyles() {
+    if (document.getElementById('pmAccentStyle')) return;
+    const style = document.createElement('style');
+    style.id = 'pmAccentStyle';
+    style.textContent = `
+:root{--pm-accent:#4f46e5;--pm-accent-to:#8b5cf6;--pm-accent-soft:#eef2ff;--pm-accent-text:#4f46e5}
+.bg-indigo-600{background-color:var(--pm-accent)!important}
+.from-indigo-600{--tw-gradient-from:var(--pm-accent)!important}
+.via-violet-600{--tw-gradient-via:var(--pm-accent-to)!important}
+.to-violet-600{--tw-gradient-to:var(--pm-accent-to)!important}
+.text-indigo-600{color:var(--pm-accent)!important}
+.text-indigo-700{color:var(--pm-accent-text)!important}
+.hover\\:text-indigo-700:hover{color:var(--pm-accent-text)!important}
+.bg-indigo-50{background-color:var(--pm-accent-soft)!important}
+.hover\\:bg-indigo-50:hover{background-color:var(--pm-accent-soft)!important}
+.border-indigo-200{border-color:var(--pm-accent-soft)!important}
+.border-indigo-100{border-color:var(--pm-accent-soft)!important}
+.focus\\:border-indigo-500:focus{border-color:var(--pm-accent)!important}
+.focus\\:ring-indigo-200:focus{--tw-ring-color:var(--pm-accent-soft)!important}
+.ring-indigo-200{--tw-ring-color:var(--pm-accent-soft)!important}
+.focus\\:ring-indigo-500:focus{--tw-ring-color:var(--pm-accent)!important}`;
+    document.head.appendChild(style);
+}
+
+function applyAccent(key) {
+    const accent = ACCENTS[key] || ACCENTS.indigo;
+    const root = document.documentElement.style;
+    root.setProperty('--pm-accent', accent.from);
+    root.setProperty('--pm-accent-to', accent.to);
+    root.setProperty('--pm-accent-soft', accent.soft);
+    root.setProperty('--pm-accent-text', accent.text);
+    if (key !== localStorage.getItem(ACCENT_STORAGE_KEY)) {
+        localStorage.setItem(ACCENT_STORAGE_KEY, key);
+    }
+}
+
+function initAccent() {
+    injectAccentStyles();
+    applyAccent(localStorage.getItem(ACCENT_STORAGE_KEY) || 'indigo');
+}
+
+/* Renders swatch buttons into #accentPicker (settings page). */
+function initAccentPicker() {
+    const mount = document.getElementById('accentPicker');
+    if (!mount) return;
+    const current = localStorage.getItem(ACCENT_STORAGE_KEY) || 'indigo';
+
+    mount.innerHTML = Object.entries(ACCENTS)
+        .map(([key, a]) => {
+            const active = key === current;
+            const ring = active ? `box-shadow:0 0 0 2px #fff,0 0 0 4px ${a.from};` : '';
+            return (
+                `<button type="button" data-accent="${key}" title="${a.label}" aria-label="${a.label}" ` +
+                `class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95" ` +
+                `style="background:linear-gradient(135deg, ${a.from}, ${a.to});${ring}"></button>`
+            );
+        })
+        .join('');
+
+    mount.querySelectorAll('button[data-accent]').forEach((button) => {
+        button.addEventListener('click', () => {
+            applyAccent(button.getAttribute('data-accent'));
+            initAccentPicker();
+            showToast(`Accent set to ${ACCENTS[button.getAttribute('data-accent')].label}.`, 'success');
+        });
+    });
+}
+
+/* -------------------------------------------------------------
    NAVBAR (auth-aware, injected into #navbar placeholder)
 ------------------------------------------------------------- */
 const NAV_LOGO = '<i data-lucide="wallet" class="h-6 w-6"></i>';
@@ -229,6 +313,9 @@ function renderNavbar(session) {
 }
 
 async function initSite() {
+    initAccent();
+    initAccentPicker();
+
     const session = await getSession();
     renderNavbar(session);
 
