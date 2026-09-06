@@ -13,7 +13,10 @@
 /* -------------------------------------------------------------
    APPLICATION STATE
 ------------------------------------------------------------- */
+const PERSONS_TABLE = 'persons';
+
 let expenses = [];
+let persons = [];
 let monthlyBudget = loadBudget();
 let armTimer = null;
 let rowSeq = 0;
@@ -54,6 +57,12 @@ const emptyStateEl = document.getElementById('emptyState');
 const expenseTableBody = document.getElementById('expenseTableBody');
 const expenseListEl = document.getElementById('expenseList');
 const refreshButton = document.getElementById('refreshButton');
+
+const personForm = document.getElementById('personForm');
+const personNameInput = document.getElementById('personName');
+const addPersonButton = document.getElementById('addPersonButton');
+const personsListEl = document.getElementById('personsList');
+const personsEmptyEl = document.getElementById('personsEmpty');
 
 /* -------------------------------------------------------------
    CONSTANTS
@@ -97,10 +106,6 @@ const DELETE_ARMED_CLASSES =
 
 const INPUT_CLASSES =
     'w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 ' +
-    'focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
-
-const PERSON_INPUT_CLASSES =
-    'w-28 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm placeholder-slate-400 ' +
     'focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
 
 const PERSON_AMOUNT_CLASSES =
@@ -166,9 +171,16 @@ function expenseRowHtml(rowId) {
 }
 
 function participantRowHtml() {
+    const options =
+        '<option value="">Select person…</option>' +
+        persons
+            .map((p) => `<option value="${escapeHTML(p.name)}">${escapeHTML(p.name)}</option>`)
+            .join('');
     return (
-        '<div class="participant-row flex items-center gap-2">' +
-        '<input type="text" data-pfield="name" placeholder="Name (e.g. Alice)" class="' + PERSON_INPUT_CLASSES + '" />' +
+        '<div class="participant-row flex flex-wrap items-center gap-2">' +
+        '<select data-pfield="name" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-36">' +
+        options +
+        '</select>' +
         '<div class="relative">' +
         '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-xs text-slate-400">$</span>' +
         '<input type="number" data-pfield="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="rounded-lg border border-slate-300 bg-white py-1.5 pl-5 pr-2 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-24" />' +
@@ -178,6 +190,18 @@ function participantRowHtml() {
         '</button>' +
         '</div>'
     );
+}
+
+/* Refresh every participant dropdown after the persons
+   roster changes (add/remove), keeping current selections. */
+function refreshParticipantDropdowns() {
+    document.querySelectorAll('.participant-row select[data-pfield="name"]').forEach((select) => {
+        const current = select.value;
+        select.innerHTML =
+            '<option value="">Select person…</option>' +
+            persons.map((p) => `<option value="${escapeHTML(p.name)}">${escapeHTML(p.name)}</option>`).join('');
+        if (persons.some((p) => p.name === current)) select.value = current;
+    });
 }
 
 function addExpenseRow() {
@@ -261,6 +285,18 @@ function validateRow(row) {
     }
 
     if (data.participants.length > 0) {
+        // Any participant row with a person selected but no amount,
+        // or an amount but no person, is incomplete.
+        let incomplete = false;
+        row.querySelectorAll('.participant-row').forEach((p) => {
+            const name = p.querySelector('[data-pfield="name"]').value.trim();
+            const amount = p.querySelector('[data-pfield="amount"]').value.trim();
+            if (!name || !amount) incomplete = true;
+        });
+        if (incomplete) {
+            return `"${data.description}": every split line needs a person and an amount.`;
+        }
+
         const sum = data.participants.reduce((acc, p) => acc + p.amount, 0);
         if (Math.abs(sum - data.amount) > 0.005) {
             return `"${data.description}": person shares total ${formatCurrency(sum)} but the expense amount is ${formatCurrency(data.amount)}. Adjust them to match.`;
@@ -268,6 +304,97 @@ function validateRow(row) {
     }
 
     return null;
+}
+
+/* -------------------------------------------------------------
+   PERSONS ROSTER (create once, pick from dropdown when splitting)
+------------------------------------------------------------- */
+async function fetchPersons() {
+    try {
+        const { data, error } = await sb
+            .from(PERSONS_TABLE)
+            .select('*')
+            .order('name', { ascending: true });
+
+        if (error) throw error;
+        persons = data ?? [];
+    } catch (error) {
+        showToast(`Could not load people: ${error.message}`, 'error');
+        persons = [];
+    }
+    renderPersons();
+    refreshParticipantDropdowns();
+}
+
+function renderPersons() {
+    const hasPersons = persons.length > 0;
+    personsEmptyEl.classList.toggle('hidden', hasPersons);
+    personsListEl.innerHTML = persons
+        .map(
+            (p) =>
+                `<span class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 py-1 pl-3 pr-1.5 text-sm font-medium text-rose-700">` +
+                `${escapeHTML(p.name)}` +
+                `<button type="button" data-person-id="${p.id}" title="Remove ${escapeHTML(p.name)}" ` +
+                'class="inline-flex h-5 w-5 items-center justify-center rounded-full text-rose-400 transition-colors hover:bg-rose-200 hover:text-rose-700" ' +
+                'aria-label="Remove person">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3 w-3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>' +
+                '</button></span>'
+        )
+        .join('');
+}
+
+async function addPerson(event) {
+    event.preventDefault();
+    const name = personNameInput.value.trim();
+    if (!name) {
+        showToast('Please enter a name.', 'error');
+        return;
+    }
+    if (persons.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+        showToast(`"${name}" is already in your people list.`, 'info');
+        personNameInput.value = '';
+        return;
+    }
+
+    addPersonButton.disabled = true;
+    try {
+        const { data, error } = await sb
+            .from(PERSONS_TABLE)
+            .insert({ name })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        persons.push(data);
+        persons.sort((a, b) => a.name.localeCompare(b.name));
+        renderPersons();
+        refreshParticipantDropdowns();
+        personNameInput.value = '';
+        personNameInput.focus();
+        showToast(`Added ${name}.`, 'success');
+    } catch (error) {
+        showToast(`Could not add person: ${error.message}`, 'error');
+    } finally {
+        addPersonButton.disabled = false;
+    }
+}
+
+async function deletePerson(id) {
+    const person = persons.find((p) => p.id === id);
+    if (!person) return;
+
+    try {
+        const { error } = await sb.from(PERSONS_TABLE).delete().eq('id', id);
+        if (error) throw error;
+
+        persons = persons.filter((p) => p.id !== id);
+        renderPersons();
+        refreshParticipantDropdowns();
+        showToast(`Removed ${person.name}.`, 'success');
+    } catch (error) {
+        showToast(`Could not remove person: ${error.message}`, 'error');
+    }
 }
 
 /* -------------------------------------------------------------
@@ -662,6 +789,12 @@ function initFormEvents() {
         }
 
         if (event.target.closest('.toggle-participants')) {
+            if (persons.length === 0) {
+                showToast('Create people first in the People section above — then you can split expenses.', 'info');
+                personNameInput?.focus();
+                document.getElementById('people-heading')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
             const box = row.querySelector('.participants');
             box.classList.toggle('hidden');
             if (!box.classList.contains('hidden') && row.querySelectorAll('.participant-row').length === 0) {
@@ -727,6 +860,7 @@ async function init() {
 
         setStatus('online', 'Connected');
         await fetchExpenses();
+        await fetchPersons();
     } catch (error) {
         setStatus('offline', 'Offline');
         showToast(`Database connection failed: ${error.message}`, 'error');
@@ -736,6 +870,12 @@ async function init() {
     expenseForm.addEventListener('submit', addExpenses);
     initFormEvents();
     addExpenseRow();
+
+    personForm.addEventListener('submit', addPerson);
+    personsListEl.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-person-id]');
+        if (button) deletePerson(button.getAttribute('data-person-id'));
+    });
 
     budgetInput.addEventListener('change', () => {
         const value = Number(budgetInput.value);

@@ -55,6 +55,14 @@ drop policy if exists "dev_allow_public_insert" on public.expenses;
 drop policy if exists "dev_allow_public_update" on public.expenses;
 drop policy if exists "dev_allow_public_delete" on public.expenses;
 
+-- Re-running this script recreates the per-user policies, so
+-- drop them first to avoid "already exists" errors.
+drop policy if exists "users_select_own_expenses" on public.expenses;
+drop policy if exists "users_insert_own_expenses" on public.expenses;
+drop policy if exists "users_update_own_expenses" on public.expenses;
+drop policy if exists "users_delete_own_expenses" on public.expenses;
+drop policy if exists "anyone_insert_contact_messages" on public.contact_messages;
+
 create policy "users_select_own_expenses"
     on public.expenses
     for select
@@ -81,7 +89,52 @@ create policy "users_delete_own_expenses"
     using (auth.uid() = user_id);
 
 -- -------------------------------------------------------------
--- 3. CONTACT MESSAGES
+-- 3. PERSONS (per-user roster for expense splitting)
+-- -------------------------------------------------------------
+create table if not exists public.persons (
+    id         uuid primary key default gen_random_uuid(),
+    created_at timestamptz not null default now(),
+    user_id    uuid not null default auth.uid() references auth.users (id) on delete cascade,
+    name       text not null,
+    unique (user_id, name)
+);
+
+create index if not exists persons_user_id_idx on public.persons (user_id);
+
+alter table public.persons enable row level security;
+
+drop policy if exists "users_select_own_persons" on public.persons;
+drop policy if exists "users_insert_own_persons" on public.persons;
+drop policy if exists "users_update_own_persons" on public.persons;
+drop policy if exists "users_delete_own_persons" on public.persons;
+
+create policy "users_select_own_persons"
+    on public.persons
+    for select
+    to authenticated
+    using (auth.uid() = user_id);
+
+create policy "users_insert_own_persons"
+    on public.persons
+    for insert
+    to authenticated
+    with check (auth.uid() = user_id);
+
+create policy "users_update_own_persons"
+    on public.persons
+    for update
+    to authenticated
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "users_delete_own_persons"
+    on public.persons
+    for delete
+    to authenticated
+    using (auth.uid() = user_id);
+
+-- -------------------------------------------------------------
+-- 4. CONTACT MESSAGES
 -- -------------------------------------------------------------
 -- Visitors can send messages to the owner from the Contact page.
 -- Only INSERT is allowed via the API; the owner reads messages in

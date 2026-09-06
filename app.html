@@ -127,7 +127,39 @@
             </div>
         </section>
 
-        <!-- ===================== QUICK-ADD FORM ===================== -->
+        <!-- ===================== PEOPLE MANAGEMENT ===================== -->
+        <section aria-labelledby="people-heading">
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div class="mb-4 flex items-center gap-3">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h2 id="people-heading" class="text-lg font-bold text-slate-900">People</h2>
+                        <p class="text-xs text-slate-400">Create the people you split expenses with &mdash; they appear in the dropdown when adding expenses.</p>
+                    </div>
+                </div>
+
+                <form id="personForm" class="flex flex-wrap items-start gap-3" novalidate>
+                    <div class="min-w-[200px] flex-1 sm:max-w-xs">
+                        <label for="personName" class="sr-only">Person name</label>
+                        <input id="personName" type="text" autocomplete="off" maxlength="60" placeholder="e.g. Alice"
+                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                    </div>
+                    <button id="addPersonButton" type="submit"
+                        class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                        Add person
+                    </button>
+                </form>
+
+                <div id="personsList" class="mt-4 flex flex-wrap gap-2"></div>
+                <p id="personsEmpty" class="mt-4 hidden text-sm text-slate-400">No people yet — add the first one above (e.g. Alice, Bob).</p>
+            </div>
+        </section>
+
+        <!-- ===================== ADD TRANSACTIONS FORM ===================== -->
         <section aria-labelledby="form-heading">
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="mb-5 flex items-center gap-3">
