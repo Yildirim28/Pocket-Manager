@@ -645,7 +645,7 @@ function listItemHtml(expense) {
 
 function renderExpenses() {
     const hasExpenses = expenses.length > 0;
-    emptyStateEl.classList.toggle('hidden', !hasExpenses);
+    emptyStateEl.classList.toggle('hidden', hasExpenses);
     expenseTableBody.innerHTML = hasExpenses ? expenses.map(tableRowHtml).join('') : '';
     expenseListEl.innerHTML = hasExpenses ? expenses.map(listItemHtml).join('') : '';
 }
