@@ -32,6 +32,11 @@ const totalSpentSubEl = document.getElementById('totalSpentSub');
 const totalSpentFlipEl = document.getElementById('totalSpentFlip');
 const remainingBalanceEl = document.getElementById('remainingBalance');
 const remainingBalanceSubEl = document.getElementById('remainingBalanceSub');
+const topCategoryFlipEl = document.getElementById('topCategoryFlip');
+const lowestCategoryAmountEl = document.getElementById('lowestCategoryAmount');
+const lowestCategoryBadgeEl = document.getElementById('lowestCategoryBadge');
+const utilitiesFlipEl = document.getElementById('utilitiesFlip');
+const utilitiesBreakdownListEl = document.getElementById('utilitiesBreakdownList');
 const topCategoryBadgeEl = document.getElementById('topCategoryBadge');
 const topCategoryAmountEl = document.getElementById('topCategoryAmount');
 const totalCountEl = document.getElementById('totalCount');
@@ -517,6 +522,40 @@ function renderSummary() {
         utilitiesSubEl.textContent = 'No utilities expenses yet this month';
     }
 
+    // Per-type breakdown (back face of the utilities flip card)
+    if (utilitiesBreakdownListEl) {
+        if (utilitiesExpenses.length > 0) {
+            const byType = {};
+            utilitiesExpenses.forEach((expense) => {
+                const type = expense.utility_type || 'Other';
+                byType[type] = (byType[type] || 0) + Number(expense.amount);
+            });
+            const entries = Object.entries(byType).sort((a, b) => b[1] - a[1]);
+            const maxType = entries[0][1] || 1;
+
+            utilitiesBreakdownListEl.innerHTML = entries
+                .map(([type, value]) => {
+                    const width = Math.max(6, Math.round((value / maxType) * 100));
+                    const percent = utilitiesTotal > 0 ? Math.round((value / utilitiesTotal) * 100) : 0;
+                    return (
+                        '<div>' +
+                        '<div class="flex items-baseline justify-between text-sm">' +
+                        `<span class="font-semibold text-white">${escapeHTML(type)}</span>` +
+                        `<span class="font-bold tabular-nums text-white">${formatCurrency(value)} <span class="text-[11px] font-medium text-cyan-100/70">${percent}%</span></span>` +
+                        '</div>' +
+                        '<div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/20">' +
+                        `<div class="h-full rounded-full bg-white/80" style="width: ${width}%"></div>` +
+                        '</div>' +
+                        '</div>'
+                    );
+                })
+                .join('');
+        } else {
+            utilitiesBreakdownListEl.innerHTML =
+                '<p class="text-xs text-cyan-100/80">No utilities expenses yet this month</p>';
+        }
+    }
+
     // Highest category (excluding Utilities, which has its own card)
     const totalsByCategory = monthExpenses
         .filter((expense) => (expense.category || '') !== UTILITIES_CATEGORY)
@@ -537,6 +576,21 @@ function renderSummary() {
         topCategoryAmountEl.textContent = formatCurrency(0);
         topCategoryBadgeEl.innerHTML =
             '<span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-500">—</span>';
+    }
+
+    // Lowest category (back face of the top-category flip card)
+    if (lowestCategoryAmountEl) {
+        const lowestEntry = Object.entries(totalsByCategory).sort((a, b) => a[1] - b[1])[0];
+        if (lowestEntry) {
+            lowestCategoryAmountEl.textContent = formatCurrency(lowestEntry[1]);
+            lowestCategoryBadgeEl.innerHTML =
+                `<span class="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-white ring-1 ring-white/25">` +
+                `${escapeHTML(lowestEntry[0])}</span>`;
+        } else {
+            lowestCategoryAmountEl.textContent = formatCurrency(0);
+            lowestCategoryBadgeEl.innerHTML =
+                '<span class="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-white ring-1 ring-white/25">—</span>';
+        }
     }
 
     totalCountEl.textContent = expenses.length;
@@ -1016,15 +1070,20 @@ async function init() {
     initFormEvents();
     addExpenseRow();
 
-    // Flip card: total spent <-> remaining balance (works on tap/click
-    // anywhere on the card, and via keyboard for accessibility).
-    totalSpentFlipEl?.addEventListener('click', () => totalSpentFlipEl.classList.toggle('is-flipped'));
-    totalSpentFlipEl?.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            totalSpentFlipEl.classList.toggle('is-flipped');
-        }
-    });
+    // Flip cards: click/tap anywhere (or Enter/Space) to flip.
+    const wireFlip = (element) => {
+        if (!element) return;
+        element.addEventListener('click', () => element.classList.toggle('is-flipped'));
+        element.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                element.classList.toggle('is-flipped');
+            }
+        });
+    };
+    wireFlip(totalSpentFlipEl);
+    wireFlip(topCategoryFlipEl);
+    wireFlip(utilitiesFlipEl);
 
     personForm.addEventListener('submit', addPerson);
     personsListEl.addEventListener('click', (event) => {
