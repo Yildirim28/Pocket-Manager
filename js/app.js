@@ -29,6 +29,9 @@ const statusText = document.getElementById('statusText');
 
 const totalSpentMonthEl = document.getElementById('totalSpentMonth');
 const totalSpentSubEl = document.getElementById('totalSpentSub');
+const totalSpentFlipEl = document.getElementById('totalSpentFlip');
+const remainingBalanceEl = document.getElementById('remainingBalance');
+const remainingBalanceSubEl = document.getElementById('remainingBalanceSub');
 const topCategoryBadgeEl = document.getElementById('topCategoryBadge');
 const topCategoryAmountEl = document.getElementById('topCategoryAmount');
 const totalCountEl = document.getElementById('totalCount');
@@ -477,6 +480,18 @@ function renderSummary() {
         month: 'long',
         year: 'numeric'
     });
+
+    // Remaining balance (back face of the flip card)
+    if (remainingBalanceEl) {
+        const remaining = monthlyBudget - totalThisMonth;
+        if (remaining >= 0) {
+            remainingBalanceEl.textContent = formatCurrency(remaining);
+            remainingBalanceSubEl.textContent = `left from your ${formatCurrency(monthlyBudget)} budget 🐷`;
+        } else {
+            remainingBalanceEl.textContent = formatCurrency(Math.abs(remaining));
+            remainingBalanceSubEl.textContent = `over your ${formatCurrency(monthlyBudget)} budget 😬`;
+        }
+    }
 
     // Utilities this month, broken down by sub-type
     const utilitiesExpenses = monthExpenses.filter(
@@ -1000,6 +1015,18 @@ async function init() {
     expenseForm.addEventListener('submit', addExpenses);
     initFormEvents();
     addExpenseRow();
+
+    // Flip card: total spent <-> remaining balance
+    const flipCard = (element) => {
+        element.querySelector('[transform-style\\:preserve-3d]')?.classList.toggle('[transform:rotateY(180deg)]');
+    };
+    totalSpentFlipEl?.addEventListener('click', () => flipCard(totalSpentFlipEl));
+    totalSpentFlipEl?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            flipCard(totalSpentFlipEl);
+        }
+    });
 
     personForm.addEventListener('submit', addPerson);
     personsListEl.addEventListener('click', (event) => {
