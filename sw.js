@@ -6,7 +6,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'pocket-manager-v1';
+const CACHE_VERSION = 'pocket-manager-v2';
 
 const PRECACHE_URLS = [
     './',
