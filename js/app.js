@@ -76,6 +76,7 @@ const CATEGORY_COLORS = {
     Transport: 'bg-blue-100 text-blue-800',
     Bills: 'bg-red-100 text-red-800',
     Utilities: 'bg-sky-100 text-sky-800',
+    Rent: 'bg-fuchsia-100 text-fuchsia-800',
     Entertainment: 'bg-purple-100 text-purple-800',
     Shopping: 'bg-amber-100 text-amber-800',
     Other: 'bg-slate-100 text-slate-800',
@@ -86,6 +87,7 @@ const CATEGORIES = [
     'Food',
     'Transport',
     'Utilities',
+    'Rent',
     'Entertainment',
     'Shopping',
     'Other'
