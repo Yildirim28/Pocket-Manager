@@ -573,12 +573,21 @@ const AVATAR_GRADIENTS = [
     'from-lime-400 to-green-500'
 ];
 
+/* Fun mascot emoji assigned per person (stable per name). */
+const MASCOTS = ['🦊', '🐼', '🐯', '🦁', '🐨', '🐵', '🐸', '🐧', '🐷', '🐰', '🐻', '🦉', '🐙', '🦄', '🐢', '🐳', '🦜', '🐝', '🦋', '🐬'];
+
 const RANK_EMOJIS = ['🥇', '🥈', '🥉'];
 
 function avatarGradient(name) {
     let hash = 0;
     for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
     return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length];
+}
+
+function mascotFor(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = (hash * 33 + name.charCodeAt(i)) >>> 0;
+    return MASCOTS[hash % MASCOTS.length];
 }
 
 function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
@@ -624,7 +633,7 @@ function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
             const width = Math.max(6, Math.round((data.total / max) * 100));
             const share = totalThisMonth > 0 ? Math.round((data.total / totalThisMonth) * 100) : 0;
             const rank = RANK_EMOJIS[index] || '';
-            const initial = escapeHTML((name[0] || '?').toUpperCase());
+            const mascot = mascotFor(name);
             const gradient = avatarGradient(name);
 
             const details = data.details
@@ -643,7 +652,7 @@ function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
             return (
                 '<div class="group rounded-2xl border border-rose-100/80 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-rose-100">' +
                 '<div class="flex items-center gap-3">' +
-                `<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-base font-extrabold text-white shadow-md">${initial}</span>` +
+                `<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-lg shadow-md ring-2 ring-white">${mascot}</span>` +
                 '<div class="min-w-0 flex-1">' +
                 '<div class="flex items-baseline justify-between gap-2">' +
                 `<span class="truncate text-sm font-bold text-slate-800">${rank ? rank + ' ' : ''}${escapeHTML(name)}</span>` +
