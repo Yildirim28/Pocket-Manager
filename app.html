@@ -30,9 +30,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="js/config.js?v=8" defer></script>
-    <script src="js/site.js?v=8" defer></script>
-    <script src="js/app.js?v=8" defer></script>
+    <script src="js/config.js?v=9" defer></script>
+    <script src="js/site.js?v=9" defer></script>
+    <script src="js/app.js?v=9" defer></script>
 </head>
 <body class="min-h-full bg-slate-50 font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="dashboard">
 
@@ -105,37 +105,65 @@
             </div>
 
             <!-- Per-person spending breakdown -->
-            <div id="peopleCard" class="mt-4 hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <p class="text-sm font-medium text-slate-500">Spending by Person &mdash; this month</p>
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-md shadow-rose-500/25">
-                        <i data-lucide="users" class="h-5 w-5"></i>
-                    </span>
+            <div id="peopleCard" class="mt-4 hidden overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+                <div class="relative bg-gradient-to-r from-rose-500 via-pink-500 to-rose-400 px-6 py-5">
+                    <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.18)_1px,transparent_0)] [background-size:20px_20px]"></div>
+                    <div aria-hidden="true" class="absolute -right-2 -top-3 text-6xl opacity-25 select-none">👥</div>
+                    <div class="relative flex items-center justify-between">
+                        <div>
+                            <p class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-rose-100">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 backdrop-blur">
+                                    <i data-lucide="users-round" class="h-4 w-4"></i>
+                                </span>
+                                Spending by Person
+                            </p>
+                            <p id="peopleCardSubtitle" class="mt-1.5 text-lg font-extrabold text-white">This month's splits 🤝</p>
+                        </div>
+                    </div>
                 </div>
-                <div id="peopleBreakdown" class="mt-4 space-y-3"></div>
+                <div id="peopleBreakdown" class="space-y-3 bg-gradient-to-b from-rose-50/40 to-white p-5"></div>
             </div>
 
             <!-- Monthly budget progress -->
-            <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="relative mt-4 overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl">
+                <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.07)_1px,transparent_0)] [background-size:22px_22px]"></div>
+                <div aria-hidden="true" class="absolute -right-4 -top-5 select-none text-7xl opacity-10">🎯</div>
+
+                <div class="relative flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <p class="text-sm font-medium text-slate-500">Monthly Budget Progress</p>
-                        <p id="budgetSpentLabel" class="mt-1 text-sm text-slate-600">$0.00 of $2,000.00 budget</p>
+                        <p class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
+                                <i data-lucide="target" class="h-4 w-4 text-emerald-400"></i>
+                            </span>
+                            Monthly Budget
+                        </p>
+                        <p class="mt-2 text-3xl font-extrabold tabular-nums tracking-tight">
+                            <span id="budgetSpentValue">$0.00</span>
+                            <span class="text-base font-semibold text-slate-400">of <span id="budgetTargetValue">$2,000.00</span></span>
+                        </p>
+                        <p id="budgetStatusText" class="mt-1 text-xs font-medium text-slate-400">Set your target below and watch the bar 👀</p>
                     </div>
+                    <div class="flex flex-col items-end gap-2">
+                        <span id="budgetStatusEmoji" class="select-none text-3xl">😌</span>
+                        <span id="budgetPercentText" class="rounded-full bg-white/10 px-3 py-1 text-sm font-bold tabular-nums ring-1 ring-white/15">0%</span>
+                    </div>
+                </div>
+
+                <div class="relative mt-5 h-3.5 w-full overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10" role="progressbar" aria-label="Monthly budget usage">
+                    <div id="budgetBar" class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-700" style="width: 0%"></div>
+                </div>
+
+                <div class="relative mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-[11px] text-slate-500">Adjust your target &mdash; saved in this browser 💾</p>
                     <div class="flex items-center gap-2">
-                        <label for="budgetInput" class="text-sm text-slate-500">Target</label>
+                        <label for="budgetInput" class="text-xs font-medium text-slate-400">Target</label>
                         <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-sm text-slate-400">$</span>
+                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-sm text-slate-500">$</span>
                             <input id="budgetInput" type="number" min="1" step="50" value="2000"
-                                class="w-32 rounded-xl border border-slate-300 py-1.5 pl-6 pr-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                                class="w-28 rounded-xl border border-white/10 bg-white/5 py-1.5 pl-6 pr-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-emerald-400/60 focus:outline-none focus:ring-2 focus:ring-emerald-400/20" />
                         </div>
-                        <span id="budgetPercentText" class="w-12 text-right text-sm font-semibold text-slate-600">0%</span>
                     </div>
                 </div>
-                <div class="mt-4 h-4 w-full overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label="Monthly budget usage">
-                    <div id="budgetBar" class="h-full rounded-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <p class="mt-2 text-xs text-slate-400">Adjust your monthly target &mdash; it is saved locally in your browser.</p>
             </div>
         </section>
 

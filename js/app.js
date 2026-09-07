@@ -40,7 +40,11 @@ const peopleBreakdownEl = document.getElementById('peopleBreakdown');
 const budgetInput = document.getElementById('budgetInput');
 const budgetBar = document.getElementById('budgetBar');
 const budgetPercentTextEl = document.getElementById('budgetPercentText');
-const budgetSpentLabelEl = document.getElementById('budgetSpentLabel');
+const budgetSpentValueEl = document.getElementById('budgetSpentValue');
+const budgetTargetValueEl = document.getElementById('budgetTargetValue');
+const budgetStatusTextEl = document.getElementById('budgetStatusText');
+const budgetStatusEmojiEl = document.getElementById('budgetStatusEmoji');
+const peopleCardSubtitleEl = document.getElementById('peopleCardSubtitle');
 
 const expenseForm = document.getElementById('expenseForm');
 const expenseFields = document.getElementById('expenseFields');
@@ -524,17 +528,55 @@ function renderSummary() {
     // Per-person totals this month
     renderPeopleBreakdown(monthExpenses, totalThisMonth);
 
-    // Budget progress
+    // Budget progress (dark hero card with mood states)
     const percent = monthlyBudget > 0 ? (totalThisMonth / monthlyBudget) * 100 : 0;
     budgetBar.style.width = `${Math.min(percent, 100)}%`;
-    budgetBar.className =
-        'h-full rounded-full transition-all duration-500 ' +
-        (percent >= 100 ? 'bg-red-500' : percent >= 75 ? 'bg-amber-500' : 'bg-emerald-500');
 
+    let mood;
+    if (percent >= 100) {
+        budgetBar.className =
+            'h-full rounded-full bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-700';
+        mood = { emoji: '😵', text: 'Budget blown — every taka from here hurts 💥', pct: 'text-rose-300' };
+    } else if (percent >= 75) {
+        budgetBar.className =
+            'h-full rounded-full bg-gradient-to-r from-amber-300 to-orange-400 transition-all duration-700';
+        mood = { emoji: '😬', text: 'Getting close to your limit — slow down a little', pct: 'text-amber-300' };
+    } else if (percent >= 25) {
+        budgetBar.className =
+            'h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-700';
+        mood = { emoji: '😌', text: 'Comfortably on track — keep it up ✅', pct: 'text-emerald-300' };
+    } else {
+        budgetBar.className =
+            'h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400 transition-all duration-700';
+        mood = { emoji: '🤩', text: 'Barely touched your budget — great start!', pct: 'text-sky-300' };
+    }
+
+    budgetStatusEmojiEl.textContent = mood.emoji;
+    budgetStatusTextEl.textContent = mood.text;
+    budgetSpentValueEl.textContent = formatCurrency(totalThisMonth);
+    budgetTargetValueEl.textContent = formatCurrency(monthlyBudget);
     budgetPercentTextEl.textContent = `${Math.round(percent)}%`;
-    budgetPercentTextEl.classList.toggle('text-red-600', percent >= 100);
-    budgetSpentLabelEl.textContent =
-        `${formatCurrency(totalThisMonth)} of ${formatCurrency(monthlyBudget)} budget`;
+    budgetPercentTextEl.className =
+        'rounded-full bg-white/10 px-3 py-1 text-sm font-bold tabular-nums ring-1 ring-white/15 ' + mood.pct;
+}
+
+const AVATAR_GRADIENTS = [
+    'from-rose-400 to-pink-500',
+    'from-violet-400 to-purple-500',
+    'from-sky-400 to-blue-500',
+    'from-amber-400 to-orange-500',
+    'from-emerald-400 to-teal-500',
+    'from-fuchsia-400 to-pink-500',
+    'from-cyan-400 to-sky-500',
+    'from-lime-400 to-green-500'
+];
+
+const RANK_EMOJIS = ['🥇', '🥈', '🥉'];
+
+function avatarGradient(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+    return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length];
 }
 
 function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
@@ -568,39 +610,56 @@ function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
     peopleCardEl.classList.remove('hidden');
     const entries = Object.entries(byPerson).sort((a, b) => b[1].total - a[1].total);
     const max = entries[0][1].total || 1;
+    const peopleCount = entries.length;
+
+    peopleCardSubtitleEl.textContent =
+        peopleCount === 1
+            ? '1 person splitting this month 🤝'
+            : `${peopleCount} people splitting this month 🤝`;
 
     peopleBreakdownEl.innerHTML = entries
-        .map(([name, data]) => {
-            const width = Math.max(4, Math.round((data.total / max) * 100));
+        .map(([name, data], index) => {
+            const width = Math.max(6, Math.round((data.total / max) * 100));
             const share = totalThisMonth > 0 ? Math.round((data.total / totalThisMonth) * 100) : 0;
+            const rank = RANK_EMOJIS[index] || '';
+            const initial = escapeHTML((name[0] || '?').toUpperCase());
+            const gradient = avatarGradient(name);
+
             const details = data.details
                 .sort((a, b) => String(b.date).localeCompare(String(a.date)))
                 .map(
                     (d) =>
                         '<li class="flex items-baseline justify-between gap-3 py-1.5">' +
-                        `<span class="min-w-0 truncate">${badgeHtml(d.category)} ` +
-                        `<span class="text-slate-600">${escapeHTML(d.description)}</span>` +
+                        `<span class="flex min-w-0 items-baseline gap-1.5">${badgeHtml(d.category)} ` +
+                        `<span class="truncate text-slate-600">${escapeHTML(d.description)}</span>` +
                         `<span class="ml-1 whitespace-nowrap text-slate-400">${formatDate(d.date)}</span></span>` +
                         `<span class="whitespace-nowrap font-semibold tabular-nums text-rose-700">${formatCurrency(d.share)}</span>` +
                         '</li>'
                 )
                 .join('');
+
             return (
-                '<div class="rounded-xl border border-slate-100 bg-slate-50/50 p-3">' +
-                '<div class="mb-1.5 flex items-center justify-between text-sm">' +
-                `<span class="font-semibold text-slate-700">${escapeHTML(name)}</span>` +
-                `<span class="tabular-nums text-slate-600">${formatCurrency(data.total)} <span class="text-xs text-slate-400">(${share}% of month)</span></span>` +
+                '<div class="group rounded-2xl border border-rose-100/80 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-rose-100">' +
+                '<div class="flex items-center gap-3">' +
+                `<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-base font-extrabold text-white shadow-md">${initial}</span>` +
+                '<div class="min-w-0 flex-1">' +
+                '<div class="flex items-baseline justify-between gap-2">' +
+                `<span class="truncate text-sm font-bold text-slate-800">${rank ? rank + ' ' : ''}${escapeHTML(name)}</span>` +
+                `<span class="whitespace-nowrap text-sm font-extrabold tabular-nums text-slate-900">${formatCurrency(data.total)} <span class="text-[11px] font-semibold text-slate-400">· ${share}%</span></span>` +
                 '</div>' +
-                '<div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">' +
-                `<div class="h-full rounded-full bg-rose-400" style="width: ${width}%"></div>` +
+                '<div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-rose-50">' +
+                `<div class="h-full rounded-full bg-gradient-to-r ${gradient} transition-all duration-700" style="width: ${width}%"></div>` +
                 '</div>' +
-                `<details class="mt-2"><summary class="cursor-pointer select-none text-xs font-medium text-indigo-600 hover:text-indigo-700">${data.details.length} expense${data.details.length === 1 ? '' : 's'} &mdash; view details</summary>` +
-                `<ul class="mt-1.5 divide-y divide-slate-100 border-t border-slate-100 pt-0.5 text-xs">${details}</ul>` +
+                '</div>' +
+                '</div>' +
+                `<details class="mt-3"><summary class="cursor-pointer select-none text-xs font-semibold text-rose-500 transition-colors hover:text-rose-600">📝 ${data.details.length} expense${data.details.length === 1 ? '' : 's'} — view details</summary>` +
+                `<ul class="mt-2 divide-y divide-rose-50 border-t border-rose-100 text-xs">${details}</ul>` +
                 '</details>' +
                 '</div>'
             );
         })
         .join('');
+    window.lucide?.createIcons();
 }
 
 function badgeHtml(category) {
