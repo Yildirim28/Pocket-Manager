@@ -20,8 +20,8 @@ const PRECACHE_URLS = [
     './icon-192.png',
     './icon-512.png',
     './js/config.js?v=8',
-    './js/site.js?v=14',
-    './js/app.js?v=14',
+    './js/site.js?v=15',
+    './js/app.js?v=15',
     './js/auth.js?v=8',
     './js/settings.js?v=8',
     './js/contact.js?v=8'

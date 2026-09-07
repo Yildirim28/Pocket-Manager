@@ -486,7 +486,7 @@ function renderSummary() {
         const remaining = monthlyBudget - totalThisMonth;
         if (remaining >= 0) {
             remainingBalanceEl.textContent = formatCurrency(remaining);
-            remainingBalanceSubEl.textContent = `left from your ${formatCurrency(monthlyBudget)} budget 🐷`;
+            remainingBalanceSubEl.textContent = `left from your ${formatCurrency(monthlyBudget)} budget ✨`;
         } else {
             remainingBalanceEl.textContent = formatCurrency(Math.abs(remaining));
             remainingBalanceSubEl.textContent = `over your ${formatCurrency(monthlyBudget)} budget 😬`;
@@ -589,7 +589,7 @@ const AVATAR_GRADIENTS = [
 ];
 
 /* Fun mascot emoji assigned per person (stable per name). */
-const MASCOTS = ['🦊', '🐼', '🐯', '🦁', '🐨', '🐵', '🐸', '🐧', '🐷', '🐰', '🐻', '🦉', '🐙', '🦄', '🐢', '🐳', '🦜', '🐝', '🦋', '🐬'];
+const MASCOTS = ['🦊', '🐼', '🐯', '🦁', '🐨', '🐵', '🐸', '🐧', '🐰', '🐻', '🦉', '🐙', '🦄', '🐢', '🐳', '🦜', '🐝', '🦋', '🐬', '🐿️'];
 
 const RANK_EMOJIS = ['🥇', '🥈', '🥉'];
 
