@@ -18,6 +18,7 @@ const DELETE_ARM_TIMEOUT_MS = 3000;
 /* Owner contact info shown on the Contact page. */
 const OWNER_NAME = 'Md. Shamim Osman Chowdhury';
 const OWNER_EMAIL = 'shamimosman344@gmail.com';
+const OWNER_WHATSAPP = '8801639815290';
 
 function pmIsConfigured() {
     return (

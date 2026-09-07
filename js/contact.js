@@ -1,8 +1,9 @@
 /* =============================================================
    Pocket Manager — js/contact.js
-   Contact page (contact.html). Anyone can send a message;
-   messages are stored in the contact_messages table and read
-   by the owner in Supabase Dashboard -> Table Editor.
+   Contact page (contact.html). The form saves the message to
+   contact_messages (owner can review all messages in Supabase
+   Dashboard -> Table Editor) AND delivers it instantly to the
+   owner's WhatsApp via a prefilled wa.me link.
    ============================================================= */
 
 'use strict';
@@ -11,6 +12,7 @@
     const ownerNameEl = document.getElementById('ownerName');
     const ownerEmailLink = document.getElementById('ownerEmailLink');
     const ownerEmailText = document.getElementById('ownerEmailText');
+    const ownerWhatsappLink = document.getElementById('ownerWhatsappLink');
 
     const form = document.getElementById('contactForm');
     const nameInput = document.getElementById('contactName');
@@ -36,6 +38,18 @@
         submitButtonText.textContent = submitting ? 'Sending…' : 'Send message';
     }
 
+    /* Build a wa.me link with the message prefilled so it lands
+       directly in the owner's WhatsApp chat. */
+    function whatsappUrl(name, email, subject, message) {
+        const text =
+            `💬 New message from Pocket Manager\n\n` +
+            `👤 Name: ${name}\n` +
+            `✉️ Email: ${email}\n` +
+            `📌 Subject: ${subject}\n\n` +
+            `${message}`;
+        return `https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(text)}`;
+    }
+
     async function submitMessage(event) {
         event.preventDefault();
         hideError();
@@ -56,22 +70,33 @@
 
         setSubmitting(true);
         try {
-            const session = await getSession();
-            const payload = {
-                name,
-                email,
-                subject,
-                message,
-                sender_id: session?.user?.id ?? null
-            };
+            // 1. Archive the message in the database (backup record
+            //    the owner can browse in Supabase -> Table Editor).
+            if (sb) {
+                const session = await getSession();
+                const { error } = await sb.from(CONTACT_TABLE).insert({
+                    name,
+                    email,
+                    subject,
+                    message,
+                    sender_id: session?.user?.id ?? null
+                });
+                if (error) throw error;
+            }
 
-            const { error } = await sb.from(CONTACT_TABLE).insert(payload);
-            if (error) throw error;
+            // 2. Deliver instantly: open WhatsApp with the message
+            //    prefilled to the owner's number.
+            window.open(whatsappUrl(name, email, subject, message), '_blank', 'noopener');
 
             form.reset();
-            showToast('Message sent! The owner will get back to you soon.', 'success');
+            showToast('Message sent! The owner will get back to you soon. 💌', 'success');
         } catch (error) {
-            showError(`Could not send your message: ${error.message}`);
+            // Delivery fallback: still let the user reach the owner
+            // via WhatsApp even if the database write failed.
+            showError(
+                `Could not archive your message (${error.message}) — opening WhatsApp instead so it still gets delivered.`
+            );
+            window.open(whatsappUrl(name, email, subject, message), '_blank', 'noopener');
         } finally {
             setSubmitting(false);
         }
@@ -81,6 +106,9 @@
         ownerNameEl.textContent = OWNER_NAME;
         ownerEmailText.textContent = OWNER_EMAIL;
         ownerEmailLink.href = `mailto:${OWNER_EMAIL}`;
+        ownerWhatsappLink.href = `https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(
+            'Hi! I have a question about Pocket Manager 💜'
+        )}`;
 
         if (!sb) {
             showError('Contact form is unavailable: missing Supabase credentials in js/config.js.');
