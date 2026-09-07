@@ -351,9 +351,9 @@ function renderNavbar(session) {
            </div>`;
 
     mount.innerHTML =
-        '<header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-md">' +
-        '<nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4" aria-label="Main navigation">' +
-        '<a href="index.html" class="flex items-center gap-3">' +
+        '<header class="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">' +
+        '<nav class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 rounded-2xl border border-white/40 bg-white/60 px-3 shadow-xl shadow-slate-900/5 backdrop-blur-xl backdrop-saturate-150 sm:px-4" aria-label="Main navigation">' +
+        '<a href="index.html" class="flex min-w-0 items-center gap-3">' +
         '<span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/30">' + NAV_LOGO + '</span>' +
         '<span><span class="block text-lg font-extrabold leading-tight tracking-tight text-slate-900">Pocket Manager</span>' +
         '<span class="block text-xs font-medium text-slate-400">Manual expense tracking</span></span>' +
@@ -365,7 +365,7 @@ function renderNavbar(session) {
         '<i data-lucide="menu" class="h-6 w-6"></i>' +
         '</button>' +
         '</nav>' +
-        `<div id="navMobileMenu" class="hidden border-t border-slate-100 bg-white px-4 py-3 md:hidden">${mobileLinks}${mobileAuth}</div>` +
+        `<div id="navMobileMenu" class="mx-auto mt-2 hidden max-w-6xl rounded-2xl border border-white/40 bg-white/70 p-3 shadow-xl shadow-slate-900/5 backdrop-blur-xl backdrop-saturate-150 md:hidden">${mobileLinks}${mobileAuth}</div>` +
         '</header>';
 
     // Render Lucide icons inside the injected markup.
