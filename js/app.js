@@ -1016,15 +1016,13 @@ async function init() {
     initFormEvents();
     addExpenseRow();
 
-    // Flip card: total spent <-> remaining balance
-    const flipCard = (element) => {
-        element.querySelector('[transform-style\\:preserve-3d]')?.classList.toggle('[transform:rotateY(180deg)]');
-    };
-    totalSpentFlipEl?.addEventListener('click', () => flipCard(totalSpentFlipEl));
+    // Flip card: total spent <-> remaining balance (works on tap/click
+    // anywhere on the card, and via keyboard for accessibility).
+    totalSpentFlipEl?.addEventListener('click', () => totalSpentFlipEl.classList.toggle('is-flipped'));
     totalSpentFlipEl?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            flipCard(totalSpentFlipEl);
+            totalSpentFlipEl.classList.toggle('is-flipped');
         }
     });
 

@@ -22,6 +22,8 @@
     const errorEl = document.getElementById('contactError');
     const submitButton = document.getElementById('contactSubmit');
     const submitButtonText = document.getElementById('contactSubmitText');
+    const emailSubmitButton = document.getElementById('contactEmailSubmit');
+    const emailSubmitButtonText = document.getElementById('contactEmailSubmitText');
 
     function showError(message) {
         errorEl.textContent = message;
@@ -31,11 +33,6 @@
     function hideError() {
         errorEl.textContent = '';
         errorEl.classList.add('hidden');
-    }
-
-    function setSubmitting(submitting) {
-        submitButton.disabled = submitting;
-        submitButtonText.textContent = submitting ? 'Sending…' : 'Send message';
     }
 
     /* Build a wa.me link with the message prefilled so it lands
@@ -50,10 +47,18 @@
         return `https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(text)}`;
     }
 
-    async function submitMessage(event) {
-        event.preventDefault();
-        hideError();
+    /* Build a mailto: link that opens the user's email app with
+       everything prefilled, ready to send. */
+    function mailtoUrl(name, email, subject, message) {
+        const body =
+            `Hi,\n\n${message}\n\n—\nSent from Pocket Manager contact form\n` +
+            `👤 ${name} · ✉️ ${email}`;
+        return `mailto:${OWNER_EMAIL}?subject=${encodeURIComponent(
+            '[Pocket Manager] ' + subject
+        )}&body=${encodeURIComponent(body)}`;
+    }
 
+    function validateForm() {
         const name = nameInput.value.trim();
         const email = emailInput.value.trim();
         const subject = subjectInput.value.trim();
@@ -61,45 +66,76 @@
 
         if (!name || !subject || !message) {
             showError('Please fill in all fields.');
-            return;
+            return null;
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             showError('Please enter a valid email address.');
-            return;
+            return null;
         }
+        return { name, email, subject, message };
+    }
 
-        setSubmitting(true);
+    async function deliver(channel) {
+        const data = validateForm();
+        if (!data) return;
+
+        const setBusy = (busy) => {
+            if (channel === 'email') {
+                emailSubmitButton.disabled = busy;
+                emailSubmitButtonText.textContent = busy ? 'Opening…' : 'Send via Email';
+            } else {
+                submitButton.disabled = busy;
+                submitButtonText.textContent = busy ? 'Opening…' : 'Send via WhatsApp';
+            }
+        };
+
+        setBusy(true);
         try {
-            // 1. Archive the message in the database (backup record
-            //    the owner can browse in Supabase -> Table Editor).
+            // Archive the message in the database (backup record
+            // the owner can browse in Supabase -> Table Editor).
             if (sb) {
                 const session = await getSession();
                 const { error } = await sb.from(CONTACT_TABLE).insert({
-                    name,
-                    email,
-                    subject,
-                    message,
+                    name: data.name,
+                    email: data.email,
+                    subject: data.subject,
+                    message: data.message,
                     sender_id: session?.user?.id ?? null
                 });
                 if (error) throw error;
             }
 
-            // 2. Deliver instantly: open WhatsApp with the message
-            //    prefilled to the owner's number.
-            window.open(whatsappUrl(name, email, subject, message), '_blank', 'noopener');
-
+            if (channel === 'email') {
+                window.location.href = mailtoUrl(data.name, data.email, data.subject, data.message);
+                showToast('Opening your email app with the message ready to send ✉️', 'success');
+            } else {
+                window.open(whatsappUrl(data.name, data.email, data.subject, data.message), '_blank', 'noopener');
+                showToast('Opening WhatsApp with your message ready to send 📲', 'success');
+            }
             form.reset();
-            showToast('Message sent! The owner will get back to you soon. 💌', 'success');
         } catch (error) {
-            // Delivery fallback: still let the user reach the owner
-            // via WhatsApp even if the database write failed.
-            showError(
-                `Could not archive your message (${error.message}) — opening WhatsApp instead so it still gets delivered.`
-            );
-            window.open(whatsappUrl(name, email, subject, message), '_blank', 'noopener');
+            // Delivery fallback: still open the chosen channel even
+            // if the database write failed.
+            if (channel === 'email') {
+                window.location.href = mailtoUrl(data.name, data.email, data.subject, data.message);
+            } else {
+                window.open(whatsappUrl(data.name, data.email, data.subject, data.message), '_blank', 'noopener');
+            }
+            showError(`Could not archive your message (${error.message}) — opened ${channel === 'email' ? 'your email app' : 'WhatsApp'} instead so it still gets delivered.`);
         } finally {
-            setSubmitting(false);
+            setBusy(false);
         }
+    }
+
+    async function submitMessage(event) {
+        event.preventDefault();
+        hideError();
+        await deliver('whatsapp');
+    }
+
+    async function submitViaEmail() {
+        hideError();
+        await deliver('email');
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -126,5 +162,6 @@
         }
 
         form.addEventListener('submit', submitMessage);
+        emailSubmitButton.addEventListener('click', submitViaEmail);
     });
 })();
