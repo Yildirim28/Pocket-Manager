@@ -37,6 +37,8 @@ const lowestCategoryAmountEl = document.getElementById('lowestCategoryAmount');
 const lowestCategoryBadgeEl = document.getElementById('lowestCategoryBadge');
 const utilitiesFlipEl = document.getElementById('utilitiesFlip');
 const utilitiesBreakdownListEl = document.getElementById('utilitiesBreakdownList');
+const totalTransactionsFlipEl = document.getElementById('totalTransactionsFlip');
+const topTransactionsListEl = document.getElementById('topTransactionsList');
 const topCategoryBadgeEl = document.getElementById('topCategoryBadge');
 const topCategoryAmountEl = document.getElementById('topCategoryAmount');
 const totalCountEl = document.getElementById('totalCount');
@@ -596,6 +598,31 @@ function renderSummary() {
     totalCountEl.textContent = expenses.length;
     historyCountEl.textContent = expenses.length;
 
+    // Top 5 transactions (back face of the total-transactions flip card)
+    if (topTransactionsListEl) {
+        const topFive = [...expenses]
+            .sort((a, b) => Number(b.amount) - Number(a.amount))
+            .slice(0, 5);
+
+        if (topFive.length > 0) {
+            topTransactionsListEl.innerHTML = topFive
+                .map(
+                    (expense, index) =>
+                        `<li class="flex items-baseline justify-between gap-2 text-xs">` +
+                        `<span class="flex min-w-0 items-baseline gap-1.5">` +
+                        `<span class="font-bold text-white">${index + 1}.</span>` +
+                        `<span class="truncate text-emerald-50">${escapeHTML(expense.description)}</span>` +
+                        `</span>` +
+                        `<span class="whitespace-nowrap font-bold tabular-nums text-white">${formatCurrency(expense.amount)}</span>` +
+                        `</li>`
+                )
+                .join('');
+        } else {
+            topTransactionsListEl.innerHTML =
+                '<li class="text-xs text-emerald-100/80">No expenses yet</li>';
+        }
+    }
+
     // Per-person totals this month
     renderPeopleBreakdown(monthExpenses, totalThisMonth);
 
@@ -1084,6 +1111,7 @@ async function init() {
     wireFlip(totalSpentFlipEl);
     wireFlip(topCategoryFlipEl);
     wireFlip(utilitiesFlipEl);
+    wireFlip(totalTransactionsFlipEl);
 
     personForm.addEventListener('submit', addPerson);
     personsListEl.addEventListener('click', (event) => {
