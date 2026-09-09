@@ -60,7 +60,17 @@
     async function handleSignup(email, password) {
         const { data, error } = await sb.auth.signUp({ email, password });
         if (error) {
-            showError(error.message);
+            if (
+                error.message.toLowerCase().includes('already registered') ||
+                error.message.toLowerCase().includes('already been registered')
+            ) {
+                showError(
+                    'An account with this email already exists. Try signing in instead — ' +
+                    'or use "Forgot your password?" if you forgot it.'
+                );
+            } else {
+                showError(error.message);
+            }
             return;
         }
         if (data.session) {
