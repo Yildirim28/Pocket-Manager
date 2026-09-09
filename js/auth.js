@@ -16,6 +16,9 @@
     const noticeEl = document.getElementById('authNotice');
     const submitButton = document.getElementById('authSubmit');
     const submitButtonText = document.getElementById('authSubmitText');
+    const googleButton = document.getElementById('googleButton');
+    const googleButtonText = document.getElementById('googleButtonText');
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
     function showError(message) {
         errorEl.textContent = message;
@@ -73,6 +76,25 @@
         }
     }
 
+    async function handleGoogleSignIn() {
+        googleButton.disabled = true;
+        googleButtonText.textContent = 'Redirecting to Google…';
+        try {
+            const { error } = await sb.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}app.html`
+                }
+            });
+            if (error) throw error;
+            // Supabase redirects to Google; nothing else to do here.
+        } catch (error) {
+            showError(`Google sign-in failed: ${error.message}`);
+            googleButton.disabled = false;
+            googleButtonText.textContent = 'Continue with Google';
+        }
+    }
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!sb) {
@@ -110,7 +132,18 @@
     });
 
     // Already signed in? Go straight to the dashboard.
+    // (Ignore the PASSWORD_RECOVERY event — that belongs to the
+    // reset-password page, not this one.)
     document.addEventListener('DOMContentLoaded', async () => {
+        googleButton?.addEventListener('click', handleGoogleSignIn);
+
+        forgotPasswordLink?.addEventListener('click', (event) => {
+            event.preventDefault();
+            const email = emailInput.value.trim();
+            window.location.href =
+                'reset-password.html' + (email ? `?email=${encodeURIComponent(email)}` : '');
+        });
+
         const session = await getSession();
         if (session) window.location.replace('app.html');
     });
