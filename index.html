@@ -18,7 +18,15 @@
     <!-- Tailwind CSS v3 (Play CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        (function () {
+            if (localStorage.getItem('pocket-manager:theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
@@ -39,8 +47,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onerror="var f=document.createElement('script');f.src='https://unpkg.com/@supabase/supabase-js@2';f.defer=true;document.head.appendChild(f);"></script>
 
     <!-- Shared config + site chrome -->
-    <script src="js/config.js?v=24" defer></script>
-    <script src="js/site.js?v=24" defer></script>
+    <script src="js/config.js?v=25" defer></script>
+    <script src="js/site.js?v=25" defer></script>
 
     <style>
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
@@ -51,7 +59,7 @@
         .grow-bar { animation: grow-bar 1.2s cubic-bezier(0.22,1,0.36,1) both; }
     </style>
 </head>
-<body class="min-h-full pt-16 bg-slate-50 font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="home">
+<body class="min-h-full pt-16 bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="home">
 
     <!-- Navbar (injected by js/site.js) -->
     <div id="navbar"></div>
@@ -68,7 +76,7 @@
             <div class="relative mx-auto grid max-w-6xl items-center gap-14 px-4 pb-20 pt-14 md:pt-20 lg:grid-cols-2 lg:pb-28">
                 <!-- Left: copy -->
                 <div class="text-center lg:text-left">
-                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-sm backdrop-blur">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-4 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-sm backdrop-blur">
                         <span class="relative flex h-2 w-2">
                             <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                             <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -76,7 +84,7 @@
                         100% free &middot; No ads &middot; No card required
                     </span>
 
-                    <h1 class="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl xl:text-6xl">
+                    <h1 class="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl xl:text-6xl">
                         Every taka,
                         <span class="relative inline-block">
                             <span class="bg-gradient-to-r from-indigo-600 via-violet-600 to-sky-500 bg-clip-text text-transparent">accounted</span>
@@ -88,7 +96,7 @@
                         for.
                     </h1>
 
-                    <p class="mx-auto mt-6 max-w-md text-lg leading-relaxed text-slate-600 lg:mx-0">
+                    <p class="mx-auto mt-6 max-w-md text-lg leading-relaxed text-slate-600 dark:text-slate-300 lg:mx-0">
                         Track expenses in seconds ⚡ split bills with people 👥 watch your budget 📊 — all in one clean dashboard.
                     </p>
 
@@ -99,13 +107,13 @@
                             <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-1"></i>
                         </a>
                         <a href="login.html"
-                            class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-8 py-4 text-base font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.97] sm:w-auto">
+                            class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-8 py-4 text-base font-semibold text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 active:scale-[0.97] sm:w-auto">
                             <i data-lucide="log-in" class="h-4 w-4"></i>
                             Sign in
                         </a>
                     </div>
 
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-slate-400 lg:justify-start">
+                    <div class="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-slate-400 dark:text-slate-500 lg:justify-start">
                         <span class="inline-flex items-center gap-1.5"><i data-lucide="shield-check" class="h-3.5 w-3.5 text-emerald-500"></i> Private by default</span>
                         <span class="inline-flex items-center gap-1.5"><i data-lucide="zap" class="h-3.5 w-3.5 text-amber-500"></i> Set up in 30 seconds</span>
                         <span class="inline-flex items-center gap-1.5"><i data-lucide="heart" class="h-3.5 w-3.5 text-rose-500"></i> No ads, ever</span>
@@ -115,54 +123,54 @@
                 <!-- Right: app preview mockup -->
                 <div class="relative mx-auto w-full max-w-md lg:max-w-none">
                     <!-- floating emoji chips -->
-                    <div aria-hidden="true" class="absolute -left-3 -top-6 z-10 animate-float rounded-2xl bg-white px-3.5 py-2 text-xl shadow-lg shadow-slate-200/70 ring-1 ring-slate-100">🍔 <span class="text-sm font-semibold text-slate-700">$12.50</span></div>
-                    <div aria-hidden="true" class="absolute -right-2 top-24 z-10 animate-float-slow rounded-2xl bg-white px-3.5 py-2 text-xl shadow-lg shadow-slate-200/70 ring-1 ring-slate-100">💡 <span class="text-sm font-semibold text-slate-700">$48.00</span></div>
-                    <div aria-hidden="true" class="absolute -bottom-5 left-16 z-10 animate-float rounded-2xl bg-white px-3.5 py-2 text-xl shadow-lg shadow-slate-200/70 ring-1 ring-slate-100">👥 <span class="text-sm font-semibold text-slate-700">Split 3 ways</span></div>
+                    <div aria-hidden="true" class="absolute -left-3 -top-6 z-10 animate-float rounded-2xl bg-white dark:bg-slate-900 px-3.5 py-2 text-xl shadow-lg shadow-slate-200/70 ring-1 ring-slate-100">🍔 <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">$12.50</span></div>
+                    <div aria-hidden="true" class="absolute -right-2 top-24 z-10 animate-float-slow rounded-2xl bg-white dark:bg-slate-900 px-3.5 py-2 text-xl shadow-lg shadow-slate-200/70 ring-1 ring-slate-100">💡 <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">$48.00</span></div>
+                    <div aria-hidden="true" class="absolute -bottom-5 left-16 z-10 animate-float rounded-2xl bg-white dark:bg-slate-900 px-3.5 py-2 text-xl shadow-lg shadow-slate-200/70 ring-1 ring-slate-100">👥 <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Split 3 ways</span></div>
 
                     <!-- dashboard card -->
-                    <div class="relative rounded-3xl border border-slate-200/70 bg-white p-6 shadow-2xl shadow-slate-300/50">
+                    <div class="relative rounded-3xl border border-slate-200/70 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-6 shadow-2xl shadow-slate-300/50">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white"><i data-lucide="wallet" class="h-4 w-4"></i></span>
-                                <p class="text-sm font-bold text-slate-900">This month</p>
+                                <p class="text-sm font-bold text-slate-900 dark:text-slate-100">This month</p>
                             </div>
                             <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-600">ON BUDGET</span>
                         </div>
 
-                        <p class="mt-4 text-4xl font-extrabold tabular-nums tracking-tight text-slate-900">$1,248<span class="text-lg font-semibold text-slate-400">.00</span></p>
-                        <p class="mt-1 text-xs font-medium text-slate-400">of $2,000 budget &middot; 62% used</p>
+                        <p class="mt-4 text-4xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-slate-100">$1,248<span class="text-lg font-semibold text-slate-400 dark:text-slate-500">.00</span></p>
+                        <p class="mt-1 text-xs font-medium text-slate-400 dark:text-slate-500">of $2,000 budget &middot; 62% used</p>
 
-                        <div class="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div class="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                             <div class="grow-bar h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500" style="width:62%"></div>
                         </div>
 
                         <div class="mt-5 grid grid-cols-3 gap-3">
-                            <div class="rounded-xl bg-slate-50 p-3">
-                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">🍔 Food</p>
-                                <p class="mt-1 text-sm font-extrabold tabular-nums text-slate-800">$486</p>
+                            <div class="rounded-xl bg-slate-50 dark:bg-slate-900 p-3">
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">🍔 Food</p>
+                                <p class="mt-1 text-sm font-extrabold tabular-nums text-slate-800 dark:text-slate-100">$486</p>
                             </div>
-                            <div class="rounded-xl bg-slate-50 p-3">
-                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">💡 Utilities</p>
-                                <p class="mt-1 text-sm font-extrabold tabular-nums text-slate-800">$342</p>
+                            <div class="rounded-xl bg-slate-50 dark:bg-slate-900 p-3">
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">💡 Utilities</p>
+                                <p class="mt-1 text-sm font-extrabold tabular-nums text-slate-800 dark:text-slate-100">$342</p>
                             </div>
-                            <div class="rounded-xl bg-slate-50 p-3">
-                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">🚌 Transport</p>
-                                <p class="mt-1 text-sm font-extrabold tabular-nums text-slate-800">$210</p>
+                            <div class="rounded-xl bg-slate-50 dark:bg-slate-900 p-3">
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">🚌 Transport</p>
+                                <p class="mt-1 text-sm font-extrabold tabular-nums text-slate-800 dark:text-slate-100">$210</p>
                             </div>
                         </div>
 
-                        <div class="mt-5 space-y-2.5 border-t border-slate-100 pt-4">
+                        <div class="mt-5 space-y-2.5 border-t border-slate-100 dark:border-slate-800 pt-4">
                             <div class="flex items-center justify-between text-sm">
-                                <span class="flex items-center gap-2 font-medium text-slate-600">🛒 <span class="truncate">Grocery run</span></span>
-                                <span class="font-bold tabular-nums text-slate-800">$86.40</span>
+                                <span class="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">🛒 <span class="truncate">Grocery run</span></span>
+                                <span class="font-bold tabular-nums text-slate-800 dark:text-slate-100">$86.40</span>
                             </div>
                             <div class="flex items-center justify-between text-sm">
-                                <span class="flex items-center gap-2 font-medium text-slate-600">📶 <span class="truncate">Wifi bill</span></span>
-                                <span class="font-bold tabular-nums text-slate-800">$45.00</span>
+                                <span class="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">📶 <span class="truncate">Wifi bill</span></span>
+                                <span class="font-bold tabular-nums text-slate-800 dark:text-slate-100">$45.00</span>
                             </div>
                             <div class="flex items-center justify-between text-sm">
-                                <span class="flex items-center gap-2 font-medium text-slate-600">🎬 <span class="truncate">Movie night</span></span>
-                                <span class="font-bold tabular-nums text-slate-800">$24.00</span>
+                                <span class="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">🎬 <span class="truncate">Movie night</span></span>
+                                <span class="font-bold tabular-nums text-slate-800 dark:text-slate-100">$24.00</span>
                             </div>
                         </div>
                     </div>
@@ -171,29 +179,29 @@
         </section>
 
         <!-- ===================== STATS BAND ===================== -->
-        <section class="border-y border-slate-200/70 bg-white/70 backdrop-blur">
-            <div class="mx-auto grid max-w-6xl grid-cols-1 divide-y divide-slate-200/70 px-4 py-8 text-center sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <section class="border-y border-slate-200/70 dark:border-slate-700/60 bg-white/70 backdrop-blur">
+            <div class="mx-auto grid max-w-6xl grid-cols-1 divide-y divide-slate-200/70 dark:divide-slate-700/60 px-4 py-8 text-center sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                 <div class="px-6 py-3 sm:py-0">
-                    <p class="text-2xl font-extrabold tabular-nums text-slate-900">⚡ &lt;5s</p>
-                    <p class="mt-1 text-xs font-medium uppercase tracking-wider text-slate-400">To log an expense</p>
+                    <p class="text-2xl font-extrabold tabular-nums text-slate-900 dark:text-slate-100">⚡ &lt;5s</p>
+                    <p class="mt-1 text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">To log an expense</p>
                 </div>
                 <div class="px-6 py-3 sm:py-0">
-                    <p class="text-2xl font-extrabold tabular-nums text-slate-900">👥 Unlimited</p>
-                    <p class="mt-1 text-xs font-medium uppercase tracking-wider text-slate-400">People to split with</p>
+                    <p class="text-2xl font-extrabold tabular-nums text-slate-900 dark:text-slate-100">👥 Unlimited</p>
+                    <p class="mt-1 text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">People to split with</p>
                 </div>
                 <div class="px-6 py-3 sm:py-0">
-                    <p class="text-2xl font-extrabold tabular-nums text-slate-900">🔒 100%</p>
-                    <p class="mt-1 text-xs font-medium uppercase tracking-wider text-slate-400">Your data, private</p>
+                    <p class="text-2xl font-extrabold tabular-nums text-slate-900 dark:text-slate-100">🔒 100%</p>
+                    <p class="mt-1 text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Your data, private</p>
                 </div>
             </div>
         </section>
 
         <!-- ===================== FEATURES (bento) ===================== -->
         <section class="mx-auto max-w-6xl px-4 py-16 md:py-24" aria-labelledby="features-heading">
-            <h2 id="features-heading" class="text-center text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+            <h2 id="features-heading" class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 md:text-4xl">
                 Made for real life 🧾
             </h2>
-            <p class="mx-auto mt-4 max-w-lg text-center text-slate-500">
+            <p class="mx-auto mt-4 max-w-lg text-center text-slate-500 dark:text-slate-400">
                 No bank connections, no scraping, no spreadsheet guilt — just quick manual tracking that sticks.
             </p>
 
@@ -211,28 +219,28 @@
                 </div>
 
                 <!-- Private -->
-                <div class="group rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:col-span-2">
+                <div class="group rounded-3xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:col-span-2">
                     <span class="text-3xl">🔒</span>
-                    <h3 class="mt-3 text-lg font-semibold text-slate-900">Private by default</h3>
-                    <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                    <h3 class="mt-3 text-lg font-semibold text-slate-900 dark:text-slate-100">Private by default</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                         Your account sees only its own data — enforced by row-level security in the database itself.
                     </p>
                 </div>
 
                 <!-- Split -->
-                <div class="group rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:col-span-2">
+                <div class="group rounded-3xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:col-span-2">
                     <span class="text-3xl">👥</span>
-                    <h3 class="mt-3 text-lg font-semibold text-slate-900">Split with people</h3>
-                    <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                    <h3 class="mt-3 text-lg font-semibold text-slate-900 dark:text-slate-100">Split with people</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                         Save your crew once, then tap to split any expense equally — with per-person totals and details.
                     </p>
                 </div>
 
                 <!-- Utilities -->
-                <div class="group rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:col-span-2">
+                <div class="group rounded-3xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:col-span-2">
                     <span class="text-3xl">💡</span>
-                    <h3 class="mt-3 text-lg font-semibold text-slate-900">Utilities, sorted</h3>
-                    <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                    <h3 class="mt-3 text-lg font-semibold text-slate-900 dark:text-slate-100">Utilities, sorted</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                         Wifi 📶 Gas 🔥 and Electricity ⚡ tracked separately, with a dedicated monthly breakdown.
                     </p>
                 </div>
@@ -243,25 +251,25 @@
                     <div class="relative">
                         <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15"><i data-lucide="gauge" class="h-5 w-5 text-emerald-400"></i></span>
                         <h3 class="mt-4 text-xl font-bold">Budget that talks back</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-300">
+                        <p class="mt-2 text-sm leading-relaxed text-slate-300 dark:text-slate-600">
                             A live progress bar shifts from green to amber to red as you close in on your limit. No surprises.
                         </p>
                     </div>
                 </div>
 
                 <!-- Export -->
-                <div class="group rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:col-span-4">
+                <div class="group rounded-3xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:col-span-4">
                     <div class="flex flex-wrap items-center gap-6">
                         <div class="min-w-0 flex-1">
                             <span class="text-3xl">📤</span>
-                            <h3 class="mt-3 text-lg font-semibold text-slate-900">Your data, your files</h3>
-                            <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                            <h3 class="mt-3 text-lg font-semibold text-slate-900 dark:text-slate-100">Your data, your files</h3>
+                            <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                                 Export everything anytime — a clean spreadsheet (CSV) or a polished, share-ready report card (PNG). No lock-in.
                             </p>
                         </div>
                         <div class="flex gap-3">
-                            <span class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-600"><i data-lucide="download" class="h-3.5 w-3.5"></i> CSV</span>
-                            <span class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-600"><i data-lucide="image-down" class="h-3.5 w-3.5"></i> PNG</span>
+                            <span class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 px-3.5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300"><i data-lucide="download" class="h-3.5 w-3.5"></i> CSV</span>
+                            <span class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 px-3.5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300"><i data-lucide="image-down" class="h-3.5 w-3.5"></i> PNG</span>
                         </div>
                     </div>
                 </div>
@@ -269,31 +277,31 @@
         </section>
 
         <!-- ===================== HOW IT WORKS ===================== -->
-        <section class="border-y border-slate-200/80 bg-white" aria-labelledby="how-heading">
+        <section class="border-y border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900" aria-labelledby="how-heading">
             <div class="mx-auto max-w-6xl px-4 py-16 md:py-24">
-                <h2 id="how-heading" class="text-center text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+                <h2 id="how-heading" class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 md:text-4xl">
                     Three steps. That's it. 🚀
                 </h2>
                 <ol class="relative mt-14 grid grid-cols-1 gap-10 md:grid-cols-3">
                     <div aria-hidden="true" class="absolute left-0 right-0 top-5 hidden h-0.5 bg-gradient-to-r from-indigo-200 via-violet-200 to-sky-200 md:block"></div>
                     <li class="relative">
                         <span class="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-lg font-extrabold text-white shadow-lg shadow-indigo-600/30 ring-4 ring-white">1</span>
-                        <h3 class="mt-4 flex items-center gap-2 text-base font-semibold text-slate-900">✉️ Create your free account</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                        <h3 class="mt-4 flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-slate-100">✉️ Create your free account</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                             Email and password, done. No credit card, no personal data harvesting.
                         </p>
                     </li>
                     <li class="relative">
                         <span class="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-lg font-extrabold text-white shadow-lg shadow-indigo-600/30 ring-4 ring-white">2</span>
-                        <h3 class="mt-4 flex items-center gap-2 text-base font-semibold text-slate-900">✍️ Log as you spend</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                        <h3 class="mt-4 flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-slate-100">✍️ Log as you spend</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                             A quick form and a clean history keep tracking painless on desktop and mobile.
                         </p>
                     </li>
                     <li class="relative">
                         <span class="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-lg font-extrabold text-white shadow-lg shadow-indigo-600/30 ring-4 ring-white">3</span>
-                        <h3 class="mt-4 flex items-center gap-2 text-base font-semibold text-slate-900">📈 Stay on budget</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                        <h3 class="mt-4 flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-slate-100">📈 Stay on budget</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                             Totals, top categories, per-person spending — know where you stand instantly.
                         </p>
                     </li>
@@ -312,7 +320,7 @@
                     It takes about thirty seconds to set up your account and log your first expense.
                 </p>
                 <a href="signup.html"
-                    class="relative mt-8 inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-semibold text-indigo-700 shadow-xl transition-all hover:bg-indigo-50 active:scale-[0.97]">
+                    class="relative mt-8 inline-flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-900 px-8 py-4 text-base font-semibold text-indigo-700 shadow-xl transition-all hover:bg-indigo-50 active:scale-[0.97]">
                     Create your account
                     <i data-lucide="arrow-right" class="h-4 w-4"></i>
                 </a>
@@ -321,12 +329,12 @@
     </main>
 
     <!-- ===================== FOOTER ===================== -->
-    <footer class="border-t border-slate-200/80 bg-white">
-        <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-400 sm:flex-row">
+    <footer class="border-t border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900">
+        <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-400 dark:text-slate-500 sm:flex-row">
             <p>&copy; <span id="footerYear"></span> Pocket Manager 💜 Static frontend on GitHub Pages, data in Supabase.</p>
             <div class="flex items-center gap-4">
-                <a href="contact.html" class="font-medium text-slate-500 transition-colors hover:text-indigo-600">Contact</a>
-                <a href="https://github.com/Yildirim28/Pocket-Manager" class="font-medium text-slate-500 transition-colors hover:text-indigo-600">GitHub</a>
+                <a href="contact.html" class="font-medium text-slate-500 dark:text-slate-400 transition-colors hover:text-indigo-600">Contact</a>
+                <a href="https://github.com/Yildirim28/Pocket-Manager" class="font-medium text-slate-500 dark:text-slate-400 transition-colors hover:text-indigo-600">GitHub</a>
             </div>
         </div>
     </footer>

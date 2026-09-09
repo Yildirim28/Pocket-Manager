@@ -89,7 +89,7 @@ const CATEGORY_COLORS = {
     Rent: 'bg-fuchsia-100 text-fuchsia-800',
     Entertainment: 'bg-purple-100 text-purple-800',
     Shopping: 'bg-amber-100 text-amber-800',
-    Other: 'bg-slate-100 text-slate-800',
+    Other: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100',
     General: 'bg-indigo-100 text-indigo-800'
 };
 
@@ -110,7 +110,7 @@ const UTILITY_TYPES = ['Wifi', 'Gas', 'Electricity', 'Other'];
 const TRASH_ICON = '<i data-lucide="trash-2" class="h-4 w-4"></i>';
 
 const DELETE_BUTTON_CLASSES =
-    'inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition-colors ' +
+    'inline-flex items-center justify-center rounded-lg p-2 text-slate-400 dark:text-slate-500 transition-colors ' +
     'hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500';
 
 const DELETE_ARMED_CLASSES =
@@ -118,11 +118,11 @@ const DELETE_ARMED_CLASSES =
     'font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500';
 
 const INPUT_CLASSES =
-    'w-full border-0 border-b border-slate-200 bg-transparent px-0 py-1.5 text-sm placeholder-slate-300 ' +
+    'w-full border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-0 py-1.5 text-sm placeholder-slate-300 dark:placeholder-slate-600 ' +
     'transition-colors focus:border-indigo-500 focus:outline-none focus:ring-0';
 
 const LABEL_CLASSES =
-    'mb-0.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-400';
+    'mb-0.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500';
 
 /* -------------------------------------------------------------
    DYNAMIC EXPENSE ROWS (bulk entry)
@@ -141,9 +141,9 @@ function utilityOptionsHtml(selected) {
 
 function expenseRowHtml(rowId) {
     return (
-        '<div class="expense-row group relative rounded-xl px-3 py-4 transition-colors hover:bg-slate-50/80" data-row="' + rowId + '">' +
+        '<div class="expense-row group relative rounded-xl px-3 py-4 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/80" data-row="' + rowId + '">' +
         '<button type="button" title="Remove this expense" aria-label="Remove this expense" ' +
-        'class="remove-row-button absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500 md:right-2 md:top-3">' +
+        'class="remove-row-button absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-300 dark:text-slate-600 transition-colors hover:bg-red-50 hover:text-red-500 md:right-2 md:top-3">' +
         '<i data-lucide="x" class="h-4 w-4"></i>' +
         '</button>' +
         '<div class="grid grid-cols-2 gap-x-6 gap-y-4 md:grid-cols-[minmax(0,1fr)_130px_160px_150px_2rem]">' +
@@ -154,8 +154,8 @@ function expenseRowHtml(rowId) {
         '<div>' +
         '<label class="' + LABEL_CLASSES + '">Amount</label>' +
         '<div class="relative">' +
-        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center text-sm text-slate-300">$</span>' +
-        '<input type="number" data-field="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="w-full border-0 border-b border-slate-200 bg-transparent py-1.5 pl-4 pr-0 text-sm placeholder-slate-300 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-0" />' +
+        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center text-sm text-slate-300 dark:text-slate-600">$</span>' +
+        '<input type="number" data-field="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="w-full border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent py-1.5 pl-4 pr-0 text-sm placeholder-slate-300 dark:placeholder-slate-600 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-0" />' +
         '</div>' +
         '</div>' +
         '<div>' +
@@ -177,7 +177,7 @@ function expenseRowHtml(rowId) {
         '</select>' +
         '</div>' +
         '<div class="mt-4">' +
-        '<button type="button" class="toggle-participants inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-colors hover:text-indigo-600">' +
+        '<button type="button" class="toggle-participants inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 dark:text-slate-500 transition-colors hover:text-indigo-600">' +
         '<i data-lucide="users-round" class="h-4 w-4"></i>' +
         'Split by person' +
         '</button>' +
@@ -185,7 +185,7 @@ function expenseRowHtml(rowId) {
         '<div class="person-picker flex flex-wrap gap-2"></div>' +
         '<div class="split-editor mt-3 space-y-2"></div>' +
         '<div class="split-total hidden text-xs font-semibold"></div>' +
-        '<button type="button" class="split-reset hidden text-xs font-semibold text-slate-400 underline-offset-2 transition-colors hover:text-indigo-600 hover:underline">' +
+        '<button type="button" class="split-reset hidden text-xs font-semibold text-slate-400 dark:text-slate-500 underline-offset-2 transition-colors hover:text-indigo-600 hover:underline">' +
         '↺ Reset to equal split' +
         '</button>' +
         '</div>' +
@@ -209,7 +209,7 @@ function computeShares(amount, names) {
 
 function personChipsHtml(selectedNames) {
     if (persons.length === 0) {
-        return '<span class="text-xs text-slate-400">No people yet — add them in the People section above.</span>';
+        return '<span class="text-xs text-slate-400 dark:text-slate-500">No people yet — add them in the People section above.</span>';
     }
     return persons
         .map((p) => {
@@ -219,7 +219,7 @@ function personChipsHtml(selectedNames) {
                 'class="person-chip inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-all active:scale-95 ' +
                 (selected
                     ? 'selected border-transparent bg-indigo-600 text-white shadow-sm'
-                    : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50') +
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900') +
                 `">${escapeHTML(p.name)}</button>`
             );
         })
@@ -264,15 +264,15 @@ function splitEditorAmounts(row) {
 
 function splitRowHtml(name, amount) {
     return (
-        '<div class="split-row flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-1.5" data-split-name="' +
+        '<div class="split-row flex items-center justify-between gap-3 rounded-lg bg-slate-50 dark:bg-slate-900 px-3 py-1.5" data-split-name="' +
         escapeHTML(name) +
         '">' +
-        `<span class="truncate text-sm font-medium text-slate-600">${escapeHTML(name)}</span>` +
+        `<span class="truncate text-sm font-medium text-slate-600 dark:text-slate-300">${escapeHTML(name)}</span>` +
         '<div class="relative shrink-0">' +
-        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-xs text-slate-400">$</span>' +
+        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-xs text-slate-400 dark:text-slate-500">$</span>' +
         '<input type="number" data-split-amount min="0" step="0.01" inputmode="decimal" value="' +
         (Number.isFinite(amount) ? amount : 0) +
-        '" class="w-24 rounded-lg border border-slate-300 bg-white py-1.5 pl-5 pr-2 text-sm tabular-nums focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />' +
+        '" class="w-24 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-1.5 pl-5 pr-2 text-sm tabular-nums focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />' +
         '</div>' +
         '</div>'
     );
@@ -684,7 +684,7 @@ function renderSummary() {
     } else {
         topCategoryAmountEl.textContent = formatCurrency(0);
         topCategoryBadgeEl.innerHTML =
-            '<span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-500">—</span>';
+            '<span class="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-sm font-semibold text-slate-500 dark:text-slate-400">—</span>';
     }
 
     // Lowest category (back face of the top-category flip card)
@@ -845,21 +845,21 @@ function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
                     (d) =>
                         '<li class="flex items-baseline justify-between gap-3 py-1.5">' +
                         `<span class="flex min-w-0 items-baseline gap-1.5">${badgeHtml(d.category)} ` +
-                        `<span class="truncate text-slate-600">${escapeHTML(d.description)}</span>` +
-                        `<span class="ml-1 whitespace-nowrap text-slate-400">${formatDate(d.date)}</span></span>` +
+                        `<span class="truncate text-slate-600 dark:text-slate-300">${escapeHTML(d.description)}</span>` +
+                        `<span class="ml-1 whitespace-nowrap text-slate-400 dark:text-slate-500">${formatDate(d.date)}</span></span>` +
                         `<span class="whitespace-nowrap font-semibold tabular-nums text-rose-700">${formatCurrency(d.share)}</span>` +
                         '</li>'
                 )
                 .join('');
 
             return (
-                '<div class="group rounded-2xl border border-rose-100/80 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-rose-100">' +
+                '<div class="group rounded-2xl border border-rose-100/80 bg-white dark:bg-slate-900 p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-rose-100">' +
                 '<div class="flex items-center gap-3">' +
                 `<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-lg shadow-md ring-2 ring-white">${mascot}</span>` +
                 '<div class="min-w-0 flex-1">' +
                 '<div class="flex items-baseline justify-between gap-2">' +
-                `<span class="truncate text-sm font-bold text-slate-800">${rank ? rank + ' ' : ''}${escapeHTML(name)}</span>` +
-                `<span class="whitespace-nowrap text-sm font-extrabold tabular-nums text-slate-900">${formatCurrency(data.total)} <span class="text-[11px] font-semibold text-slate-400">· ${share}%</span></span>` +
+                `<span class="truncate text-sm font-bold text-slate-800 dark:text-slate-100">${rank ? rank + ' ' : ''}${escapeHTML(name)}</span>` +
+                `<span class="whitespace-nowrap text-sm font-extrabold tabular-nums text-slate-900 dark:text-slate-100">${formatCurrency(data.total)} <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500">· ${share}%</span></span>` +
                 '</div>' +
                 '<div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-rose-50">' +
                 `<div class="h-full rounded-full bg-gradient-to-r ${gradient} transition-all duration-700" style="width: ${width}%"></div>` +
@@ -887,7 +887,7 @@ function badgeHtml(category) {
 
 function participantsSummaryHtml(expense) {
     const participants = Array.isArray(expense.participants) ? expense.participants : [];
-    if (participants.length === 0) return '<span class="text-xs text-slate-400">—</span>';
+    if (participants.length === 0) return '<span class="text-xs text-slate-400 dark:text-slate-500">—</span>';
     return participants
         .map(
             (p) =>
@@ -915,13 +915,13 @@ function deleteButtonHtml(id) {
 
 function tableRowHtml(expense) {
     return (
-        '<tr class="transition-colors hover:bg-slate-50">' +
-        `<td class="px-6 py-4"><p class="font-medium text-slate-800">${escapeHTML(expense.description)}</p>` +
-        `<p class="text-xs text-slate-400">Added ${formatTimestamp(expense.created_at)}</p></td>` +
+        '<tr class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-900">' +
+        `<td class="px-6 py-4"><p class="font-medium text-slate-800 dark:text-slate-100">${escapeHTML(expense.description)}</p>` +
+        `<p class="text-xs text-slate-400 dark:text-slate-500">Added ${formatTimestamp(expense.created_at)}</p></td>` +
         `<td class="px-6 py-4"><div class="flex flex-wrap items-center gap-1">${badgeHtml(expense.category)}${utilityChipHtml(expense)}</div></td>` +
         `<td class="px-6 py-4"><div class="flex max-w-xs flex-wrap gap-1">${participantsSummaryHtml(expense)}</div></td>` +
-        `<td class="px-6 py-4 text-slate-600">${formatDate(expense.expense_date)}</td>` +
-        `<td class="px-6 py-4 text-right font-semibold tabular-nums text-slate-800">${formatCurrency(expense.amount)}</td>` +
+        `<td class="px-6 py-4 text-slate-600 dark:text-slate-300">${formatDate(expense.expense_date)}</td>` +
+        `<td class="px-6 py-4 text-right font-semibold tabular-nums text-slate-800 dark:text-slate-100">${formatCurrency(expense.amount)}</td>` +
         `<td class="px-6 py-4 text-right">${deleteButtonHtml(expense.id)}</td>` +
         '</tr>'
     );
@@ -929,16 +929,16 @@ function tableRowHtml(expense) {
 
 function listItemHtml(expense) {
     return (
-        '<li class="px-4 py-4 transition-colors hover:bg-slate-50">' +
+        '<li class="px-4 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-900">' +
         '<div class="flex items-start justify-between gap-3">' +
         '<div class="min-w-0">' +
-        `<p class="truncate font-medium text-slate-800">${escapeHTML(expense.description)}</p>` +
+        `<p class="truncate font-medium text-slate-800 dark:text-slate-100">${escapeHTML(expense.description)}</p>` +
         `<div class="mt-2 flex flex-wrap items-center gap-2">${badgeHtml(expense.category)}${utilityChipHtml(expense)}` +
-        `<span class="text-xs text-slate-500">${formatDate(expense.expense_date)}</span></div>` +
+        `<span class="text-xs text-slate-500 dark:text-slate-400">${formatDate(expense.expense_date)}</span></div>` +
         `<div class="mt-2 flex flex-wrap gap-1">${participantsSummaryHtml(expense)}</div>` +
         '</div>' +
         '<div class="flex flex-col items-end gap-2">' +
-        `<span class="font-semibold tabular-nums text-slate-800">${formatCurrency(expense.amount)}</span>` +
+        `<span class="font-semibold tabular-nums text-slate-800 dark:text-slate-100">${formatCurrency(expense.amount)}</span>` +
         `${deleteButtonHtml(expense.id)}</div>` +
         '</div></li>'
     );
@@ -1133,9 +1133,9 @@ function initFormEvents() {
             chip.classList.toggle('border-transparent', selected);
             chip.classList.toggle('text-white', selected);
             chip.classList.toggle('shadow-sm', selected);
-            chip.classList.toggle('bg-white', !selected);
-            chip.classList.toggle('border-slate-200', !selected);
-            chip.classList.toggle('text-slate-500', !selected);
+            chip.classList.toggle('bg-white dark:bg-slate-900', !selected);
+            chip.classList.toggle('border-slate-200 dark:border-slate-700', !selected);
+            chip.classList.toggle('text-slate-500 dark:text-slate-400', !selected);
             renderSplitEditor(row);
         }
     });
