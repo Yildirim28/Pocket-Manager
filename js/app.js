@@ -51,6 +51,8 @@ const budgetInput = document.getElementById('budgetInput');
 const budgetBar = document.getElementById('budgetBar');
 const budgetPercentTextEl = document.getElementById('budgetPercentText');
 const budgetSpentValueEl = document.getElementById('budgetSpentValue');
+const budgetRemainingValueEl = document.getElementById('budgetRemainingValue');
+const budgetRemainingNoteEl = document.getElementById('budgetRemainingNote');
 const budgetTargetValueEl = document.getElementById('budgetTargetValue');
 const budgetStatusTextEl = document.getElementById('budgetStatusText');
 const budgetStatusEmojiEl = document.getElementById('budgetStatusEmoji');
@@ -602,7 +604,7 @@ function renderSummary() {
             remainingBalanceEl.textContent = formatCurrency(remaining);
             remainingBalanceSubEl.textContent = `left from your ${formatCurrency(monthlyBudget)} budget ✨`;
         } else {
-            remainingBalanceEl.textContent = formatCurrency(Math.abs(remaining));
+            remainingBalanceEl.textContent = '-' + formatCurrency(Math.abs(remaining));
             remainingBalanceSubEl.textContent = `over your ${formatCurrency(monthlyBudget)} budget 😬`;
         }
     }
@@ -760,6 +762,25 @@ function renderSummary() {
     budgetStatusTextEl.textContent = mood.text;
     budgetSpentValueEl.textContent = formatCurrency(totalThisMonth);
     budgetTargetValueEl.textContent = formatCurrency(monthlyBudget);
+
+    // Remaining balance panel: green with amount left when under
+    // budget, red with a minus sign when over.
+    if (budgetRemainingValueEl) {
+        const remaining = monthlyBudget - totalThisMonth;
+        if (remaining >= 0) {
+            budgetRemainingValueEl.textContent = formatCurrency(remaining);
+            budgetRemainingValueEl.className = 'text-emerald-400';
+            budgetRemainingNoteEl.textContent = 'left this month';
+            budgetRemainingNoteEl.className =
+                'ml-1 align-middle text-[11px] font-medium text-slate-400';
+        } else {
+            budgetRemainingValueEl.textContent = '-' + formatCurrency(Math.abs(remaining));
+            budgetRemainingValueEl.className = 'text-rose-400';
+            budgetRemainingNoteEl.textContent = 'over budget!';
+            budgetRemainingNoteEl.className =
+                'ml-1 align-middle text-[11px] font-semibold text-rose-400';
+        }
+    }
     budgetPercentTextEl.textContent = `${Math.round(percent)}%`;
     budgetPercentTextEl.className =
         'rounded-full bg-white/10 px-3 py-1 text-sm font-bold tabular-nums ring-1 ring-white/15 ' + mood.pct;
