@@ -369,7 +369,7 @@ function readRow(row) {
     const participants = [];
     row.querySelectorAll('.split-row').forEach((splitRow) => {
         const name = splitRow.getAttribute('data-split-name');
-        const value = Number(splitRow.querySelector('[data-split-amount"]').value);
+        const value = Number(splitRow.querySelector('[data-split-amount]').value);
         if (name && Number.isFinite(value) && value > 0) {
             participants.push({ name, amount: Math.round(value * 100) / 100 });
         }
