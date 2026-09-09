@@ -1271,10 +1271,6 @@ async function init() {
 
     // Event listeners
     expenseForm.addEventListener('submit', addExpenses);
-    wireFlip(totalSpentFlipEl);
-    wireFlip(topCategoryFlipEl);
-    wireFlip(utilitiesFlipEl);
-    wireFlip(totalTransactionsFlipEl);
 
     personForm.addEventListener('submit', addPerson);
     personsListEl.addEventListener('click', (event) => {
