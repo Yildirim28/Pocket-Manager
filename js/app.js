@@ -1209,11 +1209,36 @@ function initFormEvents() {
 async function init() {
     budgetInput.value = monthlyBudget;
     renderAll();
+    initFormEvents();
+    addExpenseRow();
+
+    // Flip cards: click/tap anywhere (or Enter/Space) to flip.
+    const wireFlip = (element) => {
+        if (!element) return;
+        element.addEventListener('click', () => element.classList.toggle('is-flipped'));
+        element.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                element.classList.toggle('is-flipped');
+            }
+        });
+    };
+    wireFlip(totalSpentFlipEl);
+    wireFlip(topCategoryFlipEl);
+    wireFlip(utilitiesFlipEl);
+    wireFlip(totalTransactionsFlipEl);
+
+    // The Supabase SDK may still be loading from the fallback CDN —
+    // retry for up to 10s before showing "not configured".
+    for (let i = 0; i < 50 && !sb; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        pmInitClient();
+    }
 
     if (!sb) {
         setStatus('unconfigured', 'Not configured');
         setFormEnabled(false);
-        showToast('Missing Supabase credentials in js/config.js.', 'error');
+        showToast('Could not load the Supabase SDK. Check your connection and refresh.', 'error');
         return;
     }
 
@@ -1246,20 +1271,6 @@ async function init() {
 
     // Event listeners
     expenseForm.addEventListener('submit', addExpenses);
-    initFormEvents();
-    addExpenseRow();
-
-    // Flip cards: click/tap anywhere (or Enter/Space) to flip.
-    const wireFlip = (element) => {
-        if (!element) return;
-        element.addEventListener('click', () => element.classList.toggle('is-flipped'));
-        element.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                element.classList.toggle('is-flipped');
-            }
-        });
-    };
     wireFlip(totalSpentFlipEl);
     wireFlip(topCategoryFlipEl);
     wireFlip(utilitiesFlipEl);

@@ -396,6 +396,13 @@ async function initSite() {
     initAccentPicker();
     initServiceWorker();
 
+    // The Supabase SDK may still be loading from the fallback CDN —
+    // retry for up to 10s before giving up on auth-aware features.
+    for (let i = 0; i < 50 && !sb; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        pmInitClient();
+    }
+
     const session = await getSession();
     renderNavbar(session);
 

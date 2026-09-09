@@ -31,4 +31,19 @@ function pmIsConfigured() {
     );
 }
 
-const sb = pmIsConfigured() ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+/* Create the Supabase client if the SDK is available. When the
+   primary CDN failed, an onerror fallback loads the SDK from
+   unpkg — page init functions retry pmInitClient() until it
+   succeeds (see site.js / page scripts). */
+let sb = null;
+let _pmClientTries = 0;
+
+function pmInitClient() {
+    if (sb) return sb;
+    if (pmIsConfigured() && window.supabase?.createClient) {
+        sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return sb;
+}
+
+pmInitClient();
