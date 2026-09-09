@@ -387,25 +387,50 @@ function readRow(row) {
     };
 }
 
+/* Allow only real positive currency values (numbers, max 2 decimals). */
+function cleanAmount(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num <= 0) return null;
+    return Math.round(num * 100) / 100;
+}
+
 function validateRow(row) {
     const data = readRow(row);
     const issues = [];
 
     if (!data.description) issues.push('a description');
-    if (!Number.isFinite(data.amount) || data.amount <= 0) issues.push('a valid amount');
+    const amount = cleanAmount(data.amount);
+    if (amount === null) issues.push('a valid amount (positive number)');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) issues.push('a valid date');
 
     if (issues.length > 0) {
         return `"${data.description || 'Untitled'}" needs ${issues.join(', ')}.`;
     }
 
-    // Custom contributions must add up to the expense amount.
-    const selectedCount = row.querySelectorAll('.split-row').length;
-    if (selectedCount > 0) {
-        const sum = data.participants.reduce((acc, p) => acc + p.amount, 0);
-        if (data.participants.length !== selectedCount || Math.abs(sum - data.amount) > 0.005) {
-            const diff = formatCurrency(Math.abs(data.amount - sum));
-            return `"${data.description}": person contributions total ${formatCurrency(sum)} but the amount is ${formatCurrency(data.amount)} (${diff} ${sum > data.amount ? 'over' : 'missing'}). Adjust the split or reset to equal.`;
+    // Custom contributions: every selected person needs a real
+    // positive amount, and the total must match the expense.
+    const splitRows = row.querySelectorAll('.split-row');
+    if (splitRows.length > 0) {
+        let invalidShare = null;
+        const shares = [];
+        splitRows.forEach((splitRow) => {
+            const name = splitRow.getAttribute('data-split-name');
+            const share = cleanAmount(splitRow.querySelector('[data-split-amount]').value);
+            if (share === null && !invalidShare) {
+                invalidShare = name;
+            } else if (share !== null) {
+                shares.push(share);
+            }
+        });
+
+        if (invalidShare) {
+            return `"${data.description}": ${invalidShare}'s contribution must be a positive number.`;
+        }
+
+        const sum = shares.reduce((acc, s) => acc + s, 0);
+        if (Math.abs(sum - amount) > 0.005) {
+            const diff = formatCurrency(Math.abs(amount - sum));
+            return `"${data.description}": contributions total ${formatCurrency(sum)} but the amount is ${formatCurrency(amount)} (${diff} ${sum > amount ? 'over' : 'missing'}). Adjust the split or reset to equal.`;
         }
     }
 
@@ -1118,7 +1143,12 @@ function initFormEvents() {
     expenseRowsEl.addEventListener('input', (event) => {
         const row = event.target.closest('.expense-row');
         if (!row) return;
+
         if (event.target.matches('[data-field="amount"]')) {
+            const raw = event.target.value;
+            if (raw !== '' && (!Number.isFinite(Number(raw)) || Number(raw) < 0)) {
+                event.target.value = raw.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+            }
             // Changing the amount re-splits equally unless the user
             // has entered custom contributions.
             if (row.getAttribute('data-split-dirty') === 'true') {
@@ -1127,8 +1157,29 @@ function initFormEvents() {
                 renderSplitEditor(row);
             }
         }
+
         if (event.target.matches('[data-split-amount]')) {
+            const input = event.target;
+            // Real numbers only: strip anything but digits and one dot.
+            const cleaned = input.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+            if (cleaned !== input.value) input.value = cleaned;
+
             row.setAttribute('data-split-dirty', 'true');
+
+            // Two-person split: editing one share auto-fills the other
+            // from the remaining total.
+            const splitRows = row.querySelectorAll('.split-row');
+            if (splitRows.length === 2) {
+                const other = Array.from(splitRows).find(
+                    (r) => r.querySelector('[data-split-amount]') !== input
+                );
+                const total = Number(row.querySelector('[data-field="amount"]').value) || 0;
+                const value = Number(input.value);
+                if (other && Number.isFinite(value) && value >= 0 && total > 0) {
+                    const remainder = Math.round((total - value) * 100) / 100;
+                    other.querySelector('[data-split-amount]').value = Math.max(0, remainder);
+                }
+            }
             updateSplitTotal(row);
         }
     });
