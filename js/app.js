@@ -183,7 +183,11 @@ function expenseRowHtml(rowId) {
         '</button>' +
         '<div class="participants mt-3 hidden">' +
         '<div class="person-picker flex flex-wrap gap-2"></div>' +
-        '<p class="split-preview mt-2 hidden text-xs font-medium text-slate-500"></p>' +
+        '<div class="split-editor mt-3 space-y-2"></div>' +
+        '<div class="split-total hidden text-xs font-semibold"></div>' +
+        '<button type="button" class="split-reset hidden text-xs font-semibold text-slate-400 underline-offset-2 transition-colors hover:text-indigo-600 hover:underline">' +
+        '↺ Reset to equal split' +
+        '</button>' +
         '</div>' +
         '</div>' +
         '</div>'
@@ -231,7 +235,7 @@ function renderPersonPicker(row) {
         )
     );
     picker.innerHTML = personChipsHtml(selected);
-    updateSplitPreview(row);
+    renderSplitEditor(row);
     window.lucide?.createIcons();
 }
 
@@ -247,23 +251,86 @@ function selectedPersonsIn(row) {
     );
 }
 
-function updateSplitPreview(row) {
-    const preview = row.querySelector('.split-preview');
-    if (!preview) return;
-    const names = selectedPersonsIn(row);
-    const amount = Number(row.querySelector('[data-field="amount"]').value);
+/* Read the current editable split amounts from a row's editor. */
+function splitEditorAmounts(row) {
+    const values = {};
+    row.querySelectorAll('.split-row').forEach((splitRow) => {
+        const name = splitRow.getAttribute('data-split-name');
+        const value = Number(splitRow.querySelector('[data-split-amount]').value);
+        if (name && Number.isFinite(value)) values[name] = value;
+    });
+    return values;
+}
 
-    if (names.length === 0 || !Number.isFinite(amount) || amount <= 0) {
-        preview.classList.add('hidden');
-        preview.textContent = '';
+function splitRowHtml(name, amount) {
+    return (
+        '<div class="split-row flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-1.5" data-split-name="' +
+        escapeHTML(name) +
+        '">' +
+        `<span class="truncate text-sm font-medium text-slate-600">${escapeHTML(name)}</span>` +
+        '<div class="relative shrink-0">' +
+        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-xs text-slate-400">$</span>' +
+        '<input type="number" data-split-amount min="0" step="0.01" inputmode="decimal" value="' +
+        (Number.isFinite(amount) ? amount : 0) +
+        '" class="w-24 rounded-lg border border-slate-300 bg-white py-1.5 pl-5 pr-2 text-sm tabular-nums focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />' +
+        '</div>' +
+        '</div>'
+    );
+}
+
+/* Build the editable amount editor for the selected people.
+   Defaults to an equal split; once the user edits an amount
+   (data-split-dirty), values are preserved across changes. */
+function renderSplitEditor(row) {
+    const editor = row.querySelector('.split-editor');
+    if (!editor) return;
+
+    const names = selectedPersonsIn(row);
+    const amount = Number(row.querySelector('[data-field="amount"]').value) || 0;
+    const dirty = row.getAttribute('data-split-dirty') === 'true';
+    const existing = splitEditorAmounts(row);
+
+    let values = {};
+    if (dirty && names.length > 0) {
+        names.forEach((name) => {
+            values[name] = name in existing ? existing[name] : 0;
+        });
+    } else {
+        computeShares(amount, names).forEach((share) => {
+            values[share.name] = share.amount;
+        });
+    }
+
+    editor.innerHTML = names.map((name) => splitRowHtml(name, values[name])).join('');
+    updateSplitTotal(row);
+}
+
+/* Live total: green when contributions match the amount,
+   amber with the difference when they don't. */
+function updateSplitTotal(row) {
+    const totalEl = row.querySelector('.split-total');
+    const resetBtn = row.querySelector('.split-reset');
+    if (!totalEl) return;
+
+    const names = selectedPersonsIn(row);
+    if (names.length === 0) {
+        totalEl.classList.add('hidden');
+        resetBtn?.classList.add('hidden');
         return;
     }
 
-    const shares = computeShares(amount, names);
-    preview.textContent = shares
-        .map((s) => `${s.name} ${formatCurrency(s.amount)}`)
-        .join('  ·  ');
-    preview.classList.remove('hidden');
+    const amounts = splitEditorAmounts(row);
+    const sum = names.reduce((acc, name) => acc + (amounts[name] || 0), 0);
+    const amount = Number(row.querySelector('[data-field="amount"]').value) || 0;
+    const matches = Math.abs(sum - amount) < 0.005;
+
+    totalEl.textContent = matches
+        ? `✓ Contributions total ${formatCurrency(sum)} — matches the amount`
+        : `Contributions total ${formatCurrency(sum)} of ${formatCurrency(amount)} — ${formatCurrency(Math.abs(amount - sum))} ${sum > amount ? 'over' : 'left'}`;
+    totalEl.className =
+        'split-total text-xs font-semibold ' + (matches ? 'text-emerald-600' : 'text-amber-600');
+    totalEl.classList.remove('hidden');
+    resetBtn?.classList.remove('hidden');
 }
 
 function addExpenseRow() {
@@ -295,19 +362,24 @@ function updateRemoveButtons() {
 }
 
 function updateParticipantsTotal(row) {
-    updateSplitPreview(row);
+    renderSplitEditor(row);
 }
 
 function readRow(row) {
-    const names = selectedPersonsIn(row);
-    const amount = Number(row.querySelector('[data-field="amount"]').value);
-    const participants = Number.isFinite(amount) && amount > 0 ? computeShares(amount, names) : [];
+    const participants = [];
+    row.querySelectorAll('.split-row').forEach((splitRow) => {
+        const name = splitRow.getAttribute('data-split-name');
+        const value = Number(splitRow.querySelector('[data-split-amount"]').value);
+        if (name && Number.isFinite(value) && value > 0) {
+            participants.push({ name, amount: Math.round(value * 100) / 100 });
+        }
+    });
     const category = row.querySelector('[data-field="category"]').value;
     const utilitySelect = row.querySelector('[data-field="utility_type"]');
     return {
         description: row.querySelector('[data-field="description"]').value.trim(),
         amountInput: row.querySelector('[data-field="amount"]'),
-        amount,
+        amount: Number(row.querySelector('[data-field="amount"]').value),
         category,
         utilityType: utilitySelect ? utilitySelect.value : null,
         date: row.querySelector('[data-field="date"]').value,
@@ -325,6 +397,16 @@ function validateRow(row) {
 
     if (issues.length > 0) {
         return `"${data.description || 'Untitled'}" needs ${issues.join(', ')}.`;
+    }
+
+    // Custom contributions must add up to the expense amount.
+    const selectedCount = row.querySelectorAll('.split-row').length;
+    if (selectedCount > 0) {
+        const sum = data.participants.reduce((acc, p) => acc + p.amount, 0);
+        if (data.participants.length !== selectedCount || Math.abs(sum - data.amount) > 0.005) {
+            const diff = formatCurrency(Math.abs(data.amount - sum));
+            return `"${data.description}": person contributions total ${formatCurrency(sum)} but the amount is ${formatCurrency(data.amount)} (${diff} ${sum > data.amount ? 'over' : 'missing'}). Adjust the split or reset to equal.`;
+        }
     }
 
     return null;
@@ -1029,7 +1111,7 @@ function initFormEvents() {
             chip.classList.toggle('bg-white', !selected);
             chip.classList.toggle('border-slate-200', !selected);
             chip.classList.toggle('text-slate-500', !selected);
-            updateSplitPreview(row);
+            renderSplitEditor(row);
         }
     });
 
@@ -1037,7 +1119,26 @@ function initFormEvents() {
         const row = event.target.closest('.expense-row');
         if (!row) return;
         if (event.target.matches('[data-field="amount"]')) {
-            updateSplitPreview(row);
+            // Changing the amount re-splits equally unless the user
+            // has entered custom contributions.
+            if (row.getAttribute('data-split-dirty') === 'true') {
+                updateSplitTotal(row);
+            } else {
+                renderSplitEditor(row);
+            }
+        }
+        if (event.target.matches('[data-split-amount]')) {
+            row.setAttribute('data-split-dirty', 'true');
+            updateSplitTotal(row);
+        }
+    });
+
+    expenseRowsEl.addEventListener('click', (event) => {
+        if (event.target.closest('.split-reset')) {
+            const row = event.target.closest('.expense-row');
+            if (!row) return;
+            row.setAttribute('data-split-dirty', 'false');
+            renderSplitEditor(row);
         }
     });
 
