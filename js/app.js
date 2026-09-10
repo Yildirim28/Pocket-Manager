@@ -17,7 +17,8 @@ const PERSONS_TABLE = 'persons';
 
 let expenses = [];
 let persons = [];
-let monthlyBudget = loadBudget();
+let monthlyBudget = DEFAULT_MONTHLY_BUDGET;
+let currentUserId = null;
 let armTimer = null;
 let rowSeq = 0;
 
@@ -1269,6 +1270,12 @@ async function init() {
     const session = await requireAuth();
     if (!session) return;
 
+    // Load THIS account's budget (per-user storage key).
+    currentUserId = session.user?.id ?? null;
+    monthlyBudget = loadBudget(currentUserId);
+    budgetInput.value = monthlyBudget;
+    renderAll();
+
     // If the session expires or is revoked while browsing,
     // send the user back to the login page.
     sb.auth.onAuthStateChange((event) => {
@@ -1307,7 +1314,7 @@ async function init() {
             return;
         }
         monthlyBudget = value;
-        localStorage.setItem(BUDGET_STORAGE_KEY, String(value));
+        saveBudget(value, currentUserId);
         renderSummary();
     });
 

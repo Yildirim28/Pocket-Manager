@@ -300,15 +300,21 @@
         }
     }
 
+    let settingsUserId = null;
+
     function saveBudget() {
         const value = Number(settingsBudgetInput.value);
         if (!Number.isFinite(value) || value <= 0) {
-            settingsBudgetInput.value = loadBudget();
+            settingsBudgetInput.value = loadBudget(settingsUserId);
             showToast('Budget must be a positive number.', 'error');
             return;
         }
-        localStorage.setItem(BUDGET_STORAGE_KEY, String(value));
+        saveBudgetValue(value);
         showToast('Budget saved.', 'success');
+    }
+
+    function saveBudgetValue(value) {
+        saveBudget(value, settingsUserId);
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -321,6 +327,7 @@
         if (!session) return;
 
         const email = session.user.email ?? 'unknown';
+        settingsUserId = session.user?.id ?? null;
         applyAccountDisplay(session.user);
 
         saveNicknameButton.addEventListener('click', saveNickname);
@@ -328,7 +335,7 @@
             if (e.key === 'Enter') saveNickname();
         });
 
-        settingsBudgetInput.value = loadBudget();
+        settingsBudgetInput.value = loadBudget(settingsUserId);
         saveBudgetButton.addEventListener('click', saveBudget);
         settingsBudgetInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') saveBudget();

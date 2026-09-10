@@ -55,9 +55,32 @@ function escapeHTML(value) {
         .replaceAll("'", '&#39;');
 }
 
-function loadBudget() {
-    const stored = Number(localStorage.getItem(BUDGET_STORAGE_KEY));
+/* Budget is stored PER ACCOUNT: each signed-in user gets their own
+   value keyed by their user id, so accounts on the same device
+   never share a budget. Falls back to the legacy shared key once
+   (migration), then to the default. */
+function budgetStorageKey(userId) {
+    return userId ? `pocket-manager:budget:${userId}` : BUDGET_STORAGE_KEY;
+}
+
+function loadBudget(userId) {
+    const key = budgetStorageKey(userId);
+    let stored = Number(localStorage.getItem(key));
+
+    // One-time migration: adopt the old shared value for this user.
+    if (userId && !Number.isFinite(stored)) {
+        const legacy = Number(localStorage.getItem(BUDGET_STORAGE_KEY));
+        if (Number.isFinite(legacy) && legacy > 0) {
+            localStorage.setItem(key, String(legacy));
+            return legacy;
+        }
+    }
+
     return Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_MONTHLY_BUDGET;
+}
+
+function saveBudget(value, userId) {
+    localStorage.setItem(budgetStorageKey(userId), String(value));
 }
 
 /* -------------------------------------------------------------
