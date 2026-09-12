@@ -38,9 +38,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onerror="var f=document.createElement('script');f.src='https://unpkg.com/@supabase/supabase-js@2';f.defer=true;document.head.appendChild(f);"></script>
-    <script src="js/config.js?v=28" defer></script>
-    <script src="js/site.js?v=28" defer></script>
-    <script src="js/app.js?v=28" defer></script>
+    <script src="js/config.js?v=29" defer></script>
+    <script src="js/site.js?v=29" defer></script>
+    <script src="js/app.js?v=29" defer></script>
     <style>
         /* Flip cards: 3D setup only — heights are fully content-driven.
            Grid children stretch to the tallest sibling (auto height),
@@ -281,7 +281,7 @@
                         </p>
                         <p class="mt-2 text-3xl font-extrabold tabular-nums tracking-tight">
                             <span id="budgetSpentValue">$0.00</span>
-                            <span class="text-base font-semibold text-slate-400 dark:text-slate-500">of <span id="budgetTargetValue">$2,000.00</span></span>
+                            <span class="text-base font-semibold text-slate-400 dark:text-slate-500">of <span id="budgetTargetValue">৳2,000.00</span></span>
                         </p>
                         <p id="budgetStatusText" class="mt-1 text-xs font-medium text-slate-400 dark:text-slate-500">Set your target below and watch the bar 👀</p>
                     </div>
@@ -312,7 +312,7 @@
                     <div class="flex items-center gap-2">
                         <label for="budgetInput" class="text-xs font-medium text-slate-400 dark:text-slate-500">Target</label>
                         <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-sm text-slate-500 dark:text-slate-400">$</span>
+                            <span data-currency-symbol class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-sm text-slate-500 dark:text-slate-400">৳</span>
                             <input id="budgetInput" type="number" min="1" step="50" value="2000"
                                 class="w-28 rounded-xl border border-white/10 bg-white/5 py-1.5 pl-6 pr-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-emerald-400/60 focus:outline-none focus:ring-2 focus:ring-emerald-400/20" />
                         </div>

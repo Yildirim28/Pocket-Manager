@@ -7,13 +7,80 @@
 'use strict';
 
 /* -------------------------------------------------------------
+   CURRENCY (user preference, persisted in localStorage)
+------------------------------------------------------------- */
+const CURRENCY_STORAGE_KEY = 'pocket-manager:currency';
+
+const CURRENCIES = {
+    BDT: { label: 'Bangladeshi Taka (৳)', code: 'BDT', locale: 'en-IN', symbol: '৳' },
+    USD: { label: 'US Dollar ($)', code: 'USD', locale: 'en-US', symbol: '$' },
+    EUR: { label: 'Euro (€)', code: 'EUR', locale: 'de-DE', symbol: '€' },
+    GBP: { label: 'British Pound (£)', code: 'GBP', locale: 'en-GB', symbol: '£' },
+    INR: { label: 'Indian Rupee (₹)', code: 'INR', locale: 'en-IN', symbol: '₹' },
+    JPY: { label: 'Japanese Yen (¥)', code: 'JPY', locale: 'ja-JP', symbol: '¥' }
+};
+
+function currentCurrency() {
+    return CURRENCIES[localStorage.getItem(CURRENCY_STORAGE_KEY)] || CURRENCIES.BDT;
+}
+
+function currencySymbol() {
+    return currentCurrency().symbol;
+}
+
+function formatCurrency(value) {
+    const currency = currentCurrency();
+    const amount = Number(value) || 0;
+
+    // BDT: Intl renders the code "BDT" or Bengali numerals depending
+    // on locale — use the ৳ symbol with familiar digits instead.
+    if (currency.code === 'BDT') {
+        const num = new Intl.NumberFormat('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount);
+        return `${currency.symbol} ${num}`;
+    }
+
+    return new Intl.NumberFormat(currency.locale, {
+        style: 'currency',
+        currency: currency.code,
+        maximumFractionDigits: 2
+    }).format(amount);
+}
+
+function initCurrencyPicker() {
+    const mount = document.getElementById('currencyPicker');
+    const current = localStorage.getItem(CURRENCY_STORAGE_KEY) || 'BDT';
+
+    // Update any static currency-prefix spans on the page.
+    document.querySelectorAll('span[data-currency-symbol]').forEach((el) => {
+        el.textContent = currencySymbol();
+    });
+
+    if (!mount) return;
+
+    mount.innerHTML = Object.entries(CURRENCIES)
+        .map(
+            ([key, c]) =>
+                `<option value="${key}"${key === current ? ' selected' : ''}>${c.label}</option>`
+        )
+        .join('');
+
+    if (!mount.dataset.wired) {
+        mount.dataset.wired = '1';
+        mount.addEventListener('change', () => {
+            localStorage.setItem(CURRENCY_STORAGE_KEY, mount.value);
+            showToast(`Currency set to ${CURRENCIES[mount.value].label} ${CURRENCIES[mount.value].symbol}`, 'success');
+            // Re-render the whole page so every amount updates.
+            window.location.reload();
+        });
+    }
+}
+
+/* -------------------------------------------------------------
    FORMATTING UTILITIES (shared across pages)
 ------------------------------------------------------------- */
-function formatCurrency(value) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-        Number(value) || 0
-    );
-}
 
 function todayLocalISO() {
     const now = new Date();
@@ -265,7 +332,6 @@ function initAccentPicker() {
             button.dataset.wired = '1';
             button.addEventListener('click', () => {
                 applyAccent(key);
-                initAccentPicker();
                 showToast(`Accent set to ${ACCENTS[key].label}.`, 'success');
             });
         }
@@ -491,6 +557,7 @@ function renderNavbar(session) {
 async function initSite() {
     initAccent();
     initAccentPicker();
+    initCurrencyPicker();
     initServiceWorker();
 
     // The Supabase SDK may still be loading from the fallback CDN —

@@ -157,7 +157,7 @@ function expenseRowHtml(rowId) {
         '<div>' +
         '<label class="' + LABEL_CLASSES + '">Amount</label>' +
         '<div class="relative">' +
-        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center text-sm text-slate-300 dark:text-slate-600">$</span>' +
+        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center text-sm text-slate-300 dark:text-slate-600">' + currencySymbol() + '</span>' +
         '<input type="number" data-field="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="w-full border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent py-1.5 pl-4 pr-0 text-sm placeholder-slate-300 dark:placeholder-slate-600 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-0" />' +
         '</div>' +
         '</div>' +
@@ -272,7 +272,7 @@ function splitRowHtml(name, amount) {
         '">' +
         `<span class="truncate text-sm font-medium text-slate-600 dark:text-slate-300">${escapeHTML(name)}</span>` +
         '<div class="relative shrink-0">' +
-        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-xs text-slate-400 dark:text-slate-500">$</span>' +
+        '<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-xs text-slate-400 dark:text-slate-500">' + currencySymbol() + '</span>' +
         '<input type="number" data-split-amount min="0" step="0.01" inputmode="decimal" value="' +
         (Number.isFinite(amount) ? amount : 0) +
         '" class="w-24 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-1.5 pl-5 pr-2 text-sm tabular-nums focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />' +
@@ -1151,13 +1151,14 @@ function initFormEvents() {
         const chip = event.target.closest('.person-chip');
         if (chip) {
             const selected = chip.classList.toggle('selected');
-            chip.classList.toggle('bg-indigo-600', selected);
-            chip.classList.toggle('border-transparent', selected);
-            chip.classList.toggle('text-white', selected);
-            chip.classList.toggle('shadow-sm', selected);
-            chip.classList.toggle('bg-white dark:bg-slate-900', !selected);
-            chip.classList.toggle('border-slate-200 dark:border-slate-700', !selected);
-            chip.classList.toggle('text-slate-500 dark:text-slate-400', !selected);
+            // Toggle one class at a time — multi-class strings are
+            // invalid tokens and throw DOMException.
+            ['bg-indigo-600', 'border-transparent', 'text-white', 'shadow-sm'].forEach((cls) =>
+                chip.classList.toggle(cls, selected)
+            );
+            ['bg-white', 'dark:bg-slate-900', 'border-slate-200', 'dark:border-slate-700', 'text-slate-500', 'dark:text-slate-400'].forEach((cls) =>
+                chip.classList.toggle(cls, !selected)
+            );
             renderSplitEditor(row);
         }
     });

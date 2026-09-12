@@ -37,9 +37,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onerror="var f=document.createElement('script');f.src='https://unpkg.com/@supabase/supabase-js@2';f.defer=true;document.head.appendChild(f);"></script>
-    <script src="js/config.js?v=28" defer></script>
-    <script src="js/site.js?v=28" defer></script>
-    <script src="js/settings.js?v=28" defer></script>
+    <script src="js/config.js?v=29" defer></script>
+    <script src="js/site.js?v=29" defer></script>
+    <script src="js/settings.js?v=29" defer></script>
 </head>
 <body class="min-h-full pt-16 bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="settings">
 
@@ -84,6 +84,15 @@
                 <button type="button" data-accent="violet" title="Violet" aria-label="Violet"
                     class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
                     style="background:linear-gradient(135deg,#7c3aed,#c084fc)"></button>
+            </div>
+
+            <div class="mt-6 border-t border-slate-100 dark:border-slate-800 pt-5">
+                <label for="currencyPicker" class="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">Currency</label>
+                <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">Applied to all amounts across the app. Default is Bangladeshi Taka ৳.</p>
+                <select id="currencyPicker"
+                    class="w-full max-w-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                    <option>Loading…</option>
+                </select>
             </div>
         </section>
 
@@ -136,7 +145,7 @@
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Your target spending limit per month. Used by the dashboard progress bar.</p>
             <div class="mt-4 flex items-center gap-3">
                 <div class="relative">
-                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-400 dark:text-slate-500">$</span>
+                    <span data-currency-symbol class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-400 dark:text-slate-500">৳</span>
                     <input id="settingsBudgetInput" type="number" min="1" step="50"
                         class="w-40 rounded-xl border border-slate-300 dark:border-slate-600 py-2 pl-7 pr-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                 </div>
