@@ -458,6 +458,7 @@ function renderNavbar(session) {
     ];
     const privateLinks = [
         { page: 'dashboard', href: 'app.html', label: 'Dashboard' },
+        { page: 'feedback', href: 'feedback.html', label: 'Feedback' },
         { page: 'settings', href: 'settings.html', label: 'Settings' }
     ];
     const links = user ? [...publicLinks.slice(0, 1), ...privateLinks, publicLinks[1]] : publicLinks;

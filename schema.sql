@@ -168,3 +168,50 @@ create policy "anyone_insert_contact_messages"
     for insert
     to anon, authenticated
     with check (true);
+
+-- -------------------------------------------------------------
+-- 5. FEEDBACK BOARD (shared: every signed-in user can see all posts)
+-- -------------------------------------------------------------
+-- type:    'feedback' (idea/praise) or 'bug' (problem report)
+-- status:  'open' by default; owner can set 'resolved' in the
+--          Supabase Dashboard to mark it done.
+create table if not exists public.feedback (
+    id          uuid primary key default gen_random_uuid(),
+    created_at  timestamptz not null default now(),
+    user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
+    author_name text,
+    type        text not null default 'feedback',
+    title       text not null,
+    message     text not null,
+    status      text not null default 'open'
+);
+
+create index if not exists feedback_created_at_idx
+    on public.feedback (created_at desc);
+
+alter table public.feedback enable row level security;
+
+drop policy if exists "feedback_select_all" on public.feedback;
+drop policy if exists "feedback_insert_own" on public.feedback;
+drop policy if exists "feedback_delete_own" on public.feedback;
+
+-- Everyone signed in can READ the whole board.
+create policy "feedback_select_all"
+    on public.feedback
+    for select
+    to authenticated
+    using (true);
+
+-- Users can post as themselves only.
+create policy "feedback_insert_own"
+    on public.feedback
+    for insert
+    to authenticated
+    with check (auth.uid() = user_id);
+
+-- Users can remove their own posts only.
+create policy "feedback_delete_own"
+    on public.feedback
+    for delete
+    to authenticated
+    using (auth.uid() = user_id);

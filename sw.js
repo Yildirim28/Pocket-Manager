@@ -6,7 +6,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'pocket-manager-v15';
+const CACHE_VERSION = 'pocket-manager-v16';
 
 const PRECACHE_URLS = [
     './',
@@ -16,6 +16,7 @@ const PRECACHE_URLS = [
     './signup.html',
     './settings.html',
     './contact.html',
+    './feedback.html',
     './reset-password.html',
     './manifest.json',
     './icon-192.png',
@@ -25,7 +26,8 @@ const PRECACHE_URLS = [
     './js/app.js?v=31',
     './js/auth.js?v=8',
     './js/settings.js?v=8',
-    './js/contact.js?v=8'
+    './js/contact.js?v=8',
+    './js/feedback.js?v=32'
 ];
 
 /* ---------------- INSTALL: precache the app shell ---------------- */
