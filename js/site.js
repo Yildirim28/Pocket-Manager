@@ -122,14 +122,35 @@ function escapeHTML(value) {
         .replaceAll("'", '&#39;');
 }
 
-/* Budget is stored PER ACCOUNT: each signed-in user gets their own
-   value keyed by their user id, so accounts on the same device
-   never share a budget. Falls back to the legacy shared key once
-   (migration), then to the default. */
+/* Budget lives in the ACCOUNT (Supabase user metadata) so it follows
+   the user to every device, with a per-user localStorage cache for
+   instant offline loads and as a fallback when metadata is missing. */
+const BUDGET_META_KEY = 'monthly_budget';
+
 function budgetStorageKey(userId) {
     return userId ? `pocket-manager:budget:${userId}` : BUDGET_STORAGE_KEY;
 }
 
+/* Budget saved on the account itself (syncs across devices). */
+function budgetFromUser(user) {
+    const raw = user?.user_metadata?.[BUDGET_META_KEY];
+    const num = Number(raw);
+    return Number.isFinite(num) && num > 0 ? num : null;
+}
+
+/* Persist the budget to the account so other devices pick it up. */
+async function saveBudgetToAccount(user, value) {
+    if (!sb || !user) return false;
+    const { error } = await sb.auth.updateUser({
+        data: { [BUDGET_META_KEY]: value }
+    });
+    if (error) return false;
+    // Keep the local session copy in sync immediately.
+    if (user.user_metadata) user.user_metadata[BUDGET_META_KEY] = value;
+    return true;
+}
+
+/* Local cache read (fast path / offline fallback). */
 function loadBudget(userId) {
     const key = budgetStorageKey(userId);
     let stored = Number(localStorage.getItem(key));
@@ -146,8 +167,11 @@ function loadBudget(userId) {
     return Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_MONTHLY_BUDGET;
 }
 
-function saveBudget(value, userId) {
-    localStorage.setItem(budgetStorageKey(userId), String(value));
+/* Write the local cache (and optionally the account). */
+function saveBudget(value, userId, user) {
+    if (userId) localStorage.setItem(budgetStorageKey(userId), String(value));
+    if (user) return saveBudgetToAccount(user, value);
+    return Promise.resolve(false);
 }
 
 /* -------------------------------------------------------------

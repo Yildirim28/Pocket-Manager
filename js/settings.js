@@ -301,6 +301,7 @@
     }
 
     let settingsUserId = null;
+    let settingsUser = null;
 
     function saveBudget() {
         const value = Number(settingsBudgetInput.value);
@@ -309,12 +310,16 @@
             showToast('Budget must be a positive number.', 'error');
             return;
         }
-        saveBudgetValue(value);
-        showToast('Budget saved.', 'success');
-    }
-
-    function saveBudgetValue(value) {
-        saveBudget(value, settingsUserId);
+        saveBudgetButton.disabled = true;
+        saveBudget(value, settingsUserId, settingsUser).then((synced) => {
+            saveBudgetButton.disabled = false;
+            showToast(
+                synced
+                    ? 'Budget saved — synced to your account across all devices.'
+                    : 'Budget saved on this device (offline — will sync when connected).',
+                synced ? 'success' : 'info'
+            );
+        });
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -328,6 +333,7 @@
 
         const email = session.user.email ?? 'unknown';
         settingsUserId = session.user?.id ?? null;
+        settingsUser = session.user;
         applyAccountDisplay(session.user);
 
         saveNicknameButton.addEventListener('click', saveNickname);
@@ -335,7 +341,15 @@
             if (e.key === 'Enter') saveNickname();
         });
 
-        settingsBudgetInput.value = loadBudget(settingsUserId);
+        // Account value wins (syncs across devices); local cache is
+        // the fallback. Push the local value up if the account has none.
+        const accountBudget = budgetFromUser(session.user);
+        settingsBudgetInput.value = accountBudget ?? loadBudget(settingsUserId);
+        if (accountBudget) {
+            saveBudget(accountBudget, settingsUserId, null);
+        } else {
+            saveBudget(settingsBudgetInput.value, settingsUserId, session.user);
+        }
         saveBudgetButton.addEventListener('click', saveBudget);
         settingsBudgetInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') saveBudget();

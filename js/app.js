@@ -1271,10 +1271,20 @@ async function init() {
     const session = await requireAuth();
     if (!session) return;
 
-    // Load THIS account's budget (per-user storage key).
+    // Load THIS account's budget: the value stored on the account
+    // wins (so it follows the user across devices); the local cache
+    // is the offline fallback.
     currentUserId = session.user?.id ?? null;
-    monthlyBudget = loadBudget(currentUserId);
+    const accountBudget = budgetFromUser(session.user);
+    monthlyBudget = accountBudget ?? loadBudget(currentUserId);
     budgetInput.value = monthlyBudget;
+    // Refresh the local cache, and if this device only had a local
+    // value, push it up to the account so other devices get it too.
+    if (accountBudget) {
+        saveBudget(monthlyBudget, currentUserId, null);
+    } else {
+        saveBudget(monthlyBudget, currentUserId, session.user);
+    }
     renderAll();
 
     // If the session expires or is revoked while browsing,
@@ -1315,8 +1325,15 @@ async function init() {
             return;
         }
         monthlyBudget = value;
-        saveBudget(value, currentUserId);
         renderSummary();
+        saveBudget(value, currentUserId, session.user).then((synced) => {
+            showToast(
+                synced
+                    ? `Budget saved as ${formatCurrency(value)} — synced to your account.`
+                    : `Budget saved on this device (offline — will sync when connected).`,
+                synced ? 'success' : 'info'
+            );
+        });
     });
 
     historySection.addEventListener('click', (event) => {
