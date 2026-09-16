@@ -423,6 +423,143 @@ function initServiceWorker() {
 }
 
 /* -------------------------------------------------------------
+   PROFILE AVATARS — ancient ➜ modern character faces, each with
+   its own motion effect. Stored on the account (syncs devices).
+------------------------------------------------------------- */
+const AVATAR_META_KEY = 'avatar';
+
+const AVATARS = [
+    { id: 'apes', emoji: '🦍', label: 'Prehistoric', anim: 'pm-anim-thump' },
+    { id: 'caveman', emoji: '🧔', label: 'Stone Age', anim: 'pm-anim-wiggle' },
+    { id: 'sage', emoji: '👳', label: 'Ancient Sage', anim: 'pm-anim-floaty' },
+    { id: 'scholar', emoji: '👲', label: 'Ancient Scholar', anim: 'pm-anim-nod' },
+    { id: 'warrior', emoji: '🥷', label: 'Warrior Age', anim: 'pm-anim-dash' },
+    { id: 'royal', emoji: '🤴', label: 'Royal Era', anim: 'pm-anim-shine' },
+    { id: 'worker', emoji: '👷', label: 'Industrial Age', anim: 'pm-anim-hammer' },
+    { id: 'agent', emoji: '🕵', label: 'Modern Era', anim: 'pm-anim-peek' },
+    { id: 'everyone', emoji: '🧑', label: 'Today', anim: 'pm-anim-wave' },
+    { id: 'ai', emoji: '🤖', label: 'Future AI', anim: 'pm-anim-pulse' }
+];
+
+const DEFAULT_AVATAR_ID = 'everyone';
+
+function avatarById(id) {
+    return AVATARS.find((a) => a.id === id) || AVATARS.find((a) => a.id === DEFAULT_AVATAR_ID);
+}
+
+/* Avatar chosen on the account (metadata), or the default. */
+function avatarFor(user) {
+    return avatarById(user?.user_metadata?.[AVATAR_META_KEY]);
+}
+
+async function saveAvatarToAccount(user, id) {
+    if (!sb || !user) return false;
+    const { error } = await sb.auth.updateUser({ data: { [AVATAR_META_KEY]: id } });
+    if (error) return false;
+    if (user.user_metadata) user.user_metadata[AVATAR_META_KEY] = id;
+    return true;
+}
+
+/* Animated avatar markup. size: 'sm' (navbar) | 'md' | 'lg' (picker). */
+function avatarHtml(user, size = 'sm', extraClasses = '') {
+    const avatar = avatarFor(user);
+    const sizes = {
+        sm: { ring: 'h-9 w-9', text: 'text-lg' },
+        md: { ring: 'h-11 w-11', text: 'text-xl' },
+        lg: { ring: 'h-14 w-14', text: 'text-2xl' }
+    };
+    const s = sizes[size] || sizes.sm;
+    return (
+        `<span class="inline-flex ${s.ring} shrink-0 items-center justify-center rounded-full bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 ${extraClasses}">` +
+        `<span class="${s.text} ${avatar.anim}" role="img" aria-label="${avatar.label}">${avatar.emoji}</span>` +
+        '</span>'
+    );
+}
+
+/* Each avatar's motion effect + a reduced-motion opt-out. */
+function injectAvatarStyles() {
+    if (document.getElementById('pmAvatarStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'pmAvatarStyles';
+    style.textContent = `
+@keyframes pm-thump{0%,100%{transform:translateY(0) scaleY(1)}30%{transform:translateY(-22%) scaleY(1.08)}55%{transform:translateY(0) scaleY(.92)}}
+@keyframes pm-wiggle{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+@keyframes pm-floaty{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-16%) rotate(3deg)}}
+@keyframes pm-nod{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(14%) rotate(-4deg)}}
+@keyframes pm-dash{0%,100%{transform:translateX(-14%) skewX(-6deg)}50%{transform:translateX(14%) skewX(6deg)}}
+@keyframes pm-shine{0%,100%{transform:scale(1) rotate(-4deg)}50%{transform:scale(1.14) rotate(4deg)}}
+@keyframes pm-hammer{0%,100%{transform:rotate(-22deg)}45%{transform:rotate(14deg)}70%{transform:rotate(-6deg)}}
+@keyframes pm-peek{0%,100%{transform:translateX(-10%) rotate(-8deg)}50%{transform:translateX(16%) rotate(8deg)}}
+@keyframes pm-wave{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+@keyframes pm-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.pm-anim-thump{animation:pm-thump 1.6s ease-in-out infinite;transform-origin:center bottom;display:inline-block;will-change:transform}
+.pm-anim-wiggle{animation:pm-wiggle 1.8s ease-in-out infinite;transform-origin:center bottom;display:inline-block;will-change:transform}
+.pm-anim-floaty{animation:pm-floaty 3s ease-in-out infinite;display:inline-block;will-change:transform}
+.pm-anim-nod{animation:pm-nod 2.1s ease-in-out infinite;transform-origin:center top;display:inline-block;will-change:transform}
+.pm-anim-dash{animation:pm-dash 2s ease-in-out infinite;display:inline-block;will-change:transform}
+.pm-anim-shine{animation:pm-shine 2.4s ease-in-out infinite;display:inline-block;will-change:transform}
+.pm-anim-hammer{animation:pm-hammer 1.4s ease-in-out infinite;transform-origin:center bottom;display:inline-block;will-change:transform}
+.pm-anim-peek{animation:pm-peek 2.6s ease-in-out infinite;display:inline-block;will-change:transform}
+.pm-anim-wave{animation:pm-wave 1.9s ease-in-out infinite;transform-origin:center bottom;display:inline-block;will-change:transform}
+.pm-anim-pulse{animation:pm-pulse 1.5s ease-in-out infinite;display:inline-block;will-change:transform}
+@media (prefers-reduced-motion: reduce){
+  [class^="pm-anim-"]{animation:none !important}
+}`;
+    document.head.appendChild(style);
+}
+
+/* Renders the avatar chooser into #avatarPicker (settings page). */
+function initAvatarPicker() {
+    const mount = document.getElementById('avatarPicker');
+    if (!mount) return;
+    const current = avatarById(currentAccountUser()?.user_metadata?.[AVATAR_META_KEY]).id;
+
+    mount.innerHTML = AVATARS.map((a) => {
+        const active = a.id === current;
+        return (
+            `<button type="button" data-avatar="${a.id}" title="${a.label}" aria-label="${a.label}" ` +
+            'class="group flex flex-col items-center gap-1.5 rounded-2xl p-2 transition-colors ' +
+            (active
+                ? 'bg-indigo-50 dark:bg-indigo-900/30 ring-2 ring-indigo-400'
+                : 'hover:bg-slate-100 dark:hover:bg-slate-800 ring-1 ring-transparent') +
+            '">' +
+            `<span class="flex h-14 w-14 items-center justify-center rounded-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700">` +
+            `<span class="text-2xl ${a.anim}">${a.emoji}</span></span>` +
+            `<span class="text-[10px] font-semibold ${active ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-400 dark:text-slate-500'}">${a.label}</span>` +
+            '</button>'
+        );
+    }).join('');
+
+    mount.querySelectorAll('button[data-avatar]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const id = button.getAttribute('data-avatar');
+            const user = currentAccountUser();
+            if (!user) return;
+            button.disabled = true;
+            const ok = await saveAvatarToAccount(user, id);
+            button.disabled = false;
+            if (!ok) {
+                showToast('Could not save avatar — check your connection.', 'error');
+                return;
+            }
+            initAvatarPicker();
+            renderNavbar({ user });
+            const avatar = avatarById(id);
+            showToast(`Avatar set to ${avatar.emoji} ${avatar.label}`, 'success');
+        });
+    });
+}
+
+/* Last known signed-in user (set by initSite / page scripts). */
+let _pmAccountUser = null;
+function setAccountUser(user) {
+    _pmAccountUser = user;
+}
+function currentAccountUser() {
+    return _pmAccountUser;
+}
+
+/* -------------------------------------------------------------
    NAVBAR (auth-aware, injected into #navbar placeholder)
 ------------------------------------------------------------- */
 const NAV_LOGO = '<i data-lucide="wallet" class="h-6 w-6"></i>';
@@ -482,7 +619,11 @@ function renderNavbar(session) {
 
     const authArea = user
         ? `<div class="hidden items-center gap-2 md:flex">
-               <span class="max-w-[180px] truncate rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300" title="${escapeHTML(email)}">${escapeHTML(displayName)}</span>
+               <a href="settings.html" title="Change your avatar in Settings"
+                   class="flex items-center gap-2 rounded-full bg-slate-100 py-1 pl-1 pr-3 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">
+                   ${avatarHtml(user, 'sm')}
+                   <span class="max-w-[150px] truncate text-sm font-medium text-slate-700 dark:text-slate-300" title="${escapeHTML(email)}">${escapeHTML(displayName)}</span>
+               </a>
                ${installButton}
                ${themeToggleButton}
                <button id="signOutBtn" type="button"
@@ -512,7 +653,13 @@ function renderNavbar(session) {
 
     const mobileAuth = user
         ? `<div class="border-t border-slate-100 pt-3 dark:border-slate-800">
-               <p class="mb-2 truncate px-3 text-xs font-medium text-slate-400 dark:text-slate-500">${escapeHTML(displayName)}</p>
+               <a href="settings.html" class="mb-2 flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
+                   ${avatarHtml(user, 'md')}
+                   <span class="min-w-0">
+                       <span class="block truncate text-sm font-semibold text-slate-700 dark:text-slate-300">${escapeHTML(displayName)}</span>
+                       <span class="block text-[11px] text-slate-400 dark:text-slate-500">Tap to change avatar</span>
+                   </span>
+               </a>
                <div class="flex items-center gap-2">
                    ${mobileInstallButton}
                    <button type="button" data-theme-toggle aria-label="Switch to dark mode"
@@ -583,6 +730,8 @@ async function initSite() {
     initAccent();
     initAccentPicker();
     initCurrencyPicker();
+    injectAvatarStyles();
+    initAvatarPicker();
     initServiceWorker();
 
     // The Supabase SDK may still be loading from the fallback CDN —
@@ -593,7 +742,9 @@ async function initSite() {
     }
 
     const session = await getSession();
+    setAccountUser(session?.user ?? null);
     renderNavbar(session);
+    if (session?.user) initAvatarPicker();
 
     // React to sign-in/out happening in another tab.
     if (sb) {

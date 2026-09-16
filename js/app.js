@@ -1292,6 +1292,11 @@ async function init() {
     if (currentUserId) saveBudget(monthlyBudget, currentUserId, null);
     renderAll();
 
+    // Show this account's animated avatar in the page header.
+    setAccountUser(currentUser);
+    const dashAvatar = document.getElementById('dashboardAvatar');
+    if (dashAvatar) dashAvatar.innerHTML = avatarHtml(currentUser, 'md');
+
     // If the session expires or is revoked while browsing,
     // send the user back to the login page.
     sb.auth.onAuthStateChange((event) => {

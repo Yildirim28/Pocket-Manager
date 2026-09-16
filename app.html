@@ -38,9 +38,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onerror="var f=document.createElement('script');f.src='https://unpkg.com/@supabase/supabase-js@2';f.defer=true;document.head.appendChild(f);"></script>
-    <script src="js/config.js?v=32" defer></script>
-    <script src="js/site.js?v=32" defer></script>
-    <script src="js/app.js?v=32" defer></script>
+    <script src="js/config.js?v=33" defer></script>
+    <script src="js/site.js?v=33" defer></script>
+    <script src="js/app.js?v=33" defer></script>
     <style>
         /* Flip cards: 3D setup only — heights are fully content-driven.
            Grid children stretch to the tallest sibling (auto height),
@@ -75,7 +75,7 @@
         <!-- ===================== DASHBOARD ===================== -->
         <section aria-labelledby="dashboard-heading">
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 id="dashboard-heading" class="text-xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h2>
+                <div class="flex items-center gap-3"><span id="dashboardAvatar"></span><h2 id="dashboard-heading" class="text-xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h2></div>
                 <!-- Database connection health indicator -->
                 <div class="flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 shadow-sm">
                     <span id="statusDot" class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>

@@ -85,6 +85,21 @@ const FEEDBACK_TABLE = 'feedback';
         errorEl.classList.add('hidden');
     }
 
+    /* Animated character avatar if the author chose one, otherwise
+       a colored initial derived from their name. */
+    function avatarMarkup(post, name) {
+        const chosen = AVATARS.find((a) => a.id === post.author_avatar);
+        if (chosen) {
+            return (
+                '<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">' +
+                `<span class="text-lg ${chosen.anim}" role="img" aria-label="${chosen.label}">${chosen.emoji}</span></span>`
+            );
+        }
+        return (
+            `<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradientFor(name)} text-base font-extrabold text-white shadow-md">${escapeHTML((name[0] || '?').toUpperCase())}</span>`
+        );
+    }
+
     function postHtml(post) {
         const meta = TYPE_META[post.type] || TYPE_META.feedback;
         const mine = currentUser && post.user_id === currentUser.id;
@@ -94,7 +109,7 @@ const FEEDBACK_TABLE = 'feedback';
         return (
             `<li class="rounded-2xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-5 shadow-sm transition-shadow hover:shadow-md" data-post-id="${post.id}">` +
             '<div class="flex items-start gap-3">' +
-            `<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradientFor(name)} text-base font-extrabold text-white shadow-md">${escapeHTML((name[0] || '?').toUpperCase())}</span>` +
+            avatarMarkup(post, name) +
             '<div class="min-w-0 flex-1">' +
             '<div class="flex flex-wrap items-center gap-2">' +
             `<span class="text-sm font-bold text-slate-900 dark:text-slate-100">${escapeHTML(name)}</span>` +
@@ -176,7 +191,13 @@ const FEEDBACK_TABLE = 'feedback';
 
             const { data, error } = await sb
                 .from(FEEDBACK_TABLE)
-                .insert({ type, title, message, author_name: authorName })
+                .insert({
+                    type,
+                    title,
+                    message,
+                    author_name: authorName,
+                    author_avatar: avatarFor(currentUser).id
+                })
                 .select()
                 .single();
 

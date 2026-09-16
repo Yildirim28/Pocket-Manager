@@ -303,7 +303,10 @@
     let settingsUserId = null;
     let settingsUser = null;
 
-    function saveBudget() {
+    /* Local button handler — named differently from the global
+       saveBudget() in site.js, which it calls (same name would shadow
+       it and recurse forever). */
+    function handleSaveBudget() {
         const value = Number(settingsBudgetInput.value);
         if (!Number.isFinite(value) || value <= 0) {
             settingsBudgetInput.value = loadBudget(settingsUserId);
@@ -358,9 +361,9 @@
         const accountBudget = budgetFromUser(settingsUser);
         settingsBudgetInput.value = accountBudget ?? loadBudget(settingsUserId);
         if (settingsUserId) saveBudget(settingsBudgetInput.value, settingsUserId, null);
-        saveBudgetButton.addEventListener('click', saveBudget);
+        saveBudgetButton.addEventListener('click', handleSaveBudget);
         settingsBudgetInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') saveBudget();
+            if (e.key === 'Enter') handleSaveBudget();
         });
 
         passwordForm.addEventListener('submit', updatePassword);

@@ -37,9 +37,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onerror="var f=document.createElement('script');f.src='https://unpkg.com/@supabase/supabase-js@2';f.defer=true;document.head.appendChild(f);"></script>
-    <script src="js/config.js?v=32" defer></script>
-    <script src="js/site.js?v=32" defer></script>
-    <script src="js/settings.js?v=32" defer></script>
+    <script src="js/config.js?v=33" defer></script>
+    <script src="js/site.js?v=33" defer></script>
+    <script src="js/settings.js?v=33" defer></script>
 </head>
 <body class="min-h-full pt-16 bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="settings">
 
@@ -84,6 +84,12 @@
                 <button type="button" data-accent="violet" title="Violet" aria-label="Violet"
                     class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
                     style="background:linear-gradient(135deg,#7c3aed,#c084fc)"></button>
+            </div>
+
+            <div class="mt-6 border-t border-slate-100 dark:border-slate-800 pt-5">
+                <label class="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">Profile avatar</label>
+                <p class="mb-3 text-xs text-slate-500 dark:text-slate-400">Ten characters from ancient to modern — each one moves. Saved to your account, so it follows you everywhere.</p>
+                <div id="avatarPicker" class="grid grid-cols-3 gap-2 sm:grid-cols-5"></div>
             </div>
 
             <div class="mt-6 border-t border-slate-100 dark:border-slate-800 pt-5">

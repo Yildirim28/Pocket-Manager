@@ -180,11 +180,16 @@ create table if not exists public.feedback (
     created_at  timestamptz not null default now(),
     user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
     author_name text,
+    author_avatar text,
     type        text not null default 'feedback',
     title       text not null,
     message     text not null,
     status      text not null default 'open'
 );
+
+-- Migration for boards created before avatars existed.
+alter table public.feedback
+    add column if not exists author_avatar text;
 
 create index if not exists feedback_created_at_idx
     on public.feedback (created_at desc);
