@@ -331,25 +331,33 @@
         const session = await requireAuth();
         if (!session) return;
 
-        const email = session.user.email ?? 'unknown';
+        // Fetch the fresh user from the server — session metadata can
+        // be stale, so a device signed in earlier would miss a budget
+        // saved from another device.
         settingsUserId = session.user?.id ?? null;
         settingsUser = session.user;
-        applyAccountDisplay(session.user);
+        try {
+            const { data } = await sb.auth.getUser();
+            if (data?.user) {
+                settingsUser = data.user;
+                settingsUserId = data.user.id ?? settingsUserId;
+            }
+        } catch (error) {
+            // Offline / transient: fall back to the session copy.
+        }
+
+        applyAccountDisplay(settingsUser);
 
         saveNicknameButton.addEventListener('click', saveNickname);
         nicknameInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') saveNickname();
         });
 
-        // Account value wins (syncs across devices); local cache is
-        // the fallback. Push the local value up if the account has none.
-        const accountBudget = budgetFromUser(session.user);
+        // Account value wins (syncs across devices); local cache is the
+        // fallback. Never push a local value up automatically.
+        const accountBudget = budgetFromUser(settingsUser);
         settingsBudgetInput.value = accountBudget ?? loadBudget(settingsUserId);
-        if (accountBudget) {
-            saveBudget(accountBudget, settingsUserId, null);
-        } else {
-            saveBudget(settingsBudgetInput.value, settingsUserId, session.user);
-        }
+        if (settingsUserId) saveBudget(settingsBudgetInput.value, settingsUserId, null);
         saveBudgetButton.addEventListener('click', saveBudget);
         settingsBudgetInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') saveBudget();

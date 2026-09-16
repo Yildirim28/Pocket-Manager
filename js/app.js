@@ -19,6 +19,7 @@ let expenses = [];
 let persons = [];
 let monthlyBudget = DEFAULT_MONTHLY_BUDGET;
 let currentUserId = null;
+let currentUser = null;
 let armTimer = null;
 let rowSeq = 0;
 
@@ -1271,20 +1272,24 @@ async function init() {
     const session = await requireAuth();
     if (!session) return;
 
-    // Load THIS account's budget: the value stored on the account
-    // wins (so it follows the user across devices); the local cache
-    // is the offline fallback.
+    // Load THIS account's budget. Metadata in a stored session can be
+    // stale (captured at sign-in), so fetch the fresh user from the
+    // server first — otherwise a second device would miss the value
+    // saved elsewhere. Local cache is only the offline fallback.
     currentUserId = session.user?.id ?? null;
-    const accountBudget = budgetFromUser(session.user);
+    currentUser = session.user;
+    try {
+        const { data } = await sb.auth.getUser();
+        if (data?.user) currentUser = data.user;
+    } catch (error) {
+        // Offline / transient: fall back to the session copy.
+    }
+    const accountBudget = budgetFromUser(currentUser);
     monthlyBudget = accountBudget ?? loadBudget(currentUserId);
     budgetInput.value = monthlyBudget;
-    // Refresh the local cache, and if this device only had a local
-    // value, push it up to the account so other devices get it too.
-    if (accountBudget) {
-        saveBudget(monthlyBudget, currentUserId, null);
-    } else {
-        saveBudget(monthlyBudget, currentUserId, session.user);
-    }
+    // Refresh the local cache only — never write back to the account
+    // here, or an outdated device could overwrite the real value.
+    if (currentUserId) saveBudget(monthlyBudget, currentUserId, null);
     renderAll();
 
     // If the session expires or is revoked while browsing,
@@ -1326,7 +1331,7 @@ async function init() {
         }
         monthlyBudget = value;
         renderSummary();
-        saveBudget(value, currentUserId, session.user).then((synced) => {
+        saveBudget(value, currentUserId, currentUser).then((synced) => {
             showToast(
                 synced
                     ? `Budget saved as ${formatCurrency(value)} — synced to your account.`
