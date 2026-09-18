@@ -619,6 +619,116 @@ details[open] .pm-chevron {
 }
 
 /* -------------------------------------------------------------
+   5c. BUDGET SAND TIMER
+------------------------------------------------------------- */
+.pm-sand-timer {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pm-sand-timer > svg {
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.35));
+}
+
+/* Soft accent glow behind the glass. */
+.pm-sand-timer::after {
+    content: "";
+    position: absolute;
+    inset: 14% 4% 8%;
+    z-index: 0;
+    border-radius: 999px;
+    background: radial-gradient(closest-side,
+        color-mix(in srgb, var(--pm-accent) 55%, transparent), transparent 74%);
+    filter: blur(20px);
+    opacity: 0.5;
+}
+
+/* Sand levels are driven by CSS variables set from app.js. */
+.pm-sand-top,
+.pm-sand-bottom {
+    transform-box: view-box;
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pm-sand-top {
+    transform-origin: 60px 78px;
+    transform: scaleY(var(--pm-sand-top, 1));
+}
+
+.pm-sand-bottom {
+    /* Fills from the wide base upward, like real sand. */
+    transform-origin: 60px 138px;
+    transform: scaleY(var(--pm-sand-bottom, 0));
+}
+
+@keyframes pm-grain-fall {
+    0% { transform: translateY(0); opacity: 0; }
+    14% { opacity: 1; }
+    78% { opacity: 1; }
+    100% { transform: translateY(54px); opacity: 0; }
+}
+
+.pm-sand-grain {
+    transform-box: view-box;
+    animation: pm-grain-fall 1.5s linear infinite;
+}
+
+.pm-sand-grain.g2 { animation-delay: 0.38s; }
+.pm-sand-grain.g3 { animation-delay: 0.76s; }
+.pm-sand-grain.g4 { animation-delay: 1.12s; }
+
+@keyframes pm-stream-pulse {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.65; }
+}
+
+.pm-sand-stream-line {
+    animation: pm-stream-pulse 1.7s ease-in-out infinite;
+}
+
+/* When the glass is full or empty there is no flow. */
+.pm-sand-timer.is-idle .pm-sand-grain,
+.pm-sand-timer.is-idle .pm-sand-stream-line {
+    display: none;
+}
+
+/* Pace ticks + marker on the budget bar. */
+.pm-tick {
+    position: absolute;
+    top: 0;
+    height: 0.875rem;
+    width: 1px;
+    background: color-mix(in srgb, var(--pm-text) 24%, transparent);
+}
+
+.pm-pace-marker {
+    position: absolute;
+    top: -4px;
+    height: calc(0.875rem + 8px);
+    width: 2px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--pm-text) 60%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pm-bg) 55%, transparent);
+    transition: left 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pm-sand-grain,
+    .pm-sand-stream-line {
+        animation: none !important;
+    }
+    .pm-sand-top,
+    .pm-sand-bottom,
+    .pm-pace-marker {
+        transition: none !important;
+    }
+}
+
+/* -------------------------------------------------------------
    6. TAILWIND REMAPS
    The pages still use a few Tailwind color utilities; point the
    neutral + accent families at the tokens so they follow the theme.

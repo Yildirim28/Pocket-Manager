@@ -57,6 +57,14 @@ const budgetRemainingNoteEl = document.getElementById('budgetRemainingNote');
 const budgetTargetValueEl = document.getElementById('budgetTargetValue');
 const budgetStatusTextEl = document.getElementById('budgetStatusText');
 const budgetStatusEmojiEl = document.getElementById('budgetStatusEmoji');
+const budgetPacePillEl = document.getElementById('budgetPacePill');
+const budgetPaceMarkerEl = document.getElementById('budgetPaceMarker');
+const budgetSandTimerEl = document.getElementById('budgetSandTimer');
+const budgetSandLabelEl = document.getElementById('budgetSandLabel');
+const budgetDailyValueEl = document.getElementById('budgetDailyValue');
+const budgetDailyNoteEl = document.getElementById('budgetDailyNote');
+const budgetDaysLeftEl = document.getElementById('budgetDaysLeft');
+const budgetDaysNoteEl = document.getElementById('budgetDaysNote');
 const peopleCardSubtitleEl = document.getElementById('peopleCardSubtitle');
 
 const expenseForm = document.getElementById('expenseForm');
@@ -714,55 +722,93 @@ function renderSummary() {
     // Per-person totals this month
     renderPeopleBreakdown(monthExpenses, totalThisMonth);
 
-    // Budget progress (dark hero card with mood states)
+    // Budget progress: sand-timer hero with mood, pace and allowances.
     const percent = monthlyBudget > 0 ? (totalThisMonth / monthlyBudget) * 100 : 0;
-    budgetBar.style.width = `${Math.min(percent, 100)}%`;
+    const clampedPercent = Math.min(Math.max(percent, 0), 100);
+    budgetBar.style.width = `${clampedPercent}%`;
 
     let mood;
     if (percent >= 100) {
         budgetBar.className =
             'h-full rounded-full bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-700';
-        mood = { emoji: '😵', text: 'Budget blown — every taka from here hurts 💥', pct: 'text-rose-300' };
+        mood = { emoji: '😵', text: 'Budget blown — every taka from here hurts' };
     } else if (percent >= 75) {
         budgetBar.className =
             'h-full rounded-full bg-gradient-to-r from-amber-300 to-orange-400 transition-all duration-700';
-        mood = { emoji: '😬', text: 'Getting close to your limit — slow down a little', pct: 'text-amber-300' };
+        mood = { emoji: '😬', text: 'Getting close to your limit — slow down a little' };
     } else if (percent >= 25) {
         budgetBar.className =
             'h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-700';
-        mood = { emoji: '😌', text: 'Comfortably on track — keep it up ✅', pct: 'text-emerald-300' };
+        mood = { emoji: '😌', text: 'Comfortably on track — keep it up' };
     } else {
         budgetBar.className =
             'h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400 transition-all duration-700';
-        mood = { emoji: '🤩', text: 'Barely touched your budget — great start!', pct: 'text-sky-300' };
+        mood = { emoji: '🤩', text: 'Barely touched your budget — great start!' };
     }
 
     budgetStatusEmojiEl.textContent = mood.emoji;
     budgetStatusTextEl.textContent = mood.text;
     budgetSpentValueEl.textContent = formatCurrency(totalThisMonth);
     budgetTargetValueEl.textContent = formatCurrency(monthlyBudget);
+    budgetPercentTextEl.textContent = `${Math.round(percent)}%`;
 
-    // Remaining balance panel: green with amount left when under
-    // budget, red with a minus sign when over.
+    // Remaining balance tile.
+    const remaining = monthlyBudget - totalThisMonth;
+    const overBudget = remaining < 0;
     if (budgetRemainingValueEl) {
-        const remaining = monthlyBudget - totalThisMonth;
-        if (remaining >= 0) {
-            budgetRemainingValueEl.textContent = formatCurrency(remaining);
-            budgetRemainingValueEl.className = 'text-emerald-400';
-            budgetRemainingNoteEl.textContent = 'left this month';
-            budgetRemainingNoteEl.className =
-                'ml-1 align-middle text-[11px] font-medium text-slate-400';
-        } else {
-            budgetRemainingValueEl.textContent = '-' + formatCurrency(Math.abs(remaining));
-            budgetRemainingValueEl.className = 'text-rose-400';
-            budgetRemainingNoteEl.textContent = 'over budget!';
-            budgetRemainingNoteEl.className =
-                'ml-1 align-middle text-[11px] font-semibold text-rose-400';
+        budgetRemainingValueEl.textContent = overBudget
+            ? '-' + formatCurrency(Math.abs(remaining))
+            : formatCurrency(remaining);
+        budgetRemainingValueEl.className = overBudget ? 'text-rose-400' : 'text-emerald-400';
+        budgetRemainingNoteEl.textContent = overBudget ? 'over budget' : 'left this month';
+    }
+
+    // Time left in the month + how much can be spent per remaining day.
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const dayOfMonth = now.getDate();
+    const daysLeft = Math.max(0, daysInMonth - dayOfMonth);
+    const elapsedPercent = (dayOfMonth / daysInMonth) * 100;
+
+    if (budgetDailyValueEl) {
+        const daily = !overBudget && daysLeft > 0 ? remaining / daysLeft : 0;
+        budgetDailyValueEl.textContent = formatCurrency(daily);
+        budgetDailyNoteEl.textContent = overBudget
+            ? 'no allowance left this month'
+            : `per day for ${daysLeft} more day${daysLeft === 1 ? '' : 's'}`;
+    }
+
+    if (budgetDaysLeftEl) {
+        budgetDaysLeftEl.textContent = `${daysLeft} day${daysLeft === 1 ? '' : 's'}`;
+        budgetDaysNoteEl.textContent = `day ${dayOfMonth} of ${daysInMonth}`;
+    }
+
+    // Pace: is spending running ahead of the calendar?
+    if (budgetPacePillEl) {
+        const ahead = percent < elapsedPercent - 5;
+        const behind = percent > elapsedPercent + 5;
+        budgetPacePillEl.textContent = ahead ? 'Ahead of pace' : behind ? 'Over pace' : 'On pace';
+        budgetPacePillEl.className =
+            'rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold ring-1 ring-white/15 ' +
+            (ahead ? 'text-emerald-300' : behind ? 'text-amber-300' : 'text-white/70');
+    }
+    if (budgetPaceMarkerEl) {
+        budgetPaceMarkerEl.style.left = `${Math.min(Math.max(elapsedPercent, 0), 100)}%`;
+    }
+
+    // Sand timer: top chamber holds what is left, bottom holds what is spent.
+    if (budgetSandTimerEl) {
+        const spentFraction =
+            monthlyBudget > 0 ? Math.min(Math.max(totalThisMonth / monthlyBudget, 0), 1) : 0;
+        const leftFraction = 1 - spentFraction;
+        budgetSandTimerEl.style.setProperty('--pm-sand-top', leftFraction.toFixed(4));
+        budgetSandTimerEl.style.setProperty('--pm-sand-bottom', spentFraction.toFixed(4));
+        budgetSandTimerEl.classList.toggle('is-idle', spentFraction <= 0.005 || leftFraction <= 0.005);
+        if (budgetSandLabelEl) {
+            budgetSandLabelEl.textContent =
+                leftFraction <= 0.005 ? 'Glass empty' : `${Math.round(leftFraction * 100)}% left`;
         }
     }
-    budgetPercentTextEl.textContent = `${Math.round(percent)}%`;
-    budgetPercentTextEl.className =
-        'rounded-full bg-white/10 px-3 py-1 text-sm font-bold tabular-nums ring-1 ring-white/15 ' + mood.pct;
 }
 
 const AVATAR_GRADIENTS = [
