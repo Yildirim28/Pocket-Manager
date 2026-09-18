@@ -20,7 +20,6 @@ let persons = [];
 let monthlyBudget = DEFAULT_MONTHLY_BUDGET;
 let currentUserId = null;
 let currentUser = null;
-let armTimer = null;
 let rowSeq = 0;
 
 /* -------------------------------------------------------------
@@ -68,13 +67,7 @@ const rowErrorEl = document.getElementById('rowError');
 const submitButton = document.getElementById('submitButton');
 const submitButtonText = document.getElementById('submitButtonText');
 
-const historySection = document.getElementById('historySection');
-const historyCountEl = document.getElementById('historyCount');
-const loadingStateEl = document.getElementById('loadingState');
-const emptyStateEl = document.getElementById('emptyState');
-const expenseTableBody = document.getElementById('expenseTableBody');
-const expenseListEl = document.getElementById('expenseList');
-const refreshButton = document.getElementById('refreshButton');
+/* Transaction history now lives on its own page (history.html). */
 
 const personForm = document.getElementById('personForm');
 const personNameInput = document.getElementById('personName');
@@ -110,16 +103,6 @@ const CATEGORIES = [
 const UTILITIES_CATEGORY = 'Utilities';
 
 const UTILITY_TYPES = ['Wifi', 'Gas', 'Electricity', 'Other'];
-
-const TRASH_ICON = '<i data-lucide="trash-2" class="h-4 w-4"></i>';
-
-const DELETE_BUTTON_CLASSES =
-    'inline-flex items-center justify-center rounded-lg p-2 text-slate-400 dark:text-slate-500 transition-colors ' +
-    'hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500';
-
-const DELETE_ARMED_CLASSES =
-    'inline-flex items-center justify-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs ' +
-    'font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500';
 
 const INPUT_CLASSES =
     'w-full border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-0 py-1.5 text-sm placeholder-slate-300 dark:placeholder-slate-600 ' +
@@ -557,11 +540,6 @@ function setSubmitting(submitting) {
     submitButtonText.textContent = submitting ? 'Adding…' : 'Add Expenses';
 }
 
-function setLoading(loading) {
-    loadingStateEl.classList.toggle('hidden', !loading);
-    refreshButton.disabled = loading;
-}
-
 function showRowError(message) {
     rowErrorEl.textContent = message;
     rowErrorEl.classList.remove('hidden');
@@ -707,7 +685,6 @@ function renderSummary() {
     }
 
     totalCountEl.textContent = expenses.length;
-    historyCountEl.textContent = expenses.length;
 
     // Top 5 transactions (back face of the total-transactions flip card)
     if (topTransactionsListEl) {
@@ -1012,76 +989,8 @@ function badgeHtml(category) {
     );
 }
 
-function participantsSummaryHtml(expense) {
-    const participants = Array.isArray(expense.participants) ? expense.participants : [];
-    if (participants.length === 0) return '<span class="text-xs text-slate-400 dark:text-slate-500">—</span>';
-    return participants
-        .map(
-            (p) =>
-                `<span class="inline-flex items-center rounded-md bg-rose-100 px-1.5 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">` +
-                `${escapeHTML(p.name)} ${formatCurrency(p.amount)}</span>`
-        )
-        .join(' ');
-}
-
-function utilityChipHtml(expense) {
-    if ((expense.category || '') !== UTILITIES_CATEGORY) return '';
-    const type = expense.utility_type || 'Other';
-    return (
-        '<span class="inline-flex items-center rounded-md bg-sky-100 px-1.5 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">' +
-        `${escapeHTML(type)}</span>`
-    );
-}
-
-function deleteButtonHtml(id) {
-    return (
-        `<button type="button" data-id="${id}" data-armed="false" title="Delete expense" ` +
-        `aria-label="Delete expense" class="${DELETE_BUTTON_CLASSES}">${TRASH_ICON}</button>`
-    );
-}
-
-function tableRowHtml(expense) {
-    return (
-        '<tr class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-900">' +
-        `<td class="px-6 py-4"><p class="font-medium text-slate-800 dark:text-slate-100">${escapeHTML(expense.description)}</p>` +
-        `<p class="text-xs text-slate-400 dark:text-slate-500">Added ${formatTimestamp(expense.created_at)}</p></td>` +
-        `<td class="px-6 py-4"><div class="flex flex-wrap items-center gap-1">${badgeHtml(expense.category)}${utilityChipHtml(expense)}</div></td>` +
-        `<td class="px-6 py-4"><div class="flex max-w-xs flex-wrap gap-1">${participantsSummaryHtml(expense)}</div></td>` +
-        `<td class="px-6 py-4 text-slate-600 dark:text-slate-300">${formatDate(expense.expense_date)}</td>` +
-        `<td class="px-6 py-4 text-right font-semibold tabular-nums text-slate-800 dark:text-slate-100">${formatCurrency(expense.amount)}</td>` +
-        `<td class="px-6 py-4 text-right">${deleteButtonHtml(expense.id)}</td>` +
-        '</tr>'
-    );
-}
-
-function listItemHtml(expense) {
-    return (
-        '<li class="px-4 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-900">' +
-        '<div class="flex items-start justify-between gap-3">' +
-        '<div class="min-w-0">' +
-        `<p class="truncate font-medium text-slate-800 dark:text-slate-100">${escapeHTML(expense.description)}</p>` +
-        `<div class="mt-2 flex flex-wrap items-center gap-2">${badgeHtml(expense.category)}${utilityChipHtml(expense)}` +
-        `<span class="text-xs text-slate-500 dark:text-slate-400">${formatDate(expense.expense_date)}</span></div>` +
-        `<div class="mt-2 flex flex-wrap gap-1">${participantsSummaryHtml(expense)}</div>` +
-        '</div>' +
-        '<div class="flex flex-col items-end gap-2">' +
-        `<span class="font-semibold tabular-nums text-slate-800 dark:text-slate-100">${formatCurrency(expense.amount)}</span>` +
-        `${deleteButtonHtml(expense.id)}</div>` +
-        '</div></li>'
-    );
-}
-
-function renderExpenses() {
-    const hasExpenses = expenses.length > 0;
-    emptyStateEl.classList.toggle('hidden', hasExpenses);
-    expenseTableBody.innerHTML = hasExpenses ? expenses.map(tableRowHtml).join('') : '';
-    expenseListEl.innerHTML = hasExpenses ? expenses.map(listItemHtml).join('') : '';
-    window.lucide?.createIcons();
-}
-
 function renderAll() {
     renderSummary();
-    renderExpenses();
     if (typeof renderPersons === 'function') renderPersons();
     window.lucide?.createIcons();
 }
@@ -1090,7 +999,6 @@ function renderAll() {
    CRUD OPERATIONS (async/await)
 ------------------------------------------------------------- */
 async function fetchExpenses() {
-    setLoading(true);
     try {
         const { data, error } = await sb
             .from(EXPENSES_TABLE)
@@ -1104,8 +1012,6 @@ async function fetchExpenses() {
         renderAll();
     } catch (error) {
         showToast(`Could not load expenses: ${error.message}`, 'error');
-    } finally {
-        setLoading(false);
     }
 }
 
@@ -1167,62 +1073,10 @@ async function addExpenses(event) {
     }
 }
 
-async function deleteExpense(id) {
-    const index = expenses.findIndex((expense) => expense.id === id);
-    if (index === -1) return;
-
-    const removed = expenses[index];
-
-    // Optimistic update: remove locally, re-render immediately.
-    expenses.splice(index, 1);
-    renderAll();
-
-    try {
-        const { error } = await sb.from(EXPENSES_TABLE).delete().eq('id', id);
-        if (error) throw error;
-        showToast('Expense deleted.', 'success');
-    } catch (error) {
-        // Roll back the optimistic removal on failure.
-        expenses.splice(Math.min(index, expenses.length), 0, removed);
-        sortExpenses();
-        renderAll();
-        showToast(`Failed to delete expense: ${error.message}`, 'error');
-    }
-}
-
 function resetForm() {
     expenseRowsEl.innerHTML = '';
     addExpenseRow();
     hideRowError();
-}
-
-/* -------------------------------------------------------------
-   INLINE DELETE CONFIRMATION (two-stage)
-------------------------------------------------------------- */
-function resetDeleteButton(button) {
-    button.setAttribute('data-armed', 'false');
-    button.className = DELETE_BUTTON_CLASSES;
-    button.innerHTML = TRASH_ICON;
-}
-
-function disarmAllDeleteButtons() {
-    if (armTimer) {
-        clearTimeout(armTimer);
-        armTimer = null;
-    }
-    document.querySelectorAll('button[data-armed="true"]').forEach(resetDeleteButton);
-}
-
-function armDeleteButton(button) {
-    disarmAllDeleteButtons();
-    button.setAttribute('data-armed', 'true');
-    button.className = DELETE_ARMED_CLASSES;
-    button.textContent = 'Confirm?';
-    armTimer = setTimeout(() => {
-        const armed = document.querySelector('button[data-armed="true"]');
-        if (armed) resetDeleteButton(armed);
-        armTimer = null;
-    }, DELETE_ARM_TIMEOUT_MS);
 }
 
 /* -------------------------------------------------------------
@@ -1450,19 +1304,6 @@ async function init() {
         });
     });
 
-    historySection.addEventListener('click', (event) => {
-        const button = event.target.closest('button[data-id]');
-        if (!button) return;
-
-        if (button.getAttribute('data-armed') === 'true') {
-            disarmAllDeleteButtons();
-            deleteExpense(button.getAttribute('data-id'));
-        } else {
-            armDeleteButton(button);
-        }
-    });
-
-    refreshButton.addEventListener('click', fetchExpenses);
 }
 
 document.addEventListener('DOMContentLoaded', init);

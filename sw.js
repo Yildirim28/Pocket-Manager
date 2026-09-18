@@ -6,12 +6,13 @@
 
 'use strict';
 
-const CACHE_VERSION = 'pocket-manager-v20';
+const CACHE_VERSION = 'pocket-manager-v21';
 
 const PRECACHE_URLS = [
     './',
     './index.html',
     './app.html',
+    './history.html',
     './login.html',
     './signup.html',
     './settings.html',
@@ -19,12 +20,13 @@ const PRECACHE_URLS = [
     './feedback.html',
     './reset-password.html',
     './manifest.json',
-    './css/theme.css?v=2',
+    './css/theme.css?v=3',
     './icon-192.png',
     './icon-512.png',
     './js/config.js?v=8',
-    './js/site.js?v=34',
-    './js/app.js?v=36',
+    './js/site.js?v=35',
+    './js/app.js?v=37',
+    './js/history.js?v=1',
     './js/auth.js?v=34',
     './js/settings.js?v=34',
     './js/reset-password.js?v=34',

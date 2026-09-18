@@ -395,6 +395,11 @@ body.pm-page {
     display: none !important;
 }
 
+/* Force-hide an element regardless of responsive display utilities. */
+.pm-force-hidden {
+    display: none !important;
+}
+
 /* Small pill / badge */
 .pm-chip {
     display: inline-flex;

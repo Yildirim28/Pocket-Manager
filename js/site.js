@@ -672,6 +672,7 @@ function renderNavbar(session) {
     ];
     const privateLinks = [
         { page: 'dashboard', href: 'app.html', label: 'Dashboard' },
+        { page: 'history', href: 'history.html', label: 'History' },
         { page: 'feedback', href: 'feedback.html', label: 'Feedback' },
         { page: 'settings', href: 'settings.html', label: 'Settings' }
     ];
