@@ -86,15 +86,15 @@ const personsEmptyEl = document.getElementById('personsEmpty');
    CONSTANTS
 ------------------------------------------------------------- */
 const CATEGORY_COLORS = {
-    Food: 'bg-green-100 text-green-800',
-    Transport: 'bg-blue-100 text-blue-800',
-    Bills: 'bg-red-100 text-red-800',
-    Utilities: 'bg-sky-100 text-sky-800',
-    Rent: 'bg-fuchsia-100 text-fuchsia-800',
-    Entertainment: 'bg-purple-100 text-purple-800',
-    Shopping: 'bg-amber-100 text-amber-800',
-    Other: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100',
-    General: 'bg-indigo-100 text-indigo-800'
+    Food: 'bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300 dark:ring-1 dark:ring-inset dark:ring-green-500/25',
+    Transport: 'bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-1 dark:ring-inset dark:ring-blue-500/25',
+    Bills: 'bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300 dark:ring-1 dark:ring-inset dark:ring-red-500/25',
+    Utilities: 'bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-1 dark:ring-inset dark:ring-sky-500/25',
+    Rent: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-500/15 dark:text-fuchsia-300 dark:ring-1 dark:ring-inset dark:ring-fuchsia-500/25',
+    Entertainment: 'bg-purple-100 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300 dark:ring-1 dark:ring-inset dark:ring-purple-500/25',
+    Shopping: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-1 dark:ring-inset dark:ring-amber-500/25',
+    Other: 'bg-slate-100 text-slate-800 dark:bg-slate-500/15 dark:text-slate-200 dark:ring-1 dark:ring-inset dark:ring-slate-500/25',
+    General: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-1 dark:ring-inset dark:ring-indigo-500/25'
 };
 
 const CATEGORIES = [
@@ -467,10 +467,10 @@ function renderPersons() {
     personsListEl.innerHTML = persons
         .map(
             (p) =>
-                `<span class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 py-1 pl-3 pr-1.5 text-sm font-medium text-rose-700">` +
+                `<span class="inline-flex items-center gap-1.5 rounded-full bg-rose-100 py-1 pl-3 pr-1.5 text-sm font-medium text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">` +
                 `${escapeHTML(p.name)}` +
                 `<button type="button" data-person-id="${p.id}" title="Remove ${escapeHTML(p.name)}" ` +
-                'class="inline-flex h-5 w-5 items-center justify-center rounded-full text-rose-400 transition-colors hover:bg-rose-200 hover:text-rose-700" ' +
+                'class="inline-flex h-5 w-5 items-center justify-center rounded-full text-rose-400 transition-colors hover:bg-rose-200 hover:text-rose-700 dark:hover:bg-rose-500/25" ' +
                 'aria-label="Remove person">' +
                 '<i data-lucide="x" class="h-3 w-3"></i>' +
                 '</button></span>'
@@ -604,10 +604,10 @@ function renderSummary() {
         const remaining = monthlyBudget - totalThisMonth;
         if (remaining >= 0) {
             remainingBalanceEl.textContent = formatCurrency(remaining);
-            remainingBalanceSubEl.textContent = `left from your ${formatCurrency(monthlyBudget)} budget ✨`;
+            remainingBalanceSubEl.textContent = `left from your ${formatCurrency(monthlyBudget)} budget`;
         } else {
             remainingBalanceEl.textContent = '-' + formatCurrency(Math.abs(remaining));
-            remainingBalanceSubEl.textContent = `over your ${formatCurrency(monthlyBudget)} budget 😬`;
+            remainingBalanceSubEl.textContent = `over your ${formatCurrency(monthlyBudget)} budget`;
         }
     }
 
@@ -799,15 +799,71 @@ const AVATAR_GRADIENTS = [
     'from-lime-400 to-green-500'
 ];
 
+/* Hex twins of AVATAR_GRADIENTS, for SVG strokes and inline gradients
+   that cannot use Tailwind classes. Keep the order in sync. */
+const AVATAR_COLORS = [
+    { from: '#fb7185', to: '#ec4899' },
+    { from: '#a78bfa', to: '#a855f7' },
+    { from: '#38bdf8', to: '#3b82f6' },
+    { from: '#fbbf24', to: '#f97316' },
+    { from: '#34d399', to: '#14b8a6' },
+    { from: '#e879f9', to: '#ec4899' },
+    { from: '#22d3ee', to: '#0ea5e9' },
+    { from: '#a3e635', to: '#22c55e' }
+];
+
 /* Fun mascot emoji assigned per person (stable per name). */
 const MASCOTS = ['🦊', '🐼', '🐯', '🦁', '🐨', '🐵', '🐸', '🐧', '🐰', '🐻', '🦉', '🐙', '🦄', '🐢', '🐳', '🦜', '🐝', '🦋', '🐬', '🐿️'];
 
-const RANK_EMOJIS = ['🥇', '🥈', '🥉'];
-
-function avatarGradient(name) {
+function avatarIndex(name) {
     let hash = 0;
     for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-    return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length];
+    return hash % AVATAR_GRADIENTS.length;
+}
+
+function avatarGradient(name) {
+    return AVATAR_GRADIENTS[avatarIndex(name)];
+}
+
+function personColors(name) {
+    return AVATAR_COLORS[avatarIndex(name)];
+}
+
+/* Count a money figure up from zero (respects reduced motion). */
+function animateNumber(el, to, duration = 900) {
+    if (!el) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !Number.isFinite(to) || to <= 0) {
+        el.textContent = formatCurrency(to || 0);
+        return;
+    }
+    const start = performance.now();
+    const tick = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = formatCurrency(to * eased);
+        if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+}
+
+function statTileHtml(label, value) {
+    return (
+        '<div class="rounded-xl border border-slate-200/70 bg-slate-50/60 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-900/40">' +
+        `<p class="pm-faint text-[10px] font-bold uppercase tracking-wider">${label}</p>` +
+        `<p class="mt-0.5 truncate text-sm font-bold">${value}</p>` +
+        '</div>'
+    );
+}
+
+function donutSegmentHtml(pct, offset, color, label) {
+    const len = Math.max(pct - 1.6, 0.4);
+    return (
+        '<circle class="pm-donut-seg" cx="60" cy="60" r="46" pathLength="100" ' +
+        `style="--pm-ring-len:${len.toFixed(2)};stroke-dasharray:${len.toFixed(2)} 100;stroke-dashoffset:${(-offset).toFixed(2)};stroke:${color}" ` +
+        `data-person="${escapeHTML(label)}">` +
+        `<title>${escapeHTML(label)} · ${Math.round(pct)}%</title></circle>`
+    );
 }
 
 function mascotFor(name) {
@@ -848,54 +904,102 @@ function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
     const entries = Object.entries(byPerson).sort((a, b) => b[1].total - a[1].total);
     const max = entries[0][1].total || 1;
     const peopleCount = entries.length;
+    const tracked =
+        entries.reduce((sum, [, data]) => sum + data.total, 0) || totalThisMonth || 1;
+    const avg = tracked / peopleCount;
 
     peopleCardSubtitleEl.textContent =
         peopleCount === 1
-            ? '1 person splitting this month 🤝'
-            : `${peopleCount} people splitting this month 🤝`;
+            ? '1 person splitting this month'
+            : `${peopleCount} people splitting this month`;
 
-    peopleBreakdownEl.innerHTML = entries
-        .map(([name, data], index) => {
-            const width = Math.max(6, Math.round((data.total / max) * 100));
-            const share = totalThisMonth > 0 ? Math.round((data.total / totalThisMonth) * 100) : 0;
-            const rank = RANK_EMOJIS[index] || '';
-            const mascot = mascotFor(name);
-            const gradient = avatarGradient(name);
+    // Donut distribution — one animated arc per person.
+    let cursor = 0;
+    const segments = entries.map(([name, data]) => {
+        const pct = (data.total / tracked) * 100;
+        const html = donutSegmentHtml(pct, cursor, personColors(name).from, name);
+        cursor += pct;
+        return html;
+    });
 
-            const details = data.details
-                .sort((a, b) => String(b.date).localeCompare(String(a.date)))
-                .map(
-                    (d) =>
-                        '<li class="flex items-baseline justify-between gap-3 py-1.5">' +
-                        `<span class="flex min-w-0 items-baseline gap-1.5">${badgeHtml(d.category)} ` +
-                        `<span class="truncate text-slate-600 dark:text-slate-300">${escapeHTML(d.description)}</span>` +
-                        `<span class="ml-1 whitespace-nowrap text-slate-400 dark:text-slate-500">${formatDate(d.date)}</span></span>` +
-                        `<span class="whitespace-nowrap font-semibold tabular-nums text-rose-700">${formatCurrency(d.share)}</span>` +
-                        '</li>'
-                )
-                .join('');
+    const chart =
+        '<div class="flex flex-col items-center gap-5 sm:flex-row">' +
+        '<div class="pm-donut">' +
+        '<svg viewBox="0 0 120 120" role="img" aria-label="Share of spending per person">' +
+        '<circle class="pm-donut-track" cx="60" cy="60" r="46" pathLength="100"></circle>' +
+        segments.join('') +
+        '</svg>' +
+        '<div class="pm-donut-center">' +
+        '<span class="pm-stat-value text-xl font-bold" data-donut-total>0</span>' +
+        '<span class="pm-faint mt-0.5 text-[10px] font-semibold uppercase tracking-wider">Tracked</span>' +
+        '</div>' +
+        '</div>' +
+        '<div class="grid w-full grid-cols-2 gap-3 sm:grid-cols-3">' +
+        statTileHtml('Top spender', escapeHTML(entries[0][0])) +
+        statTileHtml('Avg / person', escapeHTML(formatCurrency(avg))) +
+        statTileHtml('People', String(peopleCount)) +
+        '</div>' +
+        '</div>';
 
-            return (
-                '<div class="group rounded-2xl border border-rose-100/80 bg-white dark:bg-slate-900 p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-rose-100">' +
-                '<div class="flex items-center gap-3">' +
-                `<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-lg shadow-md ring-2 ring-white">${mascot}</span>` +
-                '<div class="min-w-0 flex-1">' +
-                '<div class="flex items-baseline justify-between gap-2">' +
-                `<span class="truncate text-sm font-bold text-slate-800 dark:text-slate-100">${rank ? rank + ' ' : ''}${escapeHTML(name)}</span>` +
-                `<span class="whitespace-nowrap text-sm font-extrabold tabular-nums text-slate-900 dark:text-slate-100">${formatCurrency(data.total)} <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500">· ${share}%</span></span>` +
-                '</div>' +
-                '<div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-rose-50">' +
-                `<div class="h-full rounded-full bg-gradient-to-r ${gradient} transition-all duration-700" style="width: ${width}%"></div>` +
-                '</div>' +
-                '</div>' +
-                '</div>' +
-                `<details class="mt-3"><summary class="cursor-pointer select-none text-xs font-semibold text-rose-500 transition-colors hover:text-rose-600">📝 ${data.details.length} expense${data.details.length === 1 ? '' : 's'} — view details</summary>` +
-                `<ul class="mt-2 divide-y divide-rose-50 border-t border-rose-100 text-xs">${details}</ul>` +
-                '</details>' +
-                '</div>'
-            );
-        })
-        .join('');
+    const rows = entries.map(([name, data], index) => {
+        const width = Math.max(6, Math.round((data.total / max) * 100));
+        const share = Math.round((data.total / tracked) * 100);
+        const rank =
+            index < 3
+                ? `<span class="pm-rank pm-rank-${index + 1}">${index + 1}</span>`
+                : `<span class="pm-rank pm-rank-n">${index + 1}</span>`;
+        const mascot = mascotFor(name);
+        const colors = personColors(name);
+
+        const details = data.details
+            .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+            .map(
+                (d) =>
+                    '<li class="flex items-baseline justify-between gap-3 py-1.5">' +
+                    `<span class="flex min-w-0 items-baseline gap-1.5">${badgeHtml(d.category)} ` +
+                    `<span class="pm-muted truncate">${escapeHTML(d.description)}</span>` +
+                    `<span class="pm-faint ml-1 whitespace-nowrap">${formatDate(d.date)}</span></span>` +
+                    `<span class="whitespace-nowrap font-semibold tabular-nums" style="color:${colors.from}">${formatCurrency(d.share)}</span>` +
+                    '</li>'
+            )
+            .join('');
+
+        return (
+            '<div class="pm-person">' +
+            '<div class="flex items-center gap-3">' +
+            '<div class="pm-avatar-ring">' +
+            '<svg viewBox="0 0 52 52" aria-hidden="true">' +
+            '<circle class="pm-ring-track" cx="26" cy="26" r="23" pathLength="100"></circle>' +
+            `<circle class="pm-ring-value" cx="26" cy="26" r="23" pathLength="100" style="--pm-ring-len:${Math.max(share - 1, 0.5)};stroke-dasharray:${Math.max(share - 1, 0.5)} 100;stroke:${colors.from}"></circle>` +
+            '</svg>' +
+            `<span class="flex h-10 w-10 items-center justify-center rounded-full text-lg" style="background:linear-gradient(135deg, ${colors.from}22, ${colors.to}33)">${mascot}</span>` +
+            '</div>' +
+            '<div class="min-w-0 flex-1">' +
+            '<div class="flex items-baseline justify-between gap-2">' +
+            `<span class="flex min-w-0 items-center gap-1.5">${rank}<span class="truncate text-sm font-bold">${escapeHTML(name)}</span></span>` +
+            `<span class="whitespace-nowrap text-sm font-extrabold tabular-nums"><span data-person-amount>0</span> <span class="pm-faint text-[11px] font-semibold">· ${share}%</span></span>` +
+            '</div>' +
+            `<div class="pm-track mt-2 h-2.5"><div class="pm-bar-fill" style="--pm-bar-w:${width}%;background:linear-gradient(90deg, ${colors.from}, ${colors.to})"></div></div>` +
+            '</div>' +
+            '</div>' +
+            `<details class="mt-3"><summary class="flex cursor-pointer select-none items-center gap-1 text-xs font-semibold" style="color:${colors.from}"><i data-lucide="chevron-right" class="pm-chevron h-3.5 w-3.5"></i><i data-lucide="list" class="h-3.5 w-3.5"></i>${data.details.length} expense${data.details.length === 1 ? '' : 's'} — view details</summary>` +
+            `<ul class="mt-2 divide-y divide-slate-200/70 border-t border-slate-200/70 text-xs dark:divide-slate-800 dark:border-slate-800">${details}</ul>` +
+            '</details>' +
+            '</div>'
+        );
+    });
+
+    peopleBreakdownEl.innerHTML =
+        chart +
+        '<div class="pm-stagger mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">' +
+        rows.join('') +
+        '</div>';
+
+    animateNumber(peopleBreakdownEl.querySelector('[data-donut-total]'), tracked);
+    peopleBreakdownEl.querySelectorAll('[data-person-amount]').forEach((el, index) => {
+        animateNumber(el, entries[index]?.[1]?.total ?? 0, 950);
+    });
+
     window.lucide?.createIcons();
 }
 
@@ -914,7 +1018,7 @@ function participantsSummaryHtml(expense) {
     return participants
         .map(
             (p) =>
-                `<span class="inline-flex items-center rounded-md bg-rose-50 px-1.5 py-0.5 text-xs font-medium text-rose-700">` +
+                `<span class="inline-flex items-center rounded-md bg-rose-100 px-1.5 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">` +
                 `${escapeHTML(p.name)} ${formatCurrency(p.amount)}</span>`
         )
         .join(' ');
@@ -924,7 +1028,7 @@ function utilityChipHtml(expense) {
     if ((expense.category || '') !== UTILITIES_CATEGORY) return '';
     const type = expense.utility_type || 'Other';
     return (
-        '<span class="inline-flex items-center rounded-md bg-sky-50 px-1.5 py-0.5 text-xs font-medium text-sky-700">' +
+        '<span class="inline-flex items-center rounded-md bg-sky-100 px-1.5 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">' +
         `${escapeHTML(type)}</span>`
     );
 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- PWA -->
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" content="#05070d" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png" />
     <link rel="apple-touch-icon" href="icon-192.png" />
@@ -17,9 +17,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         (function () {
-            if (localStorage.getItem('pocket-manager:theme') === 'dark') {
-                document.documentElement.classList.add('dark');
-            }
+            try {
+                var saved = localStorage.getItem('pocket-manager:theme');
+                var dark = saved ? saved === 'dark' : !window.matchMedia('(prefers-color-scheme: light)').matches;
+                document.documentElement.classList.toggle('dark', dark);
+                document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+            } catch (e) {}
         })();
     </script>
     <script>
@@ -34,30 +37,31 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/theme.css?v=2" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onerror="var f=document.createElement('script');f.src='https://unpkg.com/@supabase/supabase-js@2';f.defer=true;document.head.appendChild(f);"></script>
-    <script src="js/config.js?v=33" defer></script>
-    <script src="js/site.js?v=33" defer></script>
-    <script src="js/settings.js?v=33" defer></script>
+    <script src="js/config.js?v=34" defer></script>
+    <script src="js/site.js?v=34" defer></script>
+    <script src="js/settings.js?v=34" defer></script>
 </head>
-<body class="min-h-full pt-16 bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="settings">
+<body class="min-h-full pt-20 pm-page pm-aurora bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="settings">
 
     <div id="navbar"></div>
 
     <main class="mx-auto max-w-3xl space-y-6 px-4 py-8">
 
-        <h1 class="text-xl font-bold text-slate-900 dark:text-slate-100">Settings</h1>
+        <h1 class="font-display text-2xl font-bold tracking-tight">Settings</h1>
 
         <!-- ===================== APPEARANCE ===================== -->
-        <section aria-labelledby="appearance-heading" class="rounded-2xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-6 shadow-sm">
-            <h2 id="appearance-heading" class="text-lg font-bold text-slate-900 dark:text-slate-100">Appearance</h2>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Pick your accent color &mdash; it is applied instantly and remembered on this device.</p>
+        <section aria-labelledby="appearance-heading" class="pm-card p-6">
+            <h2 id="appearance-heading" class="font-display text-lg font-bold">Appearance</h2>
+            <p class="pm-muted mt-1 text-sm">Pick your accent color &mdash; it is applied instantly and remembered on this device.</p>
 
-            <div class="mt-6 flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
+            <div class="mt-6 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
                 <div>
-                    <label class="text-sm font-semibold text-slate-800 dark:text-slate-200" id="dark-mode-label">Dark mode</label>
-                    <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Easy on the eyes at night 🌙</p>
+                    <label class="text-sm font-semibold" id="dark-mode-label">Dark mode</label>
+                    <p class="pm-muted mt-0.5 text-xs">Easy on the eyes at night</p>
                 </div>
                 <button type="button" data-theme-toggle role="switch" aria-labelledby="dark-mode-label" aria-checked="false"
                     class="theme-switch relative h-7 w-12 shrink-0 rounded-full bg-slate-200 transition-colors dark:bg-slate-700">
@@ -66,79 +70,73 @@
             </div>
 
             <div id="accentPicker" class="mt-5 flex flex-wrap gap-3">
+                <button type="button" data-accent="emerald" title="Mint" aria-label="Mint"
+                    class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
+                    style="background:linear-gradient(135deg,#10b981,#34d399)"></button>
                 <button type="button" data-accent="indigo" title="Indigo" aria-label="Indigo"
                     class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
-                    style="background:linear-gradient(135deg,#4f46e5,#8b5cf6)"></button>
+                    style="background:linear-gradient(135deg,#6366f1,#818cf8)"></button>
                 <button type="button" data-accent="blue" title="Ocean" aria-label="Ocean"
                     class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
-                    style="background:linear-gradient(135deg,#2563eb,#06b6d4)"></button>
-                <button type="button" data-accent="emerald" title="Emerald" aria-label="Emerald"
-                    class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
-                    style="background:linear-gradient(135deg,#059669,#34d399)"></button>
-                <button type="button" data-accent="rose" title="Rose" aria-label="Rose"
-                    class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
-                    style="background:linear-gradient(135deg,#e11d48,#fb7185)"></button>
-                <button type="button" data-accent="amber" title="Amber" aria-label="Amber"
-                    class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
-                    style="background:linear-gradient(135deg,#d97706,#fbbf24)"></button>
+                    style="background:linear-gradient(135deg,#3b82f6,#22d3ee)"></button>
                 <button type="button" data-accent="violet" title="Violet" aria-label="Violet"
                     class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
-                    style="background:linear-gradient(135deg,#7c3aed,#c084fc)"></button>
+                    style="background:linear-gradient(135deg,#8b5cf6,#c084fc)"></button>
+                <button type="button" data-accent="rose" title="Rose" aria-label="Rose"
+                    class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
+                    style="background:linear-gradient(135deg,#f43f5e,#fb7185)"></button>
+                <button type="button" data-accent="amber" title="Amber" aria-label="Amber"
+                    class="h-9 w-9 rounded-full transition-transform hover:scale-110 active:scale-95"
+                    style="background:linear-gradient(135deg,#f59e0b,#fbbf24)"></button>
             </div>
 
-            <div class="mt-6 border-t border-slate-100 dark:border-slate-800 pt-5">
-                <label class="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">Profile avatar</label>
-                <p class="mb-3 text-xs text-slate-500 dark:text-slate-400">Ten characters from ancient to modern — each one moves. Saved to your account, so it follows you everywhere.</p>
+            <div class="mt-6 border-t border-slate-200/70 pt-5 dark:border-slate-800">
+                <label class="mb-1 block text-sm font-semibold">Profile avatar</label>
+                <p class="pm-muted mb-3 text-xs">Ten characters from ancient to modern — each one moves. Saved to your account, so it follows you everywhere.</p>
                 <div id="avatarPicker" class="grid grid-cols-3 gap-2 sm:grid-cols-5"></div>
             </div>
 
-            <div class="mt-6 border-t border-slate-100 dark:border-slate-800 pt-5">
-                <label for="currencyPicker" class="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">Currency</label>
-                <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">Applied to all amounts across the app. Default is Bangladeshi Taka ৳.</p>
-                <select id="currencyPicker"
-                    class="w-full max-w-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+            <div class="mt-6 border-t border-slate-200/70 pt-5 dark:border-slate-800">
+                <label for="currencyPicker" class="mb-1 block text-sm font-semibold">Currency</label>
+                <p class="pm-muted mb-2 text-xs">Applied to all amounts across the app. Default is Bangladeshi Taka ৳.</p>
+                <select id="currencyPicker" class="pm-input max-w-xs">
                     <option>Loading…</option>
                 </select>
             </div>
         </section>
 
         <!-- ===================== ACCOUNT ===================== -->
-        <section aria-labelledby="account-heading" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm">
-            <h2 id="account-heading" class="text-lg font-bold text-slate-900 dark:text-slate-100">Account</h2>
+        <section aria-labelledby="account-heading" class="pm-card p-6">
+            <h2 id="account-heading" class="font-display text-lg font-bold">Account</h2>
             <div class="mt-4 flex items-center gap-4">
-                <span class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-lg font-bold text-indigo-700" id="accountAvatar">?</span>
+                <span class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-lg font-bold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300" id="accountAvatar">?</span>
                 <div class="min-w-0">
-                    <p id="accountNickname" class="truncate font-semibold text-slate-900 dark:text-slate-100">Loading…</p>
-                    <p id="accountEmail" class="truncate text-xs text-slate-400 dark:text-slate-500">Loading…</p>
+                    <p id="accountNickname" class="truncate font-semibold">Loading…</p>
+                    <p id="accountEmail" class="pm-faint truncate text-xs">Loading…</p>
                 </div>
             </div>
 
-            <div class="mt-5 border-t border-slate-100 dark:border-slate-800 pt-5">
-                <label for="nicknameInput" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Nickname</label>
-                <p class="mb-2 text-xs text-slate-400 dark:text-slate-500">Shown in the navbar and dashboard instead of your email.</p>
+            <div class="mt-5 border-t border-slate-200/70 pt-5 dark:border-slate-800">
+                <label for="nicknameInput" class="pm-label">Nickname</label>
+                <p class="pm-faint mb-2 text-xs">Shown in the navbar and dashboard instead of your email.</p>
                 <div class="flex flex-wrap items-center gap-3">
-                    <input id="nicknameInput" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Shamim"
-                        class="w-full max-w-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
-                    <button id="saveNicknameButton" type="button"
-                        class="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+                    <input id="nicknameInput" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Shamim" class="pm-input max-w-xs" />
+                    <button id="saveNicknameButton" type="button" class="pm-btn pm-btn-primary">
                         <span id="saveNicknameText">Save nickname</span>
                     </button>
                 </div>
             </div>
 
             <div class="mt-6 flex flex-wrap gap-3">
-                <button id="exportCsvButton" type="button"
-                    class="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 active:scale-[0.98]">
+                <button id="exportCsvButton" type="button" class="pm-btn pm-btn-outline">
                     <i data-lucide="download" class="h-4 w-4"></i>
                     Export expenses (CSV)
                 </button>
-                <button id="exportPngButton" type="button"
-                    class="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900 active:scale-[0.98]">
+                <button id="exportPngButton" type="button" class="pm-btn pm-btn-outline">
                     <i data-lucide="image-down" class="h-4 w-4"></i>
                     Export report (PNG)
                 </button>
-                <button id="signOutButton" type="button"
-                    class="inline-flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-all hover:bg-red-50 hover:text-red-600 active:scale-[0.98]">
+                <button id="signOutButton" type="button" class="pm-btn pm-btn-danger">
                     <i data-lucide="log-out" class="h-4 w-4"></i>
                     Sign out
                 </button>
@@ -146,52 +144,47 @@
         </section>
 
         <!-- ===================== BUDGET ===================== -->
-        <section aria-labelledby="budget-heading" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm">
-            <h2 id="budget-heading" class="text-lg font-bold text-slate-900 dark:text-slate-100">Monthly budget</h2>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Your target spending limit per month. Used by the dashboard progress bar.</p>
+        <section aria-labelledby="budget-heading" class="pm-card p-6">
+            <h2 id="budget-heading" class="font-display text-lg font-bold">Monthly budget</h2>
+            <p class="pm-muted mt-1 text-sm">Your target spending limit per month. Used by the dashboard progress bar.</p>
             <div class="mt-4 flex items-center gap-3">
                 <div class="relative">
-                    <span data-currency-symbol class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-400 dark:text-slate-500">৳</span>
-                    <input id="settingsBudgetInput" type="number" min="1" step="50"
-                        class="w-40 rounded-xl border border-slate-300 dark:border-slate-600 py-2 pl-7 pr-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                    <span data-currency-symbol class="pm-faint pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm">৳</span>
+                    <input id="settingsBudgetInput" type="number" min="1" step="50" class="pm-input w-40 pl-7" />
                 </div>
-                <button id="saveBudgetButton" type="button"
-                    class="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:brightness-110 active:scale-[0.98]">
+                <button id="saveBudgetButton" type="button" class="pm-btn pm-btn-primary">
                     Save
                 </button>
             </div>
-            <p class="mt-2 text-xs text-slate-400 dark:text-slate-500">Saved to your account — the same budget on every device you sign in from.</p>
+            <p class="pm-faint mt-2 text-xs">Saved to your account — the same budget on every device you sign in from.</p>
         </section>
 
         <!-- ===================== CHANGE PASSWORD ===================== -->
-        <section aria-labelledby="password-heading" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm">
-            <h2 id="password-heading" class="text-lg font-bold text-slate-900 dark:text-slate-100">Change password</h2>
+        <section aria-labelledby="password-heading" class="pm-card p-6">
+            <h2 id="password-heading" class="font-display text-lg font-bold">Change password</h2>
             <form id="passwordForm" class="mt-4 max-w-md space-y-4" novalidate>
                 <div>
-                    <label for="newPassword" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">New password</label>
-                    <input id="newPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="At least 6 characters"
-                        class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                    <label for="newPassword" class="pm-label">New password</label>
+                    <input id="newPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="At least 6 characters" class="pm-input" />
                 </div>
                 <div>
-                    <label for="confirmNewPassword" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Confirm new password</label>
-                    <input id="confirmNewPassword" type="password" autocomplete="new-password" required placeholder="Repeat new password"
-                        class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                    <label for="confirmNewPassword" class="pm-label">Confirm new password</label>
+                    <input id="confirmNewPassword" type="password" autocomplete="new-password" required placeholder="Repeat new password" class="pm-input" />
                 </div>
-                <p id="passwordError" class="hidden rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert"></p>
-                <button id="passwordSubmit" type="submit"
-                    class="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+                <p id="passwordError" class="hidden rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-300" role="alert"></p>
+                <button id="passwordSubmit" type="submit" class="pm-btn pm-btn-primary">
                     <span id="passwordSubmitText">Update password</span>
                 </button>
             </form>
         </section>
     </main>
 
-    <footer class="border-t border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900">
-        <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-400 dark:text-slate-500 sm:flex-row">
+    <footer class="pm-footer">
+        <div class="pm-faint mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs sm:flex-row">
             <p>&copy; <span id="footerYear"></span> Pocket Manager. Made with 💜 for people who budget.</p>
             <div class="flex items-center gap-4">
-                <a href="mailto:shamimosman344@gmail.com" class="font-medium text-slate-500 dark:text-slate-400 transition-colors hover:text-indigo-600">✉️ Email</a>
-                <a href="https://wa.me/8801639815290" target="_blank" rel="noopener" class="font-medium text-slate-500 dark:text-slate-400 transition-colors hover:text-emerald-600">💬 WhatsApp</a>
+                <a href="mailto:shamimosman344@gmail.com" class="inline-flex items-center gap-1.5 font-medium transition-colors hover:text-indigo-600"><i data-lucide="mail" class="h-3.5 w-3.5"></i> Email</a>
+                <a href="https://wa.me/8801639815290" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 font-medium transition-colors hover:text-indigo-600"><i data-lucide="message-circle" class="h-3.5 w-3.5"></i> WhatsApp</a>
             </div>
         </div>
     </footer>

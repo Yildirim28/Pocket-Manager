@@ -36,8 +36,8 @@ const FEEDBACK_TABLE = 'feedback';
     let armTimer = null;
 
     const TYPE_META = {
-        feedback: { label: 'Feedback', emoji: '💡', chip: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300' },
-        bug: { label: 'Bug', emoji: '🐞', chip: 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300' }
+        feedback: { label: 'Feedback', icon: 'lightbulb', chip: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-300' },
+        bug: { label: 'Bug', icon: 'bug', chip: 'bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-300' }
     };
 
     const AVATAR_GRADIENTS = [
@@ -107,15 +107,15 @@ const FEEDBACK_TABLE = 'feedback';
         const resolved = post.status === 'resolved';
 
         return (
-            `<li class="rounded-2xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-5 shadow-sm transition-shadow hover:shadow-md" data-post-id="${post.id}">` +
+            `<li class="pm-card pm-card-hover p-5" data-post-id="${post.id}">` +
             '<div class="flex items-start gap-3">' +
             avatarMarkup(post, name) +
             '<div class="min-w-0 flex-1">' +
             '<div class="flex flex-wrap items-center gap-2">' +
             `<span class="text-sm font-bold text-slate-900 dark:text-slate-100">${escapeHTML(name)}</span>` +
-            `<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${meta.chip}">${meta.emoji} ${meta.label}</span>` +
+            `<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${meta.chip}"><i data-lucide="${meta.icon}" class="h-3 w-3"></i> ${meta.label}</span>` +
             (resolved
-                ? '<span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">✓ Resolved</span>'
+                ? '<span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300">✓ Resolved</span>'
                 : '') +
             `<span class="text-[11px] text-slate-400 dark:text-slate-500">${escapeHTML(timeAgo(post.created_at))}</span>` +
             '</div>' +
@@ -241,7 +241,7 @@ const FEEDBACK_TABLE = 'feedback';
             const on = btn.getAttribute('data-filter') === filter;
             btn.className = on
                 ? 'fb-filter rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white'
-                : 'fb-filter rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300';
+                : 'fb-filter rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300';
         });
         renderBoard();
     }

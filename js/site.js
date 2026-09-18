@@ -190,13 +190,29 @@ function ensureToastContainer() {
 }
 
 function showToast(message, type = 'info') {
-    const styles = { success: 'bg-emerald-600', error: 'bg-red-600', info: 'bg-slate-800' };
+    const dot = {
+        success: 'var(--pm-accent)',
+        error: '#f87171',
+        info: 'var(--pm-border-strong)'
+    }[type] || 'var(--pm-border-strong)';
+
     const toast = document.createElement('div');
     toast.setAttribute('role', 'status');
     toast.className =
-        `${styles[type] || styles.info} pointer-events-auto w-full max-w-sm rounded-lg px-4 py-3 ` +
-        'text-sm font-medium text-white shadow-lg opacity-0 translate-y-2 transition-all duration-300';
-    toast.textContent = message;
+        'pm-glass pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl ' +
+        'px-4 py-3 text-sm font-medium shadow-2xl opacity-0 translate-y-2 transition-all duration-300';
+    toast.style.color = 'var(--pm-text)';
+
+    const indicator = document.createElement('span');
+    indicator.className = 'h-2 w-2 shrink-0 rounded-full';
+    indicator.style.background = dot;
+    indicator.style.boxShadow = `0 0 12px ${dot}`;
+
+    const label = document.createElement('span');
+    label.className = 'min-w-0 flex-1';
+    label.textContent = message;
+
+    toast.append(indicator, label);
     ensureToastContainer().appendChild(toast);
 
     requestAnimationFrame(() => toast.classList.remove('opacity-0', 'translate-y-2'));
@@ -229,19 +245,50 @@ async function requireAuth() {
 ------------------------------------------------------------- */
 const THEME_STORAGE_KEY = 'pocket-manager:theme';
 
+/* Dark-first: dark unless the OS explicitly prefers light. */
+function prefersDark() {
+    try {
+        return !window.matchMedia('(prefers-color-scheme: light)').matches;
+    } catch {
+        return true;
+    }
+}
+
+function storedTheme() {
+    const value = localStorage.getItem(THEME_STORAGE_KEY);
+    return value === 'dark' || value === 'light' ? value : null;
+}
+
+/* Resolve the theme from the saved choice, else the system preference. */
+function resolveDark() {
+    const saved = storedTheme();
+    if (saved) return saved === 'dark';
+    return prefersDark();
+}
+
 function isDark() {
     return document.documentElement.classList.contains('dark');
 }
 
-function applyTheme(dark) {
+function updateThemeColorMeta(dark) {
+    document
+        .querySelectorAll('meta[name="theme-color"]')
+        .forEach((meta) => meta.setAttribute('content', dark ? '#05070d' : '#f4f6fb'));
+}
+
+/* persist=true records an explicit user choice; the initial call does
+   not, so the app keeps following the OS until the user toggles. */
+function applyTheme(dark, persist = true) {
     document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem(THEME_STORAGE_KEY, dark ? 'dark' : 'light');
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    updateThemeColorMeta(dark);
+    if (persist) localStorage.setItem(THEME_STORAGE_KEY, dark ? 'dark' : 'light');
 }
 
 function toggleTheme() {
     applyTheme(!isDark());
     syncThemeControls();
-    showToast(isDark() ? 'Dark mode on 🌙' : 'Light mode on ☀️', 'info');
+    showToast(isDark() ? 'Dark mode on' : 'Light mode on', 'info');
 }
 
 /* Update every theme control (navbar icon buttons, settings
@@ -268,13 +315,27 @@ function syncThemeControls() {
 }
 
 function initThemeControls() {
-    // Apply persisted theme (head script already set it pre-paint).
-    applyTheme(localStorage.getItem(THEME_STORAGE_KEY) === 'dark');
+    // Head script already painted the resolved theme; do not persist here.
+    applyTheme(resolveDark(), false);
 
     document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
         btn.addEventListener('click', toggleTheme);
     });
     syncThemeControls();
+
+    // Follow OS changes until the user makes an explicit choice.
+    if (!initThemeControls._wired) {
+        initThemeControls._wired = true;
+        try {
+            window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+                if (storedTheme()) return;
+                applyTheme(resolveDark(), false);
+                syncThemeControls();
+            });
+        } catch {
+            /* older browsers: no live switching, still fine */
+        }
+    }
 }
 
 /* -------------------------------------------------------------
@@ -282,48 +343,63 @@ function initThemeControls() {
 ------------------------------------------------------------- */
 const ACCENT_STORAGE_KEY = 'pocket-manager:accent';
 
+/* Signature default is a mint/emerald "money" accent; the rest are
+   retuned for dark surfaces (brighter, cleaner mid-tones). */
+const DEFAULT_ACCENT = 'emerald';
+
 const ACCENTS = {
-    indigo: { label: 'Indigo', from: '#4f46e5', to: '#8b5cf6', soft: '#eef2ff', text: '#4f46e5' },
-    blue: { label: 'Ocean', from: '#2563eb', to: '#06b6d4', soft: '#eff6ff', text: '#2563eb' },
-    emerald: { label: 'Emerald', from: '#059669', to: '#34d399', soft: '#ecfdf5', text: '#059669' },
-    rose: { label: 'Rose', from: '#e11d48', to: '#fb7185', soft: '#fff1f2', text: '#e11d48' },
-    amber: { label: 'Amber', from: '#d97706', to: '#fbbf24', soft: '#fffbeb', text: '#d97706' },
-    violet: { label: 'Violet', from: '#7c3aed', to: '#c084fc', soft: '#f5f3ff', text: '#7c3aed' }
+    emerald: { label: 'Mint', from: '#10b981', to: '#34d399', soft: 'rgba(16,185,129,0.14)', text: '#059669', ink: '#04140f' },
+    indigo: { label: 'Indigo', from: '#6366f1', to: '#818cf8', soft: 'rgba(99,102,241,0.14)', text: '#4f46e5', ink: '#ffffff' },
+    blue: { label: 'Ocean', from: '#3b82f6', to: '#22d3ee', soft: 'rgba(59,130,246,0.14)', text: '#2563eb', ink: '#04140f' },
+    violet: { label: 'Violet', from: '#8b5cf6', to: '#c084fc', soft: 'rgba(139,92,246,0.14)', text: '#7c3aed', ink: '#ffffff' },
+    rose: { label: 'Rose', from: '#f43f5e', to: '#fb7185', soft: 'rgba(244,63,94,0.14)', text: '#e11d48', ink: '#ffffff' },
+    amber: { label: 'Amber', from: '#f59e0b', to: '#fbbf24', soft: 'rgba(245,158,11,0.14)', text: '#d97706', ink: '#0b1220' }
 };
 
 /* The app is styled with indigo utilities; these overrides remap
-   them to CSS variables so the accent can change at runtime. */
+   them to CSS variables so the accent can change at runtime. In dark
+   mode the brighter gradient tone is used for legibility on the
+   translucent accent-soft background. */
 function injectAccentStyles() {
     if (document.getElementById('pmAccentStyle')) return;
     const style = document.createElement('style');
     style.id = 'pmAccentStyle';
     style.textContent = `
-:root{--pm-accent:#4f46e5;--pm-accent-to:#8b5cf6;--pm-accent-soft:#eef2ff;--pm-accent-text:#4f46e5}
+:root{--pm-accent:#10b981;--pm-accent-to:#34d399;--pm-accent-soft:rgba(16,185,129,0.14);--pm-accent-text:#059669;--pm-accent-ink:#04140f}
 .bg-indigo-600{background-color:var(--pm-accent)!important}
+.bg-indigo-500{background-color:var(--pm-accent)!important}
 .from-indigo-600{--tw-gradient-from:var(--pm-accent)!important}
+.from-indigo-500{--tw-gradient-from:var(--pm-accent)!important}
 .via-violet-600{--tw-gradient-via:var(--pm-accent-to)!important}
 .to-violet-600{--tw-gradient-to:var(--pm-accent-to)!important}
-.text-indigo-600{color:var(--pm-accent)!important}
+.to-violet-500{--tw-gradient-to:var(--pm-accent-to)!important}
+.text-indigo-600{color:var(--pm-accent-text)!important}
 .text-indigo-700{color:var(--pm-accent-text)!important}
 .hover\\:text-indigo-700:hover{color:var(--pm-accent-text)!important}
+.hover\\:text-indigo-600:hover{color:var(--pm-accent-text)!important}
 .bg-indigo-50{background-color:var(--pm-accent-soft)!important}
+.bg-indigo-100{background-color:var(--pm-accent-soft)!important}
 .hover\\:bg-indigo-50:hover{background-color:var(--pm-accent-soft)!important}
-.border-indigo-200{border-color:var(--pm-accent-soft)!important}
-.border-indigo-100{border-color:var(--pm-accent-soft)!important}
+.border-indigo-200{border-color:color-mix(in srgb, var(--pm-accent) 30%, transparent)!important}
+.border-indigo-100{border-color:color-mix(in srgb, var(--pm-accent) 22%, transparent)!important}
 .focus\\:border-indigo-500:focus{border-color:var(--pm-accent)!important}
-.focus\\:ring-indigo-200:focus{--tw-ring-color:var(--pm-accent-soft)!important}
-.ring-indigo-200{--tw-ring-color:var(--pm-accent-soft)!important}
-.focus\\:ring-indigo-500:focus{--tw-ring-color:var(--pm-accent)!important}`;
+.focus\\:ring-indigo-200:focus{--tw-ring-color:color-mix(in srgb, var(--pm-accent) 24%, transparent)!important}
+.ring-indigo-200{--tw-ring-color:color-mix(in srgb, var(--pm-accent) 24%, transparent)!important}
+.focus\\:ring-indigo-500:focus{--tw-ring-color:var(--pm-accent)!important}
+.dark .text-indigo-600{color:var(--pm-accent-to)!important}
+.dark .text-indigo-700{color:var(--pm-accent-to)!important}
+.dark .hover\\:text-indigo-700:hover{color:var(--pm-accent-to)!important}`;
     document.head.appendChild(style);
 }
 
 function applyAccent(key) {
-    const accent = ACCENTS[key] || ACCENTS.indigo;
+    const accent = ACCENTS[key] || ACCENTS[DEFAULT_ACCENT];
     const root = document.documentElement.style;
     root.setProperty('--pm-accent', accent.from);
     root.setProperty('--pm-accent-to', accent.to);
     root.setProperty('--pm-accent-soft', accent.soft);
     root.setProperty('--pm-accent-text', accent.text);
+    root.setProperty('--pm-accent-ink', accent.ink || '#04140f');
     if (key !== localStorage.getItem(ACCENT_STORAGE_KEY)) {
         localStorage.setItem(ACCENT_STORAGE_KEY, key);
     }
@@ -331,7 +407,7 @@ function applyAccent(key) {
 
 function initAccent() {
     injectAccentStyles();
-    applyAccent(localStorage.getItem(ACCENT_STORAGE_KEY) || 'indigo');
+    applyAccent(localStorage.getItem(ACCENT_STORAGE_KEY) || DEFAULT_ACCENT);
 }
 
 /* Renders swatch buttons into #accentPicker (settings page). */
@@ -340,7 +416,7 @@ function initAccent() {
 function initAccentPicker() {
     const mount = document.getElementById('accentPicker');
     if (!mount) return;
-    const current = localStorage.getItem(ACCENT_STORAGE_KEY) || 'indigo';
+    const current = localStorage.getItem(ACCENT_STORAGE_KEY) || DEFAULT_ACCENT;
 
     mount.querySelectorAll('button[data-accent]').forEach((button) => {
         const key = button.getAttribute('data-accent');
@@ -356,6 +432,7 @@ function initAccentPicker() {
             button.dataset.wired = '1';
             button.addEventListener('click', () => {
                 applyAccent(key);
+                initAccentPicker();
                 showToast(`Accent set to ${ACCENTS[key].label}.`, 'success');
             });
         }
@@ -520,7 +597,7 @@ function initAvatarPicker() {
             `<button type="button" data-avatar="${a.id}" title="${a.label}" aria-label="${a.label}" ` +
             'class="group flex flex-col items-center gap-1.5 rounded-2xl p-2 transition-colors ' +
             (active
-                ? 'bg-indigo-50 dark:bg-indigo-900/30 ring-2 ring-indigo-400'
+                ? 'bg-indigo-50 dark:bg-indigo-500/15 ring-2 ring-indigo-400'
                 : 'hover:bg-slate-100 dark:hover:bg-slate-800 ring-1 ring-transparent') +
             '">' +
             `<span class="flex h-14 w-14 items-center justify-center rounded-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700">` +
@@ -566,9 +643,9 @@ const NAV_LOGO = '<i data-lucide="wallet" class="h-6 w-6"></i>';
 
 function navLinkClass(page, current) {
     return (
-        'rounded-lg px-3 py-2 text-sm font-medium transition-colors ' +
+        'rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ' +
         (page === current
-            ? 'bg-indigo-50 text-indigo-700'
+            ? 'pm-accent-soft text-indigo-700 ring-1 ring-inset ring-indigo-200'
             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100')
     );
 }
@@ -606,37 +683,36 @@ function renderNavbar(session) {
 
     const installButton =
         '<button id="install-btn" type="button" title="Install Pocket Manager as an app" ' +
-        'class="hidden items-center gap-1.5 rounded-lg border border-indigo-100 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold text-indigo-700 shadow-sm transition-colors hover:bg-indigo-50">' +
+        'class="hidden pm-btn pm-btn-outline">' +
         '<i data-lucide="monitor-smartphone" class="h-4 w-4"></i>' +
-        'Install app' +
+        '<span class="hidden sm:inline">Install app</span>' +
         '</button>';
 
     const themeToggleButton =
         '<button type="button" data-theme-toggle aria-label="Switch to dark mode" title="Switch to dark mode" ' +
-        'class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">' +
+        'class="pm-icon-btn">' +
         '<i data-lucide="moon" class="h-5 w-5"></i>' +
         '</button>';
 
     const authArea = user
         ? `<div class="hidden items-center gap-2 md:flex">
                <a href="settings.html" title="Change your avatar in Settings"
-                   class="flex items-center gap-2 rounded-full bg-slate-100 py-1 pl-1 pr-3 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">
+                   class="pm-chip max-w-[210px] py-1 pl-1 pr-3 transition-colors hover:border-indigo-200">
                    ${avatarHtml(user, 'sm')}
-                   <span class="max-w-[150px] truncate text-sm font-medium text-slate-700 dark:text-slate-300" title="${escapeHTML(email)}">${escapeHTML(displayName)}</span>
+                   <span class="truncate text-sm font-medium" title="${escapeHTML(email)}">${escapeHTML(displayName)}</span>
                </a>
                ${installButton}
                ${themeToggleButton}
-               <button id="signOutBtn" type="button"
-                   class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-slate-400">
+               <button id="signOutBtn" type="button" class="pm-btn pm-btn-ghost" title="Sign out">
                    <i data-lucide="log-out" class="h-4 w-4"></i>
-                   Sign out
+                   <span class="hidden lg:inline">Sign out</span>
                </button>
            </div>`
         : `<div class="hidden items-center gap-2 md:flex">
                ${themeToggleButton}
                ${installButton}
-               <a href="login.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">Sign in</a>
-               <a href="signup.html" class="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-indigo-600/25 transition-all hover:brightness-110">
+               <a href="login.html" class="pm-btn pm-btn-ghost">Sign in</a>
+               <a href="signup.html" class="pm-btn pm-btn-primary">
                    Get started
                    <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                </a>
@@ -647,59 +723,57 @@ function renderNavbar(session) {
         .join('');
 
     const mobileInstallButton =
-        '<button id="install-btn-mobile" type="button" ' +
-        'class="hidden w-full items-center justify-center gap-1.5 rounded-lg border border-indigo-100 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold text-indigo-700">' +
+        '<button id="install-btn-mobile" type="button" class="hidden pm-btn pm-btn-outline w-full">' +
         '<i data-lucide="monitor-smartphone" class="h-4 w-4"></i> Install app</button>';
 
+    const mobileThemeToggle =
+        '<button type="button" data-theme-toggle aria-label="Switch to dark mode" ' +
+        'class="pm-icon-btn border border-slate-200 dark:border-slate-700">' +
+        '<i data-lucide="moon" class="h-5 w-5"></i>' +
+        '</button>';
+
     const mobileAuth = user
-        ? `<div class="border-t border-slate-100 pt-3 dark:border-slate-800">
+        ? `<div class="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
                <a href="settings.html" class="mb-2 flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
                    ${avatarHtml(user, 'md')}
                    <span class="min-w-0">
-                       <span class="block truncate text-sm font-semibold text-slate-700 dark:text-slate-300">${escapeHTML(displayName)}</span>
-                       <span class="block text-[11px] text-slate-400 dark:text-slate-500">Tap to change avatar</span>
+                       <span class="block truncate text-sm font-semibold">${escapeHTML(displayName)}</span>
+                       <span class="block text-[11px] pm-faint">Tap to change avatar</span>
                    </span>
                </a>
                <div class="flex items-center gap-2">
                    ${mobileInstallButton}
-                   <button type="button" data-theme-toggle aria-label="Switch to dark mode"
-                       class="theme-toggle-mobile inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-                       <i data-lucide="moon" class="h-5 w-5"></i>
-                   </button>
+                   ${mobileThemeToggle}
                </div>
-               <button id="signOutBtnMobile" type="button"
-                   class="mt-1 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+               <button id="signOutBtnMobile" type="button" class="pm-btn pm-btn-danger mt-2 w-full">
                    <i data-lucide="log-out" class="h-4 w-4"></i> Sign out
                </button>
            </div>`
-        : `<div class="border-t border-slate-100 pt-3 dark:border-slate-800">
+        : `<div class="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
                <div class="flex items-center gap-2">
                    ${mobileInstallButton}
-                   <button type="button" data-theme-toggle aria-label="Switch to dark mode"
-                       class="theme-toggle-mobile inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-                       <i data-lucide="moon" class="h-5 w-5"></i>
-                   </button>
+                   ${mobileThemeToggle}
                </div>
-               <a href="login.html" class="mt-1 block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">Sign in</a>
-               <a href="signup.html" class="mt-1 flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-2 text-sm font-semibold text-white">Get started <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i></a>
+               <a href="login.html" class="pm-btn pm-btn-ghost mt-1 w-full">Sign in</a>
+               <a href="signup.html" class="pm-btn pm-btn-primary mt-2 w-full">Get started <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i></a>
            </div>`;
 
     mount.innerHTML =
         '<header class="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">' +
-        '<nav class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 rounded-2xl border border-white/40 bg-white/60 px-3 shadow-xl shadow-slate-900/5 backdrop-blur-xl backdrop-saturate-150 dark:border-slate-700/60 dark:bg-slate-900/60 dark:shadow-black/20 sm:px-4" aria-label="Main navigation">' +
+        '<nav class="pm-glass mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 rounded-2xl px-3 shadow-lg shadow-black/5 dark:shadow-black/40 sm:px-4" aria-label="Main navigation">' +
         '<a href="index.html" class="flex min-w-0 items-center gap-3">' +
-        '<span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/30">' + NAV_LOGO + '</span>' +
-        '<span><span class="block text-lg font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-100">Pocket Manager</span>' +
-        '<span class="block text-xs font-medium text-slate-400 dark:text-slate-500">Manual expense tracking</span></span>' +
+        '<span class="pm-icon-tile">' + NAV_LOGO + '</span>' +
+        '<span class="min-w-0"><span class="font-display block truncate text-lg font-bold leading-tight">Pocket Manager</span>' +
+        '<span class="pm-faint block text-xs font-medium">Manual expense tracking</span></span>' +
         '</a>' +
         `<div class="hidden items-center gap-1 md:flex">${desktopLinks}</div>` +
         authArea +
         '<button id="navToggle" type="button" aria-label="Toggle menu" aria-expanded="false" ' +
-        'class="rounded-lg p-2 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 md:hidden">' +
+        'class="pm-icon-btn md:hidden">' +
         '<i data-lucide="menu" class="h-6 w-6"></i>' +
         '</button>' +
         '</nav>' +
-        `<div id="navMobileMenu" class="mx-auto mt-2 hidden max-w-6xl rounded-2xl border border-white/40 bg-white/70 p-3 shadow-xl shadow-slate-900/5 backdrop-blur-xl backdrop-saturate-150 dark:border-slate-700/60 dark:bg-slate-900/70 dark:shadow-black/20 md:hidden">${mobileLinks}${mobileAuth}</div>` +
+        `<div id="navMobileMenu" class="pm-glass mx-auto mt-2 hidden max-w-6xl rounded-2xl p-3 shadow-xl shadow-black/10 dark:shadow-black/40 md:hidden">${mobileLinks}${mobileAuth}</div>` +
         '</header>';
 
     // Render Lucide icons inside the injected markup.

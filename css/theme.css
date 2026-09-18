@@ -1,0 +1,687 @@
+/* =============================================================
+   Pocket Manager — css/theme.css
+   Shared design system for the dark-first "premium fintech" look.
+
+   Loaded on every page, after the Tailwind Play CDN. Tailwind still
+   does layout; this file owns color, depth, type and components via
+   CSS custom properties so the whole app stays consistent without a
+   build step. js/site.js only swaps the --pm-accent-* variables.
+   ============================================================= */
+
+/* -------------------------------------------------------------
+   1. TOKENS — light theme (secondary)
+------------------------------------------------------------- */
+:root {
+    color-scheme: light;
+
+    --pm-bg: #f4f6fb;
+    --pm-bg-elevated: #ffffff;
+
+    --pm-surface: #ffffff;
+    --pm-surface-2: #f5f7fc;
+    --pm-surface-inset: #eef1f7;
+
+    --pm-border: rgba(15, 23, 42, 0.09);
+    --pm-border-strong: rgba(15, 23, 42, 0.16);
+
+    --pm-text: #0b1220;
+    --pm-text-soft: #384152;
+    --pm-muted: #5c6678;
+    --pm-faint: #8a93a6;
+
+    --pm-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+    --pm-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 40px -24px rgba(15, 23, 42, 0.35);
+    --pm-shadow-lg: 0 2px 4px rgba(15, 23, 42, 0.04), 0 40px 80px -40px rgba(15, 23, 42, 0.45);
+
+    --pm-glow: 0 0 0 1px color-mix(in srgb, var(--pm-accent) 22%, transparent),
+        0 18px 40px -18px color-mix(in srgb, var(--pm-accent) 55%, transparent);
+
+    --pm-radius: 1rem;
+    --pm-radius-lg: 1.25rem;
+    --pm-radius-xl: 1.5rem;
+
+    /* Accent defaults — signature mint/emerald. site.js overrides these. */
+    --pm-accent: #10b981;
+    --pm-accent-to: #34d399;
+    --pm-accent-soft: rgba(16, 185, 129, 0.12);
+    --pm-accent-text: #047857;
+    --pm-accent-ink: #04140f;
+}
+
+/* -------------------------------------------------------------
+   2. TOKENS — dark theme (primary)
+------------------------------------------------------------- */
+.dark {
+    color-scheme: dark;
+
+    --pm-bg: #05070d;
+    --pm-bg-elevated: #0b101a;
+
+    --pm-surface: #0d1320;
+    --pm-surface-2: #111827;
+    --pm-surface-inset: #0a0f19;
+
+    --pm-border: rgba(255, 255, 255, 0.075);
+    --pm-border-strong: rgba(255, 255, 255, 0.15);
+
+    --pm-text: #e9edf6;
+    --pm-text-soft: #c3cad8;
+    --pm-muted: #99a3b7;
+    --pm-faint: #5f6b80;
+
+    --pm-shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+    --pm-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 24px 60px -32px rgba(0, 0, 0, 0.9);
+    --pm-shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 48px 100px -48px rgba(0, 0, 0, 1);
+
+    --pm-glow: 0 0 0 1px color-mix(in srgb, var(--pm-accent) 30%, transparent),
+        0 18px 50px -18px color-mix(in srgb, var(--pm-accent) 60%, transparent);
+}
+
+/* -------------------------------------------------------------
+   3. BASE
+------------------------------------------------------------- */
+html {
+    -webkit-tap-highlight-color: transparent;
+}
+
+body.pm-page {
+    background-color: var(--pm-bg);
+    color: var(--pm-text);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+}
+
+.font-display {
+    font-family: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+}
+
+/* Numbers always line up in a money app. */
+.tabular-nums,
+.pm-stat-value {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+.pm-muted { color: var(--pm-muted); }
+.pm-faint { color: var(--pm-faint); }
+
+/* Accessible focus ring everywhere. */
+:where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--pm-accent) 75%, transparent);
+    outline-offset: 2px;
+    border-radius: 0.65rem;
+}
+
+::selection {
+    background: color-mix(in srgb, var(--pm-accent) 32%, transparent);
+    color: var(--pm-text);
+}
+
+/* -------------------------------------------------------------
+   4. AMBIENT BACKGROUND — subtle aurora + fine grid
+------------------------------------------------------------- */
+.pm-aurora {
+    position: relative;
+}
+
+.pm-aurora::before {
+    content: "";
+    position: fixed;
+    inset: -20% -10% auto -10%;
+    height: 120vh;
+    z-index: -2;
+    pointer-events: none;
+    background:
+        radial-gradient(52rem 52rem at 12% -8%, color-mix(in srgb, var(--pm-accent) 20%, transparent), transparent 62%),
+        radial-gradient(46rem 46rem at 100% 0%, rgba(56, 189, 248, 0.14), transparent 60%),
+        radial-gradient(44rem 44rem at 52% 118%, rgba(139, 92, 246, 0.12), transparent 62%);
+    filter: blur(8px);
+}
+
+.dark .pm-aurora::before {
+    background:
+        radial-gradient(52rem 52rem at 10% -10%, color-mix(in srgb, var(--pm-accent) 26%, transparent), transparent 60%),
+        radial-gradient(46rem 46rem at 104% -4%, rgba(56, 189, 248, 0.16), transparent 58%),
+        radial-gradient(48rem 48rem at 50% 122%, rgba(139, 92, 246, 0.14), transparent 60%);
+}
+
+.pm-aurora::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image:
+        linear-gradient(to right, color-mix(in srgb, var(--pm-text) 4%, transparent) 1px, transparent 1px),
+        linear-gradient(to bottom, color-mix(in srgb, var(--pm-text) 4%, transparent) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 80%);
+    -webkit-mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 80%);
+}
+
+.dark .pm-aurora::after { opacity: 0.35; }
+
+/* -------------------------------------------------------------
+   5. COMPONENTS
+------------------------------------------------------------- */
+
+/* Surface card */
+.pm-card {
+    position: relative;
+    border-radius: var(--pm-radius-xl);
+    border: 1px solid var(--pm-border);
+    background: var(--pm-surface);
+    box-shadow: var(--pm-shadow);
+}
+
+.dark .pm-card {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 42%),
+        var(--pm-surface);
+}
+
+.pm-card-pad { padding: 1.5rem; }
+
+.pm-card-hover {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.pm-card-hover:hover {
+    transform: translateY(-3px);
+    border-color: var(--pm-border-strong);
+    box-shadow: var(--pm-shadow-lg);
+}
+
+/* Glass surface (navbar, sticky bars) */
+.pm-glass {
+    background: color-mix(in srgb, var(--pm-bg-elevated) 72%, transparent);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid var(--pm-border);
+}
+
+.dark .pm-glass {
+    background: color-mix(in srgb, #0b101a 68%, transparent);
+}
+
+/* Accent helpers */
+.pm-accent-text { color: var(--pm-accent-text); }
+.pm-accent-soft { background: var(--pm-accent-soft); }
+
+.pm-gradient {
+    background-image: linear-gradient(135deg, var(--pm-accent) 0%, var(--pm-accent-to) 100%);
+}
+
+.pm-gradient-text {
+    background-image: linear-gradient(120deg, var(--pm-accent) 0%, var(--pm-accent-to) 55%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Deep accent surface — for flip-card backs and feature panels. Keeps
+   the accent identity while staying dark enough for light text. */
+.pm-gradient-deep {
+    background-image: linear-gradient(145deg,
+            color-mix(in srgb, var(--pm-accent) 72%, #04140f) 0%,
+            color-mix(in srgb, var(--pm-accent-to) 42%, #04140f) 100%);
+    color: #eafff8;
+}
+
+/* Neutral near-black panel that stays dark in both themes. */
+.pm-panel-dark {
+    background:
+        radial-gradient(120% 120% at 100% 0%, rgba(56, 189, 248, 0.1), transparent 55%),
+        linear-gradient(160deg, #0c111c 0%, #06090f 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #eef2f9;
+}
+
+/* Buttons */
+.pm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.85rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+    transition: transform 0.18s ease, box-shadow 0.3s ease,
+        background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, filter 0.25s ease;
+    cursor: pointer;
+}
+
+.pm-btn:active { transform: scale(0.975); }
+
+.pm-btn:disabled,
+.pm-btn[disabled] {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+}
+
+.pm-btn-primary {
+    color: var(--pm-accent-ink);
+    background-image: linear-gradient(135deg, var(--pm-accent) 0%, var(--pm-accent-to) 100%);
+    box-shadow: var(--pm-glow);
+}
+
+.pm-btn-primary:hover { filter: brightness(1.08); }
+
+.pm-btn-outline {
+    color: var(--pm-text-soft);
+    background: var(--pm-surface-2);
+    border: 1px solid var(--pm-border);
+    box-shadow: var(--pm-shadow-sm);
+}
+
+.pm-btn-outline:hover {
+    border-color: var(--pm-border-strong);
+    color: var(--pm-text);
+}
+
+.pm-btn-ghost {
+    color: var(--pm-muted);
+    background: transparent;
+}
+
+.pm-btn-ghost:hover {
+    color: var(--pm-text);
+    background: color-mix(in srgb, var(--pm-text) 7%, transparent);
+}
+
+.pm-btn-danger {
+    color: var(--pm-muted);
+    background: color-mix(in srgb, var(--pm-text) 6%, transparent);
+}
+
+.pm-btn-danger:hover { color: #f87171; background: rgba(248, 113, 113, 0.12); }
+
+/* Icon tile (feature/card headers) */
+.pm-icon-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 0.85rem;
+    color: var(--pm-accent-ink);
+    background-image: linear-gradient(135deg, var(--pm-accent) 0%, var(--pm-accent-to) 100%);
+    box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--pm-accent) 80%, transparent);
+}
+
+.pm-icon-tile-sm {
+    height: 2.25rem;
+    width: 2.25rem;
+    border-radius: 0.7rem;
+}
+
+.pm-icon-tile-lg {
+    height: 3.5rem;
+    width: 3.5rem;
+    border-radius: 1rem;
+}
+
+.pm-icon-tile-soft {
+    height: 2.25rem;
+    width: 2.25rem;
+    border-radius: 0.7rem;
+    color: var(--pm-accent-text);
+    background: var(--pm-accent-soft);
+    border: 1px solid color-mix(in srgb, var(--pm-accent) 22%, transparent);
+    box-shadow: none;
+}
+
+/* Inputs */
+.pm-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--pm-muted);
+}
+
+.pm-input {
+    width: 100%;
+    border-radius: 0.85rem;
+    border: 1px solid var(--pm-border-strong);
+    background: var(--pm-surface-inset);
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--pm-text);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.pm-input::placeholder { color: var(--pm-faint); }
+
+.pm-input:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--pm-accent) 65%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--pm-accent) 18%, transparent);
+}
+
+/* Square icon button */
+.pm-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 0.85rem;
+    color: var(--pm-muted);
+    background: transparent;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.pm-icon-btn:hover {
+    color: var(--pm-text);
+    background: color-mix(in srgb, var(--pm-text) 8%, transparent);
+}
+
+/* Keep JS-toggled visibility authoritative on component classes. */
+.pm-btn.hidden,
+.pm-card.hidden,
+.pm-icon-btn.hidden,
+.pm-chip.hidden {
+    display: none !important;
+}
+
+/* Small pill / badge */
+.pm-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 999px;
+    border: 1px solid var(--pm-border);
+    background: var(--pm-surface-2);
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--pm-text-soft);
+}
+
+.pm-chip-accent {
+    color: var(--pm-accent-text);
+    border-color: color-mix(in srgb, var(--pm-accent) 30%, transparent);
+    background: var(--pm-accent-soft);
+}
+
+/* Eyebrow / section label */
+.pm-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pm-faint);
+}
+
+/* Big money figure */
+.pm-stat-value {
+    font-family: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.03em;
+}
+
+/* Progress track */
+.pm-track {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--pm-text) 10%, transparent);
+}
+
+/* Divider */
+.pm-divide { border-color: var(--pm-border); }
+
+/* Footer */
+.pm-footer {
+    border-top: 1px solid var(--pm-border);
+    background: color-mix(in srgb, var(--pm-bg-elevated) 60%, transparent);
+}
+
+/* -------------------------------------------------------------
+   5b. SPENDING-BY-PERSON CHART
+------------------------------------------------------------- */
+
+/* Donut distribution chart */
+.pm-donut {
+    position: relative;
+    height: 11rem;
+    width: 11rem;
+    margin-inline: auto;
+    flex: none;
+}
+
+.pm-donut > svg {
+    height: 100%;
+    width: 100%;
+    transform: rotate(-90deg);
+    overflow: visible;
+}
+
+.pm-donut-track {
+    fill: none;
+    stroke: color-mix(in srgb, var(--pm-text) 9%, transparent);
+    stroke-width: 12;
+}
+
+.pm-donut-seg {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-width 0.2s ease, filter 0.2s ease;
+    animation: pm-ring-fill 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.pm-donut-seg:hover {
+    stroke-width: 16;
+    filter: brightness(1.15);
+}
+
+.pm-donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: none;
+}
+
+@keyframes pm-ring-fill {
+    from { stroke-dasharray: 0 100; }
+    to { stroke-dasharray: var(--pm-ring-len) 100; }
+}
+
+/* Progress ring around a person's avatar */
+.pm-avatar-ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 3.25rem;
+    width: 3.25rem;
+    flex: none;
+}
+
+.pm-avatar-ring > svg {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+    transform: rotate(-90deg);
+}
+
+.pm-ring-track {
+    fill: none;
+    stroke: color-mix(in srgb, var(--pm-text) 12%, transparent);
+    stroke-width: 3;
+}
+
+.pm-ring-value {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    animation: pm-ring-fill 1.05s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Person card */
+.pm-person {
+    border-radius: 1rem;
+    border: 1px solid var(--pm-border);
+    background: var(--pm-surface-2);
+    padding: 0.9rem 1rem;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pm-person:hover {
+    transform: translateY(-2px);
+    border-color: var(--pm-border-strong);
+    box-shadow: var(--pm-shadow);
+}
+
+.pm-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    animation: pm-bar-grow 1.05s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pm-bar-grow {
+    from { width: 0; }
+    to { width: var(--pm-bar-w); }
+}
+
+/* Rank medal */
+.pm-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.15rem;
+    min-width: 1.15rem;
+    padding-inline: 0.3rem;
+    border-radius: 999px;
+    font-size: 0.625rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.pm-rank-1 { color: #422006; background: linear-gradient(135deg, #fde047, #f59e0b); }
+.pm-rank-2 { color: #1f2937; background: linear-gradient(135deg, #f1f5f9, #94a3b8); }
+.pm-rank-3 { color: #431407; background: linear-gradient(135deg, #fdba74, #ea580c); }
+.pm-rank-n { color: var(--pm-faint); background: color-mix(in srgb, var(--pm-text) 8%, transparent); }
+
+/* Staggered reveal for list rows */
+.pm-stagger > * {
+    animation: pm-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.pm-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.pm-stagger > *:nth-child(2) { animation-delay: 0.12s; }
+.pm-stagger > *:nth-child(3) { animation-delay: 0.19s; }
+.pm-stagger > *:nth-child(4) { animation-delay: 0.26s; }
+.pm-stagger > *:nth-child(5) { animation-delay: 0.33s; }
+.pm-stagger > *:nth-child(6) { animation-delay: 0.40s; }
+.pm-stagger > *:nth-child(n+7) { animation-delay: 0.46s; }
+
+/* Expand chevron */
+.pm-chevron {
+    transition: transform 0.25s ease;
+}
+
+details[open] .pm-chevron {
+    transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pm-donut-seg,
+    .pm-ring-value,
+    .pm-bar-fill,
+    .pm-stagger > * {
+        animation: none !important;
+    }
+}
+
+/* -------------------------------------------------------------
+   6. TAILWIND REMAPS
+   The pages still use a few Tailwind color utilities; point the
+   neutral + accent families at the tokens so they follow the theme.
+------------------------------------------------------------- */
+.dark .bg-slate-950 { background-color: var(--pm-bg) !important; }
+.dark .bg-slate-900 { background-color: var(--pm-surface) !important; }
+.dark .bg-slate-800 { background-color: var(--pm-surface-2) !important; }
+.dark .border-slate-700 { border-color: var(--pm-border) !important; }
+.dark .border-slate-800 { border-color: var(--pm-border) !important; }
+.dark .text-slate-100 { color: var(--pm-text) !important; }
+.dark .text-slate-300 { color: var(--pm-text-soft) !important; }
+.dark .text-slate-400 { color: var(--pm-muted) !important; }
+.dark .text-slate-500 { color: var(--pm-faint) !important; }
+.dark .text-slate-600 { color: var(--pm-faint) !important; }
+
+/* -------------------------------------------------------------
+   7. MOTION
+------------------------------------------------------------- */
+@keyframes pm-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pm-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.pm-rise { animation: pm-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pm-float { animation: pm-float 6s ease-in-out infinite; }
+
+/* Skeleton loader */
+@keyframes pm-shimmer {
+    100% { transform: translateX(100%); }
+}
+
+.pm-skeleton {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--pm-text) 8%, transparent);
+}
+
+.pm-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent,
+        color-mix(in srgb, var(--pm-text) 8%, transparent), transparent);
+    animation: pm-shimmer 1.6s infinite;
+}
+
+/* Scrollbar */
+.pm-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.pm-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--pm-text) 18%, transparent);
+}
+.pm-scroll::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+    .pm-rise,
+    .pm-float,
+    .pm-skeleton::after,
+    .pm-card-hover,
+    .pm-btn {
+        animation: none !important;
+        transition: none !important;
+    }
+}

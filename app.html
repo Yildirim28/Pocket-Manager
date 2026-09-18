@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- PWA -->
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" content="#05070d" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png" />
     <link rel="apple-touch-icon" href="icon-192.png" />
@@ -18,9 +18,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         (function () {
-            if (localStorage.getItem('pocket-manager:theme') === 'dark') {
-                document.documentElement.classList.add('dark');
-            }
+            try {
+                var saved = localStorage.getItem('pocket-manager:theme');
+                var dark = saved ? saved === 'dark' : !window.matchMedia('(prefers-color-scheme: light)').matches;
+                document.documentElement.classList.toggle('dark', dark);
+                document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+            } catch (e) {}
         })();
     </script>
     <script>
@@ -35,12 +38,13 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/theme.css?v=2" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onerror="var f=document.createElement('script');f.src='https://unpkg.com/@supabase/supabase-js@2';f.defer=true;document.head.appendChild(f);"></script>
-    <script src="js/config.js?v=33" defer></script>
-    <script src="js/site.js?v=33" defer></script>
-    <script src="js/app.js?v=33" defer></script>
+    <script src="js/config.js?v=34" defer></script>
+    <script src="js/site.js?v=34" defer></script>
+    <script src="js/app.js?v=36" defer></script>
     <style>
         /* Flip cards: 3D setup only — heights are fully content-driven.
            Grid children stretch to the tallest sibling (auto height),
@@ -53,7 +57,7 @@
         #summaryCards > * { min-height: 100%; }
         /* Glowing transaction count on the front face. */
         .total-count-glow {
-            background: linear-gradient(120deg, #059669, #34d399, #0d9488, #34d399, #059669);
+            background: linear-gradient(120deg, var(--pm-accent-text), var(--pm-accent-to), var(--pm-accent), var(--pm-accent-to), var(--pm-accent-text));
             background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
@@ -65,7 +69,7 @@
         }
     </style>
 </head>
-<body class="min-h-full pt-16 bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="dashboard">
+<body class="min-h-full pt-20 pm-page pm-aurora bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="dashboard">
 
     <!-- Navbar (injected by js/site.js) -->
     <div id="navbar"></div>
@@ -74,12 +78,12 @@
 
         <!-- ===================== DASHBOARD ===================== -->
         <section aria-labelledby="dashboard-heading">
-            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-3"><span id="dashboardAvatar"></span><h2 id="dashboard-heading" class="text-xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h2></div>
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3"><span id="dashboardAvatar"></span><h2 id="dashboard-heading" class="font-display text-2xl font-bold tracking-tight">Dashboard</h2></div>
                 <!-- Database connection health indicator -->
-                <div class="flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 shadow-sm">
+                <div class="pm-chip">
                     <span id="statusDot" class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
-                    <span id="statusText" class="text-xs font-medium text-slate-600 dark:text-slate-300">Connecting&hellip;</span>
+                    <span id="statusText" class="text-xs font-medium">Connecting&hellip;</span>
                 </div>
             </div>
 
@@ -90,10 +94,10 @@
                     title="Click to see remaining balance">
                     <div class="flip-inner">
                         <!-- Front face -->
-                        <div class="flip-face flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-5 shadow-sm transition-shadow hover:shadow-md">
+                        <div class="flip-face pm-card pm-card-hover flex flex-col justify-between p-5">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Spent This Month</p>
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/25">
+                                <span class="pm-icon-tile pm-icon-tile-sm">
                                     <i data-lucide="banknote" class="h-5 w-5"></i>
                                 </span>
                             </div>
@@ -106,7 +110,7 @@
                             </p>
                         </div>
                         <!-- Back face: remaining balance -->
-                        <div class="flip-back flip-face flex flex-col justify-between rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-500 to-teal-600 p-5 text-white shadow-lg shadow-emerald-600/30">
+                        <div class="flip-back flip-face pm-gradient-deep flex flex-col justify-between rounded-2xl p-5">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-sm font-medium text-emerald-50">Remaining Balance</p>
                                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30">
@@ -130,10 +134,10 @@
                     title="Click to see the lowest category">
                     <div class="flip-inner">
                         <!-- Front face -->
-                        <div class="flip-face flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-5 shadow-sm transition-shadow hover:shadow-md">
+                        <div class="flip-face pm-card pm-card-hover flex flex-col justify-between p-5">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Highest Expense Category</p>
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/25">
+                                <span class="pm-icon-tile pm-icon-tile-sm">
                                     <i data-lucide="trophy" class="h-5 w-5"></i>
                                 </span>
                             </div>
@@ -148,7 +152,7 @@
                             </p>
                         </div>
                         <!-- Back face: lowest category -->
-                        <div class="flip-back flip-face flex flex-col justify-between rounded-2xl border border-sky-200/80 bg-gradient-to-br from-sky-500 to-blue-600 p-5 text-white shadow-lg shadow-sky-600/30">
+                        <div class="flip-back flip-face pm-gradient-deep flex flex-col justify-between rounded-2xl p-5">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-sm font-medium text-sky-50">Lowest Expense Category</p>
                                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30">
@@ -174,10 +178,10 @@
                     title="Click to see your top 5 transactions">
                     <div class="flip-inner">
                         <!-- Front face: glowing number centered -->
-                        <div class="flip-face flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-5 shadow-sm transition-shadow hover:shadow-md">
+                        <div class="flip-face pm-card pm-card-hover flex flex-col justify-between p-5">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Transactions</p>
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-500/25">
+                                <span class="pm-icon-tile pm-icon-tile-sm">
                                     <i data-lucide="receipt-text" class="h-5 w-5"></i>
                                 </span>
                             </div>
@@ -189,7 +193,7 @@
                             </p>
                         </div>
                         <!-- Back face: top 5 transactions -->
-                        <div class="flip-back flip-face flex flex-col justify-between overflow-y-auto rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-500 to-teal-600 p-5 text-white shadow-lg shadow-emerald-600/30">
+                        <div class="flip-back flip-face pm-gradient-deep pm-scroll flex flex-col justify-between overflow-y-auto rounded-2xl p-5">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-sm font-medium text-emerald-50">Top 5 Transactions</p>
                                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30">
@@ -212,10 +216,10 @@
                     title="Click to see per-type breakdown">
                     <div class="flip-inner">
                         <!-- Front face -->
-                        <div class="flip-face flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-5 shadow-sm transition-shadow hover:shadow-md">
+                        <div class="flip-face pm-card pm-card-hover flex flex-col justify-between p-5">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Utilities This Month</p>
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-md shadow-sky-500/25">
+                                <span class="pm-icon-tile pm-icon-tile-sm">
                                     <i data-lucide="plug-zap" class="h-5 w-5"></i>
                                 </span>
                             </div>
@@ -228,7 +232,7 @@
                             </p>
                         </div>
                         <!-- Back face: per-type breakdown -->
-                        <div class="flip-back flip-face flex flex-col justify-between overflow-y-auto rounded-2xl border border-cyan-200/80 bg-gradient-to-br from-cyan-500 to-teal-600 p-5 text-white shadow-lg shadow-cyan-600/30">
+                        <div class="flip-back flip-face pm-gradient-deep pm-scroll flex flex-col justify-between overflow-y-auto rounded-2xl p-5">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-sm font-medium text-cyan-50">Utilities Breakdown</p>
                                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30">
@@ -247,27 +251,26 @@
             </div>
 
             <!-- Per-person spending breakdown -->
-            <div id="peopleCard" class="mt-4 hidden overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900 shadow-sm">
-                <div class="relative bg-gradient-to-r from-rose-500 via-pink-500 to-rose-400 px-6 py-5">
+            <div id="peopleCard" class="pm-card mt-4 hidden overflow-hidden">
+                <div class="pm-gradient-deep relative px-6 py-5">
                     <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.18)_1px,transparent_0)] [background-size:20px_20px]"></div>
-                    <div aria-hidden="true" class="absolute -right-2 -top-3 text-6xl opacity-25 select-none">👥</div>
                     <div class="relative flex items-center justify-between">
                         <div>
-                            <p class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-rose-100">
+                            <p class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/80">
                                 <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 backdrop-blur">
                                     <i data-lucide="users-round" class="h-4 w-4"></i>
                                 </span>
                                 Spending by Person
                             </p>
-                            <p id="peopleCardSubtitle" class="mt-1.5 text-lg font-extrabold text-white">This month's splits 🤝</p>
+                            <p id="peopleCardSubtitle" class="font-display mt-1.5 text-lg font-bold text-white">This month's splits</p>
                         </div>
                     </div>
                 </div>
-                <div id="peopleBreakdown" class="space-y-3 bg-gradient-to-b from-rose-50/40 to-white p-5"></div>
+                <div id="peopleBreakdown" class="space-y-3 bg-slate-50/60 p-5 dark:bg-transparent"></div>
             </div>
 
             <!-- Monthly budget progress -->
-            <div class="relative mt-4 overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl">
+            <div class="pm-panel-dark relative mt-4 overflow-hidden rounded-3xl p-6 shadow-xl">
                 <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.07)_1px,transparent_0)] [background-size:22px_22px]"></div>
                 <div aria-hidden="true" class="absolute -right-4 -top-5 select-none text-7xl opacity-10">🎯</div>
 
@@ -323,25 +326,23 @@
 
         <!-- ===================== PEOPLE MANAGEMENT ===================== -->
         <section aria-labelledby="people-heading">
-            <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm">
+            <div class="pm-card p-6">
                 <div class="mb-4 flex items-center gap-3">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-md shadow-rose-500/25">
+                    <span class="pm-icon-tile pm-icon-tile-sm">
                         <i data-lucide="user-round-plus" class="h-5 w-5"></i>
                     </span>
                     <div>
-                        <h2 id="people-heading" class="text-lg font-bold text-slate-900 dark:text-slate-100">People</h2>
-                        <p class="text-xs text-slate-400 dark:text-slate-500">Create the people you split expenses with &mdash; they appear in the dropdown when adding expenses.</p>
+                        <h2 id="people-heading" class="font-display text-lg font-bold">People</h2>
+                        <p class="pm-faint text-xs">Create the people you split expenses with &mdash; they appear in the dropdown when adding expenses.</p>
                     </div>
                 </div>
 
                 <form id="personForm" class="flex flex-wrap items-start gap-3" novalidate>
                     <div class="min-w-[200px] flex-1 sm:max-w-xs">
                         <label for="personName" class="sr-only">Person name</label>
-                        <input id="personName" type="text" autocomplete="off" maxlength="60" placeholder="e.g. Alice"
-                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                        <input id="personName" type="text" autocomplete="off" maxlength="60" placeholder="e.g. Alice" class="pm-input" />
                     </div>
-                    <button id="addPersonButton" type="submit"
-                        class="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+                    <button id="addPersonButton" type="submit" class="pm-btn pm-btn-primary">
                         Add person
                     </button>
                 </form>
@@ -353,28 +354,26 @@
 
         <!-- ===================== ADD TRANSACTIONS FORM ===================== -->
         <section aria-labelledby="form-heading">
-            <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm">
+            <div class="pm-card p-6">
                 <div class="mb-2 flex items-center gap-3">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/25">
+                    <span class="pm-icon-tile pm-icon-tile-sm">
                         <i data-lucide="clipboard-pen" class="h-5 w-5"></i>
                     </span>
-                    <h2 id="form-heading" class="text-lg font-bold text-slate-900 dark:text-slate-100">Add Transactions</h2>
+                    <h2 id="form-heading" class="font-display text-lg font-bold">Add Transactions</h2>
                 </div>
 
                 <form id="expenseForm" novalidate>
                     <fieldset id="expenseFields">
                         <div id="expenseRows" class="divide-y divide-slate-100 dark:divide-slate-800"></div>
 
-                        <p id="rowError" class="mt-4 hidden rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert"></p>
+                        <p id="rowError" class="mt-4 hidden rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-300" role="alert"></p>
 
                         <div class="mt-5 flex flex-wrap items-center gap-3">
-                            <button id="addRowButton" type="button"
-                                class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-slate-400 dark:text-slate-500 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-300 active:scale-[0.98]">
+                            <button id="addRowButton" type="button" class="pm-btn pm-btn-ghost">
                                 <i data-lucide="list-plus" class="h-4 w-4"></i>
                                 Add another expense
                             </button>
-                            <button id="submitButton" type="submit"
-                                class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+                            <button id="submitButton" type="submit" class="pm-btn pm-btn-primary px-5">
                                 <i data-lucide="check" class="h-4 w-4"></i>
                                 <span id="submitButtonText">Add Expenses</span>
                             </button>
@@ -386,14 +385,13 @@
 
         <!-- ===================== TRANSACTION HISTORY ===================== -->
         <section id="historySection" aria-labelledby="history-heading">
-            <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-700 px-6 py-4">
+            <div class="pm-card">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-6 py-4 dark:border-slate-800">
                     <div class="flex items-center gap-3">
-                        <h2 id="history-heading" class="text-lg font-bold text-slate-900 dark:text-slate-100">Transaction History</h2>
-                        <span id="historyCount" class="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300">0</span>
+                        <h2 id="history-heading" class="font-display text-lg font-bold">Transaction History</h2>
+                        <span id="historyCount" class="pm-chip px-2.5 py-0.5 text-xs">0</span>
                     </div>
-                    <button id="refreshButton" type="button"
-                        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50">
+                    <button id="refreshButton" type="button" class="pm-btn pm-btn-ghost">
                         <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                         Refresh
                     </button>
@@ -404,7 +402,7 @@
 
                 <!-- Empty state -->
                 <div id="emptyState" class="hidden px-6 py-12 text-center">
-                    <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-100 dark:from-slate-700 to-slate-200 dark:to-slate-800 text-slate-400 dark:text-slate-500">
+                    <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
                         <i data-lucide="receipt-text" class="h-7 w-7"></i>
                     </span>
                     <p class="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300">No expenses yet</p>
@@ -434,12 +432,12 @@
         </section>
     </main>
 
-    <footer class="border-t border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-900">
-        <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-400 dark:text-slate-500 sm:flex-row">
+    <footer class="pm-footer">
+        <div class="pm-faint mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs sm:flex-row">
             <p>&copy; <span id="footerYear"></span> Pocket Manager. Made with 💜 for people who budget.</p>
             <div class="flex items-center gap-4">
-                <a href="mailto:shamimosman344@gmail.com" class="font-medium text-slate-500 dark:text-slate-400 transition-colors hover:text-indigo-600">✉️ Email</a>
-                <a href="https://wa.me/8801639815290" target="_blank" rel="noopener" class="font-medium text-slate-500 dark:text-slate-400 transition-colors hover:text-emerald-600">💬 WhatsApp</a>
+                <a href="mailto:shamimosman344@gmail.com" class="inline-flex items-center gap-1.5 font-medium transition-colors hover:text-indigo-600"><i data-lucide="mail" class="h-3.5 w-3.5"></i> Email</a>
+                <a href="https://wa.me/8801639815290" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 font-medium transition-colors hover:text-indigo-600"><i data-lucide="message-circle" class="h-3.5 w-3.5"></i> WhatsApp</a>
             </div>
         </div>
     </footer>

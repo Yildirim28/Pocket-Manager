@@ -117,8 +117,8 @@
             }
 
             const rootStyles = getComputedStyle(document.documentElement);
-            const accent = rootStyles.getPropertyValue('--pm-accent').trim() || '#4f46e5';
-            const accentTo = rootStyles.getPropertyValue('--pm-accent-to').trim() || '#8b5cf6';
+            const accent = rootStyles.getPropertyValue('--pm-accent').trim() || '#10b981';
+            const accentTo = rootStyles.getPropertyValue('--pm-accent-to').trim() || '#34d399';
 
             const W = 1000;
             const padX = 48;
@@ -140,7 +140,7 @@
             shown.forEach((expense, index) => {
                 if (index % 2 === 0) {
                     bodyParts.push(
-                        `<rect x="${padX - 12}" y="${y - 22}" width="${W - padX * 2 + 24}" height="${rowH}" fill="#f8fafc" rx="8"/>`
+                        `<rect x="${padX - 12}" y="${y - 22}" width="${W - padX * 2 + 24}" height="${rowH}" fill="#111827" rx="8"/>`
                     );
                 }
                 const people = Array.isArray(expense.participants)
@@ -151,17 +151,17 @@
                 const type = expense.utility_type ? ` (${expense.utility_type})` : '';
 
                 bodyParts.push(
-                    `<text x="${colDate}" y="${y}" font-family="${FONT}" font-size="13" fill="#94a3b8">${xmlEscape(formatDate(expense.expense_date))}</text>` +
-                    `<text x="${colDesc}" y="${y}" font-family="${FONT}" font-size="14" fill="#0f172a">${xmlEscape(desc)}</text>` +
-                    `<text x="${colCat}" y="${y}" font-family="${FONT}" font-size="13" fill="#64748b">${xmlEscape(truncate(expense.category + type, 22))}</text>` +
-                    `<text x="${colAmount}" y="${y}" font-family="${FONT}" font-size="14" font-weight="600" fill="#0f172a" text-anchor="end">${xmlEscape(formatCurrency(expense.amount))}</text>`
+                    `<text x="${colDate}" y="${y}" font-family="${FONT}" font-size="13" fill="#8b95a8">${xmlEscape(formatDate(expense.expense_date))}</text>` +
+                    `<text x="${colDesc}" y="${y}" font-family="${FONT}" font-size="14" fill="#e9edf6">${xmlEscape(desc)}</text>` +
+                    `<text x="${colCat}" y="${y}" font-family="${FONT}" font-size="13" fill="#a7b0c0">${xmlEscape(truncate(expense.category + type, 22))}</text>` +
+                    `<text x="${colAmount}" y="${y}" font-family="${FONT}" font-size="14" font-weight="600" fill="#e9edf6" text-anchor="end">${xmlEscape(formatCurrency(expense.amount))}</text>`
                 );
                 y += rowH;
             });
 
             if (rows.length > maxRows) {
                 bodyParts.push(
-                    `<text x="${colDesc}" y="${y + 6}" font-family="${FONT}" font-size="13" fill="#94a3b8" font-style="italic">…and ${rows.length - maxRows} more expenses</text>`
+                    `<text x="${colDesc}" y="${y + 6}" font-family="${FONT}" font-size="13" fill="#8b95a8" font-style="italic">…and ${rows.length - maxRows} more expenses</text>`
                 );
                 y += 30;
             }
@@ -173,21 +173,21 @@
                 `<defs><linearGradient id="hdr" x1="0" y1="0" x2="1" y2="1">` +
                 `<stop offset="0" stop-color="${accent}"/><stop offset="1" stop-color="${accentTo}"/>` +
                 `</linearGradient></defs>` +
-                `<rect width="${W}" height="${H}" fill="#ffffff"/>` +
+                `<rect width="${W}" height="${H}" fill="#070b12"/>` +
                 `<rect width="${W}" height="128" fill="url(#hdr)"/>` +
                 `<text x="${padX}" y="58" font-family="${FONT}" font-size="26" font-weight="800" fill="#ffffff">Pocket Manager</text>` +
                 `<text x="${padX}" y="86" font-family="${FONT}" font-size="15" fill="#ffffff" opacity="0.9">Expense Report · Generated ${xmlEscape(formatDate(todayLocalISO()))}</text>` +
                 `<text x="${padX}" y="108" font-family="${FONT}" font-size="13" fill="#ffffff" opacity="0.75">${xmlEscape(accountEmailEl.textContent)} · ${shown.length} of ${rows.length} transactions</text>` +
-                `<text x="${colDate}" y="${tableTop}" font-family="${FONT}" font-size="12" font-weight="700" fill="#94a3b8" letter-spacing="1">DATE</text>` +
-                `<text x="${colDesc}" y="${tableTop}" font-family="${FONT}" font-size="12" font-weight="700" fill="#94a3b8" letter-spacing="1">DESCRIPTION</text>` +
-                `<text x="${colCat}" y="${tableTop}" font-family="${FONT}" font-size="12" font-weight="700" fill="#94a3b8" letter-spacing="1">CATEGORY</text>` +
-                `<text x="${colAmount}" y="${tableTop}" font-family="${FONT}" font-size="12" font-weight="700" fill="#94a3b8" letter-spacing="1" text-anchor="end">AMOUNT</text>` +
-                `<line x1="${padX - 12}" y1="${tableTop + 12}" x2="${W - padX + 12}" y2="${tableTop + 12}" stroke="#e2e8f0" stroke-width="2"/>` +
+                `<text x="${colDate}" y="${tableTop}" font-family="${FONT}" font-size="12" font-weight="700" fill="#8b95a8" letter-spacing="1">DATE</text>` +
+                `<text x="${colDesc}" y="${tableTop}" font-family="${FONT}" font-size="12" font-weight="700" fill="#8b95a8" letter-spacing="1">DESCRIPTION</text>` +
+                `<text x="${colCat}" y="${tableTop}" font-family="${FONT}" font-size="12" font-weight="700" fill="#8b95a8" letter-spacing="1">CATEGORY</text>` +
+                `<text x="${colAmount}" y="${tableTop}" font-family="${FONT}" font-size="12" font-weight="700" fill="#8b95a8" letter-spacing="1" text-anchor="end">AMOUNT</text>` +
+                `<line x1="${padX - 12}" y1="${tableTop + 12}" x2="${W - padX + 12}" y2="${tableTop + 12}" stroke="#1e2635" stroke-width="2"/>` +
                 bodyParts.join('') +
-                `<line x1="${padX - 12}" y1="${y + 6}" x2="${W - padX + 12}" y2="${y + 6}" stroke="#e2e8f0" stroke-width="2"/>` +
-                `<text x="${colDesc}" y="${y + 46}" font-family="${FONT}" font-size="16" font-weight="700" fill="#0f172a">Total</text>` +
+                `<line x1="${padX - 12}" y1="${y + 6}" x2="${W - padX + 12}" y2="${y + 6}" stroke="#1e2635" stroke-width="2"/>` +
+                `<text x="${colDesc}" y="${y + 46}" font-family="${FONT}" font-size="16" font-weight="700" fill="#e9edf6">Total</text>` +
                 `<text x="${colAmount}" y="${y + 46}" font-family="${FONT}" font-size="20" font-weight="800" fill="${accent}" text-anchor="end">${xmlEscape(formatCurrency(total))}</text>` +
-                `<text x="${padX}" y="${H - 20}" font-family="${FONT}" font-size="11" fill="#cbd5e1">Generated by Pocket Manager — pocket-manager app</text>` +
+                `<text x="${padX}" y="${H - 20}" font-family="${FONT}" font-size="11" fill="#4b5563">Generated by Pocket Manager — pocket-manager app</text>` +
                 `</svg>`;
 
             const svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
@@ -203,7 +203,7 @@
             canvas.width = W * scale;
             canvas.height = H * scale;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = '#070b12';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             URL.revokeObjectURL(svgUrl);
