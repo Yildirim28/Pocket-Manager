@@ -16,6 +16,8 @@
         refresh: document.getElementById('refreshButton'),
         pdf: document.getElementById('pdfButton'),
         pdfText: document.getElementById('pdfButtonText'),
+        fullPdf: document.getElementById('fullPdfButton'),
+        fullPdfText: document.getElementById('fullPdfButtonText'),
         statTotal: document.getElementById('statTotal'),
         statMonth: document.getElementById('statMonth'),
         statCount: document.getElementById('statCount'),
@@ -661,19 +663,19 @@
         return new Blob(chunks, { type: 'application/pdf' });
     }
 
-    async function exportPdf() {
-        if (filtered.length === 0) {
-            showToast('Nothing to export with the current filters.', 'info');
+    /* Renders any set of rows as a multi-page tabular PDF. Shared by
+       the filtered export and the full-history export. */
+    async function exportPdfRows(rows, { filteredView, button, buttonText, idleLabel, emptyMessage }) {
+        if (rows.length === 0) {
+            showToast(emptyMessage, 'info');
             return;
         }
 
-        const rows = filtered.slice();
         const total = rows.reduce((sum, e) => sum + Number(e.amount || 0), 0);
         const pageCount = Math.max(1, Math.ceil(rows.length / PDF_ROWS_PER_PAGE));
-        const hasFilters = !!(view.query.trim() || view.category || view.person || view.month);
 
-        els.pdf.disabled = true;
-        els.pdfText.textContent = 'Preparing…';
+        button.disabled = true;
+        buttonText.textContent = 'Preparing…';
         try {
             const pages = [];
             for (let i = 0; i < rows.length; i += PDF_ROWS_PER_PAGE) {
@@ -684,10 +686,10 @@
                     count: rows.length,
                     total,
                     last: i + PDF_ROWS_PER_PAGE >= rows.length,
-                    filtered: hasFilters
+                    filtered: filteredView
                 });
                 pages.push(await svgToJpegPage(svg));
-                els.pdfText.textContent = `Preparing ${pages.length}/${pageCount}…`;
+                buttonText.textContent = `Preparing ${pages.length}/${pageCount}…`;
             }
 
             downloadBlob(buildPdf(pages), `pocket-manager-history-${todayLocalISO()}.pdf`);
@@ -695,15 +697,39 @@
         } catch (error) {
             showToast(`PDF export failed: ${error.message}`, 'error');
         } finally {
-            els.pdf.disabled = false;
-            els.pdfText.textContent = 'Download PDF';
+            button.disabled = false;
+            buttonText.textContent = idleLabel;
         }
+    }
+
+    /* Exports exactly what the current filters show. */
+    function exportPdf() {
+        const hasFilters = !!(view.query.trim() || view.category || view.person || view.month);
+        return exportPdfRows(filtered.slice(), {
+            filteredView: hasFilters,
+            button: els.pdf,
+            buttonText: els.pdfText,
+            idleLabel: 'Download PDF',
+            emptyMessage: 'Nothing to export with the current filters.'
+        });
+    }
+
+    /* Exports the complete ledger, ignoring the active filters. */
+    function exportFullPdf() {
+        return exportPdfRows(allExpenses.slice(), {
+            filteredView: false,
+            button: els.fullPdf,
+            buttonText: els.fullPdfText,
+            idleLabel: 'Download full history',
+            emptyMessage: 'No expenses to export yet.'
+        });
     }
 
     /* ---------------- EVENTS ---------------- */
     function wireEvents() {
         els.refresh.addEventListener('click', fetchExpenses);
         els.pdf.addEventListener('click', exportPdf);
+        els.fullPdf?.addEventListener('click', exportFullPdf);
 
         let searchTimer = null;
         els.search.addEventListener('input', () => {
