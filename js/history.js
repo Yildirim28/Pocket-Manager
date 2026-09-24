@@ -38,7 +38,12 @@
         pagination: document.getElementById('historyPagination'),
         range: document.getElementById('historyRange'),
         pager: document.getElementById('historyPager'),
-        perPage: document.getElementById('perPage')
+        perPage: document.getElementById('perPage'),
+        heroTotal: document.getElementById('heroTotal'),
+        heroDelta: document.getElementById('heroDelta'),
+        heroChart: document.getElementById('heroChart'),
+        heroOrbit: document.getElementById('heroOrbit'),
+        heroRangeLabel: document.getElementById('heroRangeLabel')
     };
 
     const CATEGORY_COLORS = {
@@ -205,7 +210,7 @@
     /* ---------------- TABLE / LIST ---------------- */
     function tableRowHtml(expense) {
         return (
-            '<tr class="group transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">' +
+            '<tr class="pm-row group">' +
             `<td class="whitespace-nowrap px-5 py-4 pm-muted text-xs">${formatDate(expense.expense_date)}</td>` +
             '<td class="px-5 py-4">' +
             `<p class="font-medium">${escapeHTML(expense.description)}</p>` +
@@ -221,7 +226,7 @@
 
     function listItemHtml(expense) {
         return (
-            '<li class="p-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">' +
+            '<li class="pm-row p-4">' +
             '<div class="flex items-start justify-between gap-3">' +
             '<div class="min-w-0">' +
             `<p class="truncate font-medium">${escapeHTML(expense.description)}</p>` +
@@ -287,9 +292,53 @@
         els.pager.innerHTML = buttons.join('');
     }
 
+    function applyDelta(el, current, previous) {
+        if (!el) return;
+        if (!previous) {
+            el.textContent = current > 0 ? 'New' : '—';
+            el.style.color = '';
+            return;
+        }
+        const change = ((current - previous) / previous) * 100;
+        const up = change > 0;
+        el.textContent = `${up ? '↑' : '↓'} ${Math.round(Math.abs(change))}%`;
+        el.style.color = up ? '#fda4af' : 'var(--pm-accent-to)';
+    }
+
+    /* Hero: filtered total, month-over-month delta, 12-month trend
+       and the category orbit. */
+    function renderInsights() {
+        const total = filtered.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+        if (els.heroTotal) els.heroTotal.textContent = formatCurrency(total);
+        if (els.heroRangeLabel) {
+            els.heroRangeLabel.textContent = view.month ? `in ${monthLabel(view.month)}` : 'in view';
+        }
+
+        const now = new Date();
+        const keyOf = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const sumFor = (key) =>
+            allExpenses
+                .filter((e) => String(e.expense_date).slice(0, 7) === key)
+                .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+        applyDelta(
+            els.heroDelta,
+            sumFor(keyOf(now)),
+            sumFor(keyOf(new Date(now.getFullYear(), now.getMonth() - 1, 1)))
+        );
+
+        if (typeof pmRenderAreaChart === 'function') {
+            pmRenderAreaChart(els.heroChart, pmMonthlySeries(filtered, 12), { height: 190 });
+        }
+        if (typeof pmRenderOrbitChart === 'function') {
+            pmRenderOrbitChart(els.heroOrbit, pmCategoryTotals(filtered, 7));
+        }
+    }
+
     function render() {
         applyFilters();
         renderFilterSummary();
+        renderInsights();
 
         const hasAny = allExpenses.length > 0;
         const hasVisible = filtered.length > 0;

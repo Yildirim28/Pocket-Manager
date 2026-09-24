@@ -273,7 +273,7 @@ function isDark() {
 function updateThemeColorMeta(dark) {
     document
         .querySelectorAll('meta[name="theme-color"]')
-        .forEach((meta) => meta.setAttribute('content', dark ? '#05070d' : '#f4f6fb'));
+        .forEach((meta) => meta.setAttribute('content', dark ? '#06201e' : '#eef6f4'));
 }
 
 /* persist=true records an explicit user choice; the initial call does
@@ -348,7 +348,7 @@ const ACCENT_STORAGE_KEY = 'pocket-manager:accent';
 const DEFAULT_ACCENT = 'emerald';
 
 const ACCENTS = {
-    emerald: { label: 'Mint', from: '#10b981', to: '#34d399', soft: 'rgba(16,185,129,0.14)', text: '#059669', ink: '#04140f' },
+    emerald: { label: 'Teal', from: '#14b8a6', to: '#5eead4', soft: 'rgba(20,184,166,0.16)', text: '#0f766e', ink: '#04211d' },
     indigo: { label: 'Indigo', from: '#6366f1', to: '#818cf8', soft: 'rgba(99,102,241,0.14)', text: '#4f46e5', ink: '#ffffff' },
     blue: { label: 'Ocean', from: '#3b82f6', to: '#22d3ee', soft: 'rgba(59,130,246,0.14)', text: '#2563eb', ink: '#04140f' },
     violet: { label: 'Violet', from: '#8b5cf6', to: '#c084fc', soft: 'rgba(139,92,246,0.14)', text: '#7c3aed', ink: '#ffffff' },
@@ -365,7 +365,7 @@ function injectAccentStyles() {
     const style = document.createElement('style');
     style.id = 'pmAccentStyle';
     style.textContent = `
-:root{--pm-accent:#10b981;--pm-accent-to:#34d399;--pm-accent-soft:rgba(16,185,129,0.14);--pm-accent-text:#059669;--pm-accent-ink:#04140f}
+:root{--pm-accent:#14b8a6;--pm-accent-to:#5eead4;--pm-accent-soft:rgba(20,184,166,0.16);--pm-accent-text:#0f766e;--pm-accent-ink:#04211d}
 .bg-indigo-600{background-color:var(--pm-accent)!important}
 .bg-indigo-500{background-color:var(--pm-accent)!important}
 .from-indigo-600{--tw-gradient-from:var(--pm-accent)!important}
@@ -759,6 +759,25 @@ function renderNavbar(session) {
                <a href="signup.html" class="pm-btn pm-btn-primary mt-2 w-full">Get started <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i></a>
            </div>`;
 
+    /* Mobile bottom tab bar (signed-in only), like a native banking app. */
+    const tabLinks = [
+        { page: 'dashboard', href: 'app.html', label: 'Home', icon: 'house' },
+        { page: 'history', href: 'history.html', label: 'History', icon: 'receipt-text' },
+        { page: 'feedback', href: 'feedback.html', label: 'Feedback', icon: 'message-square' },
+        { page: 'settings', href: 'settings.html', label: 'Settings', icon: 'settings' }
+    ];
+    const tabbar = user
+        ? '<nav class="pm-tabbar flex items-stretch gap-1" aria-label="Quick navigation">' +
+          tabLinks
+              .map(
+                  (t) =>
+                      `<a href="${t.href}" class="pm-tabbar-item"${t.page === current ? ' aria-current="page"' : ''}>` +
+                      `<i data-lucide="${t.icon}" class="h-5 w-5"></i><span>${t.label}</span></a>`
+              )
+              .join('') +
+          '</nav>'
+        : '';
+
     mount.innerHTML =
         '<header class="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">' +
         '<nav class="pm-glass mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 rounded-2xl px-3 shadow-lg shadow-black/5 dark:shadow-black/40 sm:px-4" aria-label="Main navigation">' +
@@ -775,7 +794,10 @@ function renderNavbar(session) {
         '</button>' +
         '</nav>' +
         `<div id="navMobileMenu" class="pm-glass mx-auto mt-2 hidden max-w-6xl rounded-2xl p-3 shadow-xl shadow-black/10 dark:shadow-black/40 md:hidden">${mobileLinks}${mobileAuth}</div>` +
-        '</header>';
+        '</header>' +
+        tabbar;
+
+    document.body.classList.toggle('pm-has-tabbar', !!user);
 
     // Render Lucide icons inside the injected markup.
     window.lucide?.createIcons();

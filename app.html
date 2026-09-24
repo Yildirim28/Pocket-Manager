@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- PWA -->
-    <meta name="theme-color" content="#05070d" />
+    <meta name="theme-color" content="#06201e" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png" />
     <link rel="apple-touch-icon" href="icon-192.png" />
@@ -39,12 +39,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/theme.css?v=4" />
+    <link rel="stylesheet" href="css/theme.css?v=5" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onerror="var f=document.createElement('script');f.src='https://unpkg.com/@supabase/supabase-js@2';f.defer=true;document.head.appendChild(f);"></script>
     <script src="js/config.js?v=34" defer></script>
-    <script src="js/site.js?v=35" defer></script>
-    <script src="js/app.js?v=38" defer></script>
+    <script src="js/site.js?v=36" defer></script>
+    <script src="js/charts.js?v=1" defer></script>
+    <script src="js/app.js?v=39" defer></script>
     <style>
         /* Flip cards: 3D setup only — heights are fully content-driven.
            Grid children stretch to the tallest sibling (auto height),
@@ -391,6 +392,40 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- ===================== EXPENSE ORBIT ===================== -->
+        <section aria-labelledby="orbit-heading">
+            <div class="pm-card pm-glass-card p-6 sm:p-7">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <p class="pm-eyebrow"><i data-lucide="orbit" class="h-3.5 w-3.5"></i> Expense</p>
+                        <h2 id="orbit-heading" class="font-display mt-2 text-xl font-bold tracking-tight sm:text-2xl">
+                            Total spent in <span id="orbitMonth">this month</span>
+                        </h2>
+                        <p class="pm-stat-value mt-1 text-3xl font-bold sm:text-4xl"><span id="orbitTotal">—</span></p>
+                    </div>
+                    <span id="orbitDelta" class="pm-chip text-xs font-bold">—</span>
+                </div>
+                <div id="orbitChart" class="pm-orbit mt-8"></div>
+            </div>
+        </section>
+
+        <!-- ===================== EXPENSE DYNAMICS ===================== -->
+        <section aria-labelledby="dynamics-heading">
+            <div class="pm-card pm-glass-card p-6 sm:p-7">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <p class="pm-eyebrow"><i data-lucide="activity" class="h-3.5 w-3.5"></i> Expense dynamics</p>
+                        <h2 id="dynamics-heading" class="font-display mt-2 text-lg font-bold tracking-tight">
+                            <span id="dynamicsTotal">—</span>
+                        </h2>
+                        <p class="pm-faint mt-1 text-xs">Across the last 6 months</p>
+                    </div>
+                    <span id="dynamicsDelta" class="pm-chip text-xs font-bold">—</span>
+                </div>
+                <div id="dynamicsChart" class="pm-area mt-5"></div>
             </div>
         </section>
 

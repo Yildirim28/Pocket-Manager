@@ -67,6 +67,14 @@ const budgetDaysLeftEl = document.getElementById('budgetDaysLeft');
 const budgetDaysNoteEl = document.getElementById('budgetDaysNote');
 const peopleCardSubtitleEl = document.getElementById('peopleCardSubtitle');
 
+const orbitMonthEl = document.getElementById('orbitMonth');
+const orbitTotalEl = document.getElementById('orbitTotal');
+const orbitDeltaEl = document.getElementById('orbitDelta');
+const orbitChartEl = document.getElementById('orbitChart');
+const dynamicsTotalEl = document.getElementById('dynamicsTotal');
+const dynamicsDeltaEl = document.getElementById('dynamicsDelta');
+const dynamicsChartEl = document.getElementById('dynamicsChart');
+
 const expenseForm = document.getElementById('expenseForm');
 const expenseFields = document.getElementById('expenseFields');
 const expenseRowsEl = document.getElementById('expenseRows');
@@ -722,6 +730,9 @@ function renderSummary() {
     // Per-person totals this month
     renderPeopleBreakdown(monthExpenses, totalThisMonth);
 
+    // Category orbit + 6-month trend
+    renderExpenseInsights(monthExpenses, totalThisMonth);
+
     // Budget progress: sand-timer hero with mood, pace and allowances.
     const percent = monthlyBudget > 0 ? (totalThisMonth / monthlyBudget) * 100 : 0;
     const clampedPercent = Math.min(Math.max(percent, 0), 100);
@@ -1024,6 +1035,56 @@ function renderPeopleBreakdown(monthExpenses, totalThisMonth) {
     });
 
     window.lucide?.createIcons();
+}
+
+/* -------------------------------------------------------------
+   EXPENSE INSIGHTS — category orbit + 6-month dynamics
+   (chart renderers live in js/charts.js)
+------------------------------------------------------------- */
+function applyDeltaChip(el, current, previous) {
+    if (!el) return;
+    if (!previous) {
+        el.textContent = current > 0 ? 'New' : '—';
+        el.style.color = '';
+        return;
+    }
+    const change = ((current - previous) / previous) * 100;
+    const up = change > 0;
+    el.textContent = `${up ? '↑' : '↓'} ${Math.round(Math.abs(change))}%`;
+    el.style.color = up ? '#fda4af' : 'var(--pm-accent-to)';
+}
+
+function renderExpenseInsights(monthExpenses, totalThisMonth) {
+    const now = new Date();
+
+    if (orbitMonthEl) {
+        orbitMonthEl.textContent = now.toLocaleDateString('en-US', { month: 'long' });
+    }
+    if (orbitTotalEl) orbitTotalEl.textContent = formatCurrency(totalThisMonth);
+
+    // Previous calendar month, for the delta chips.
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevKey = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+    const prevTotal = expenses
+        .filter((expense) => String(expense.expense_date).slice(0, 7) === prevKey)
+        .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+
+    applyDeltaChip(orbitDeltaEl, totalThisMonth, prevTotal);
+    applyDeltaChip(dynamicsDeltaEl, totalThisMonth, prevTotal);
+
+    if (typeof pmRenderOrbitChart === 'function' && orbitChartEl) {
+        pmRenderOrbitChart(orbitChartEl, pmCategoryTotals(monthExpenses, 8));
+    }
+
+    if (typeof pmRenderAreaChart === 'function' && dynamicsChartEl) {
+        const series = pmMonthlySeries(expenses, 6);
+        pmRenderAreaChart(dynamicsChartEl, series);
+        if (dynamicsTotalEl) {
+            dynamicsTotalEl.textContent = formatCurrency(
+                series.reduce((sum, point) => sum + point.value, 0)
+            );
+        }
+    }
 }
 
 function badgeHtml(category) {

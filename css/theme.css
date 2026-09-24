@@ -14,24 +14,24 @@
 :root {
     color-scheme: light;
 
-    --pm-bg: #f4f6fb;
+    --pm-bg: #eef6f4;
     --pm-bg-elevated: #ffffff;
 
     --pm-surface: #ffffff;
-    --pm-surface-2: #f5f7fc;
-    --pm-surface-inset: #eef1f7;
+    --pm-surface-2: #f2f8f6;
+    --pm-surface-inset: #e8f2ef;
 
-    --pm-border: rgba(15, 23, 42, 0.09);
-    --pm-border-strong: rgba(15, 23, 42, 0.16);
+    --pm-border: rgba(6, 40, 36, 0.10);
+    --pm-border-strong: rgba(6, 40, 36, 0.18);
 
-    --pm-text: #0b1220;
-    --pm-text-soft: #384152;
-    --pm-muted: #5c6678;
-    --pm-faint: #8a93a6;
+    --pm-text: #07211e;
+    --pm-text-soft: #1d443e;
+    --pm-muted: #4c6f68;
+    --pm-faint: #7f9b95;
 
-    --pm-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-    --pm-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 40px -24px rgba(15, 23, 42, 0.35);
-    --pm-shadow-lg: 0 2px 4px rgba(15, 23, 42, 0.04), 0 40px 80px -40px rgba(15, 23, 42, 0.45);
+    --pm-shadow-sm: 0 1px 2px rgba(6, 40, 36, 0.05);
+    --pm-shadow: 0 1px 2px rgba(6, 40, 36, 0.04), 0 18px 40px -24px rgba(6, 40, 36, 0.35);
+    --pm-shadow-lg: 0 2px 4px rgba(6, 40, 36, 0.04), 0 40px 80px -40px rgba(6, 40, 36, 0.45);
 
     --pm-glow: 0 0 0 1px color-mix(in srgb, var(--pm-accent) 22%, transparent),
         0 18px 40px -18px color-mix(in srgb, var(--pm-accent) 55%, transparent);
@@ -40,12 +40,12 @@
     --pm-radius-lg: 1.25rem;
     --pm-radius-xl: 1.5rem;
 
-    /* Accent defaults — signature mint/emerald. site.js overrides these. */
-    --pm-accent: #10b981;
-    --pm-accent-to: #34d399;
-    --pm-accent-soft: rgba(16, 185, 129, 0.12);
-    --pm-accent-text: #047857;
-    --pm-accent-ink: #04140f;
+    /* Accent defaults — signature teal/mint. site.js overrides these. */
+    --pm-accent: #14b8a6;
+    --pm-accent-to: #5eead4;
+    --pm-accent-soft: rgba(20, 184, 166, 0.12);
+    --pm-accent-text: #0f766e;
+    --pm-accent-ink: #04211d;
 }
 
 /* -------------------------------------------------------------
@@ -54,27 +54,28 @@
 .dark {
     color-scheme: dark;
 
-    --pm-bg: #05070d;
-    --pm-bg-elevated: #0b101a;
+    --pm-bg: #06201e;
+    --pm-bg-elevated: #0a2b28;
 
-    --pm-surface: #0d1320;
-    --pm-surface-2: #111827;
-    --pm-surface-inset: #0a0f19;
+    /* Translucent so the teal aurora glows through the glass. */
+    --pm-surface: rgba(255, 255, 255, 0.05);
+    --pm-surface-2: rgba(255, 255, 255, 0.03);
+    --pm-surface-inset: rgba(0, 0, 0, 0.20);
 
-    --pm-border: rgba(255, 255, 255, 0.075);
-    --pm-border-strong: rgba(255, 255, 255, 0.15);
+    --pm-border: rgba(255, 255, 255, 0.10);
+    --pm-border-strong: rgba(255, 255, 255, 0.18);
 
-    --pm-text: #e9edf6;
-    --pm-text-soft: #c3cad8;
-    --pm-muted: #99a3b7;
-    --pm-faint: #5f6b80;
+    --pm-text: #eaf6f2;
+    --pm-text-soft: #c6e3dc;
+    --pm-muted: #92b8af;
+    --pm-faint: #6a8f88;
 
-    --pm-shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
-    --pm-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 24px 60px -32px rgba(0, 0, 0, 0.9);
-    --pm-shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 48px 100px -48px rgba(0, 0, 0, 1);
+    --pm-shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+    --pm-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 30px 60px -40px rgba(0, 0, 0, 0.9);
+    --pm-shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 48px 100px -50px rgba(0, 0, 0, 1);
 
     --pm-glow: 0 0 0 1px color-mix(in srgb, var(--pm-accent) 30%, transparent),
-        0 18px 50px -18px color-mix(in srgb, var(--pm-accent) 60%, transparent);
+        0 18px 50px -18px color-mix(in srgb, var(--pm-accent) 55%, transparent);
 }
 
 /* -------------------------------------------------------------
@@ -89,6 +90,12 @@ body.pm-page {
     color: var(--pm-text);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     text-rendering: optimizeLegibility;
+}
+
+/* Deep teal wash behind the glass, like the reference banking UI. */
+.dark body.pm-page {
+    background-image: linear-gradient(180deg, #0c3733 0%, #072624 44%, #04181a 100%);
+    background-attachment: fixed;
 }
 
 .font-display {
@@ -133,17 +140,17 @@ body.pm-page {
     z-index: -2;
     pointer-events: none;
     background:
-        radial-gradient(52rem 52rem at 12% -8%, color-mix(in srgb, var(--pm-accent) 20%, transparent), transparent 62%),
-        radial-gradient(46rem 46rem at 100% 0%, rgba(56, 189, 248, 0.14), transparent 60%),
-        radial-gradient(44rem 44rem at 52% 118%, rgba(139, 92, 246, 0.12), transparent 62%);
-    filter: blur(8px);
+        radial-gradient(50rem 50rem at 10% -10%, color-mix(in srgb, var(--pm-accent) 22%, transparent), transparent 62%),
+        radial-gradient(44rem 44rem at 102% -4%, rgba(56, 189, 248, 0.14), transparent 60%),
+        radial-gradient(50rem 50rem at 52% 120%, color-mix(in srgb, var(--pm-accent) 16%, transparent), transparent 62%);
+    filter: blur(10px);
 }
 
 .dark .pm-aurora::before {
     background:
-        radial-gradient(52rem 52rem at 10% -10%, color-mix(in srgb, var(--pm-accent) 26%, transparent), transparent 60%),
-        radial-gradient(46rem 46rem at 104% -4%, rgba(56, 189, 248, 0.16), transparent 58%),
-        radial-gradient(48rem 48rem at 50% 122%, rgba(139, 92, 246, 0.14), transparent 60%);
+        radial-gradient(50rem 50rem at 6% -14%, color-mix(in srgb, var(--pm-accent) 40%, transparent), transparent 58%),
+        radial-gradient(44rem 44rem at 104% -8%, rgba(56, 189, 248, 0.16), transparent 56%),
+        radial-gradient(52rem 52rem at 54% 122%, color-mix(in srgb, var(--pm-accent) 24%, transparent), transparent 62%);
 }
 
 .pm-aurora::after {
@@ -161,13 +168,13 @@ body.pm-page {
     -webkit-mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 80%);
 }
 
-.dark .pm-aurora::after { opacity: 0.35; }
+.dark .pm-aurora::after { opacity: 0.18; }
 
 /* -------------------------------------------------------------
    5. COMPONENTS
 ------------------------------------------------------------- */
 
-/* Surface card */
+/* Surface card — frosted glass over the teal wash. */
 .pm-card {
     position: relative;
     border-radius: var(--pm-radius-xl);
@@ -178,8 +185,19 @@ body.pm-page {
 
 .dark .pm-card {
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 42%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 55%),
         var(--pm-surface);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+}
+
+/* A brighter glass variant for hero/feature surfaces. */
+.pm-glass-card {
+    border: 1px solid var(--pm-border-strong);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 30px 70px -45px rgba(0, 0, 0, 0.95);
 }
 
 .pm-card-pad { padding: 1.5rem; }
@@ -204,7 +222,8 @@ body.pm-page {
 }
 
 .dark .pm-glass {
-    background: color-mix(in srgb, #0b101a 68%, transparent);
+    background: color-mix(in srgb, #0a2b28 62%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Accent helpers */
@@ -226,18 +245,18 @@ body.pm-page {
    the accent identity while staying dark enough for light text. */
 .pm-gradient-deep {
     background-image: linear-gradient(145deg,
-            color-mix(in srgb, var(--pm-accent) 72%, #04140f) 0%,
-            color-mix(in srgb, var(--pm-accent-to) 42%, #04140f) 100%);
-    color: #eafff8;
+            color-mix(in srgb, var(--pm-accent) 78%, #04211d) 0%,
+            color-mix(in srgb, var(--pm-accent-to) 46%, #04211d) 100%);
+    color: #eafffb;
 }
 
-/* Neutral near-black panel that stays dark in both themes. */
+/* Deep teal panel that stays dark in both themes. */
 .pm-panel-dark {
     background:
-        radial-gradient(120% 120% at 100% 0%, rgba(56, 189, 248, 0.1), transparent 55%),
-        linear-gradient(160deg, #0c111c 0%, #06090f 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #eef2f9;
+        radial-gradient(130% 130% at 100% 0%, rgba(94, 234, 212, 0.12), transparent 55%),
+        linear-gradient(160deg, #0b322e 0%, #041b1a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: #eef7f4;
 }
 
 /* Buttons */
@@ -729,6 +748,236 @@ details[open] .pm-chevron {
 }
 
 /* -------------------------------------------------------------
+   8. CHARTS — area trend + category orbit
+   Both are plain SVG emitted by js/charts.js, so they inherit the
+   accent tokens and need no charting dependency.
+------------------------------------------------------------- */
+
+/* ---- Area trend ---- */
+.pm-area {
+    position: relative;
+    width: 100%;
+}
+
+.pm-area svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.pm-area-grid {
+    stroke: color-mix(in srgb, var(--pm-text) 9%, transparent);
+    stroke-width: 1;
+    stroke-dasharray: 3 6;
+}
+
+.pm-area-line {
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke: var(--pm-accent-to);
+}
+
+.pm-area-draw {
+    stroke-dasharray: var(--pm-len, 1200);
+    stroke-dashoffset: var(--pm-len, 1200);
+    animation: pm-draw 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes pm-draw {
+    to { stroke-dashoffset: 0; }
+}
+
+.pm-area-fill {
+    opacity: 0;
+    animation: pm-fade-in 1.2s ease 0.15s forwards;
+}
+
+@keyframes pm-fade-in {
+    to { opacity: 1; }
+}
+
+.pm-area-dot {
+    fill: var(--pm-bg);
+    stroke: var(--pm-accent-to);
+    stroke-width: 2;
+}
+
+.pm-area-dot-max {
+    fill: var(--pm-accent-to);
+    stroke: var(--pm-bg);
+    stroke-width: 3;
+}
+
+.pm-area-label {
+    fill: var(--pm-faint);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.pm-area-value {
+    fill: var(--pm-text);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* ---- Category orbit ---- */
+.pm-orbit {
+    position: relative;
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+    aspect-ratio: 1 / 1;
+}
+
+.pm-orbit > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.pm-orbit-ring {
+    fill: none;
+    stroke: color-mix(in srgb, var(--pm-text) 10%, transparent);
+    stroke-width: 1;
+}
+
+.pm-orbit-spoke {
+    stroke: color-mix(in srgb, var(--pm-text) 12%, transparent);
+    stroke-width: 1;
+    stroke-dasharray: 2 5;
+}
+
+.pm-orbit-core {
+    fill: color-mix(in srgb, var(--pm-accent) 14%, transparent);
+    stroke: var(--pm-accent);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pm-orbit-node {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    width: 5rem;
+    translate: -50% -50%;
+    text-align: center;
+}
+
+.pm-orbit-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.75rem;
+    width: 2.75rem;
+    border-radius: 999px;
+    color: var(--pm-accent-to);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--pm-border-strong);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: transform 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.pm-orbit-node:hover .pm-orbit-icon {
+    transform: translateY(-3px) scale(1.06);
+    color: var(--pm-accent);
+    border-color: color-mix(in srgb, var(--pm-accent) 55%, transparent);
+}
+
+.pm-orbit-pct {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--pm-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.pm-orbit-name {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--pm-muted);
+}
+
+/* ---- Glass list row (history / transactions) ---- */
+.pm-row {
+    transition: background-color 0.25s ease;
+}
+
+.pm-row:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* ---- Mobile bottom tab bar ---- */
+.pm-tabbar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 40;
+    padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--pm-border);
+    background: color-mix(in srgb, var(--pm-bg-elevated) 78%, transparent);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+.dark .pm-tabbar {
+    background: color-mix(in srgb, #072624 80%, transparent);
+}
+
+.pm-tabbar-item {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    border-radius: 0.9rem;
+    padding: 0.4rem 0.25rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--pm-faint);
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.pm-tabbar-item[aria-current="page"] {
+    color: var(--pm-accent-to);
+    background: color-mix(in srgb, var(--pm-accent) 12%, transparent);
+}
+
+@media (min-width: 768px) {
+    .pm-tabbar {
+        display: none;
+    }
+}
+
+/* Keep page content clear of the fixed tab bar on phones. */
+.pm-has-tabbar {
+    padding-bottom: 5.75rem;
+}
+
+@media (min-width: 768px) {
+    .pm-has-tabbar {
+        padding-bottom: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pm-area-draw,
+    .pm-area-fill {
+        animation: none !important;
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+}
+
+/* -------------------------------------------------------------
    6. TAILWIND REMAPS
    The pages still use a few Tailwind color utilities; point the
    neutral + accent families at the tokens so they follow the theme.
@@ -736,13 +985,28 @@ details[open] .pm-chevron {
 .dark .bg-slate-950 { background-color: var(--pm-bg) !important; }
 .dark .bg-slate-900 { background-color: var(--pm-surface) !important; }
 .dark .bg-slate-800 { background-color: var(--pm-surface-2) !important; }
-.dark .border-slate-700 { border-color: var(--pm-border) !important; }
-.dark .border-slate-800 { border-color: var(--pm-border) !important; }
+.dark .bg-slate-900\/50,
+.dark .bg-slate-900\/40,
+.dark .bg-slate-800\/50,
+.dark .bg-slate-800\/40 { background-color: var(--pm-surface-2) !important; }
+.dark .border-slate-700,
+.dark .border-slate-800,
+.dark .border-slate-200,
+.dark .border-slate-200\/70,
+.dark .border-slate-100 { border-color: var(--pm-border) !important; }
+.dark .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--pm-border) !important; }
 .dark .text-slate-100 { color: var(--pm-text) !important; }
 .dark .text-slate-300 { color: var(--pm-text-soft) !important; }
 .dark .text-slate-400 { color: var(--pm-muted) !important; }
 .dark .text-slate-500 { color: var(--pm-faint) !important; }
 .dark .text-slate-600 { color: var(--pm-faint) !important; }
+.dark .hover\:bg-slate-800:hover,
+.dark .hover\:bg-slate-800\/50:hover,
+.dark .hover\:bg-slate-800\/40:hover,
+.dark .hover\:bg-slate-900:hover { background-color: var(--pm-surface-2) !important; }
+.dark .hover\:bg-slate-50:hover { background-color: rgba(255, 255, 255, 0.04) !important; }
+.dark .bg-white\/5 { background-color: rgba(255, 255, 255, 0.05) !important; }
 
 /* -------------------------------------------------------------
    7. MOTION

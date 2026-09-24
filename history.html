@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- PWA -->
-    <meta name="theme-color" content="#05070d" />
+    <meta name="theme-color" content="#06201e" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png" />
     <link rel="apple-touch-icon" href="icon-192.png" />
@@ -38,12 +38,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/theme.css?v=4" />
+    <link rel="stylesheet" href="css/theme.css?v=5" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onerror="var f=document.createElement('script');f.src='https://unpkg.com/@supabase/supabase-js@2';f.defer=true;document.head.appendChild(f);"></script>
     <script src="js/config.js?v=8" defer></script>
-    <script src="js/site.js?v=35" defer></script>
-    <script src="js/history.js?v=1" defer></script>
+    <script src="js/site.js?v=36" defer></script>
+    <script src="js/charts.js?v=1" defer></script>
+    <script src="js/history.js?v=2" defer></script>
 </head>
 <body class="min-h-full pt-20 pm-page pm-aurora bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-100 selection:text-indigo-900" data-page="history">
 
@@ -72,6 +73,29 @@
                 </button>
             </div>
         </header>
+
+        <!-- ===================== INSIGHTS ===================== -->
+        <section aria-label="Spending insights" class="grid gap-4 lg:grid-cols-5">
+            <div class="pm-card pm-glass-card p-6 lg:col-span-3">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <p class="pm-eyebrow"><i data-lucide="activity" class="h-3.5 w-3.5"></i> Expense dynamics</p>
+                        <h2 class="font-display mt-2 text-xl font-bold tracking-tight">
+                            Total spent <span id="heroRangeLabel" class="pm-muted font-medium">in view</span>
+                        </h2>
+                        <p id="heroTotal" class="pm-stat-value mt-1 text-3xl font-bold sm:text-4xl">—</p>
+                    </div>
+                    <span id="heroDelta" class="pm-chip text-xs font-bold">—</span>
+                </div>
+                <div id="heroChart" class="pm-area mt-5"></div>
+            </div>
+
+            <div class="pm-card pm-glass-card p-6 lg:col-span-2">
+                <p class="pm-eyebrow"><i data-lucide="orbit" class="h-3.5 w-3.5"></i> Expense</p>
+                <h2 class="font-display mt-2 text-lg font-bold tracking-tight">By category</h2>
+                <div id="heroOrbit" class="pm-orbit mt-4"></div>
+            </div>
+        </section>
 
         <!-- ===================== SUMMARY STATS ===================== -->
         <section aria-label="History summary" class="grid grid-cols-2 gap-4 lg:grid-cols-4">
