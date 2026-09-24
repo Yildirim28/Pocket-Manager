@@ -506,15 +506,27 @@ function initServiceWorker() {
 const AVATAR_META_KEY = 'avatar';
 
 const AVATARS = [
-    /* Illustrated hexagon faces (SVG) */
-    { id: 'hex-luna', label: 'Luna', anim: 'pm-anim-floaty', hex: { bg: ['#b8e986', '#76c442'], skin: '#f7d3b2', hair: '#1f6f63', hairAlt: '#17554c', style: 'bob', shirt: '#2fa36b' } },
-    { id: 'hex-nina', label: 'Nina', anim: 'pm-anim-nod', hex: { bg: ['#ff9db8', '#f9628f'], skin: '#f4c7a3', hair: '#7a4a35', hairAlt: '#633a29', style: 'bun', glasses: '#4b3426', shirt: '#d94f6e' } },
-    { id: 'hex-leo', label: 'Leo', anim: 'pm-anim-wave', hex: { bg: ['#c4a28a', '#a17c63'], skin: '#e8b184', hair: '#6b4130', hairAlt: '#573324', style: 'short', shirt: '#8c4a3a' } },
-    { id: 'hex-ella', label: 'Ella', anim: 'pm-anim-shine', hex: { bg: ['#a78bfa', '#8b5cf6'], skin: '#f7d3b2', hair: '#f9d77a', hairAlt: '#eec25f', style: 'long', shirt: '#f2b33d' } },
-    { id: 'hex-kai', label: 'Kai', anim: 'pm-anim-peek', hex: { bg: ['#7dd3fc', '#3b9ae1'], skin: '#f0bd93', hair: '#232a33', hairAlt: '#161b22', style: 'short', glasses: '#1f242b', shirt: '#232a33' } },
-    { id: 'hex-zara', label: 'Zara', anim: 'pm-anim-wiggle', hex: { bg: ['#fca5a5', '#f43f5e'], skin: '#8a5a3b', hair: '#241a14', hairAlt: '#171009', style: 'curly', shirt: '#f472b6' } },
-    { id: 'hex-milo', label: 'Milo', anim: 'pm-anim-thump', hex: { bg: ['#fdba74', '#f97316'], skin: '#f2c299', hair: '#3f2d20', hairAlt: '#2f2016', style: 'tuft', shirt: '#ea580c' } },
-    { id: 'hex-ivy', label: 'Ivy', anim: 'pm-anim-floaty', hex: { bg: ['#6ee7b7', '#10b981'], skin: '#d99a6c', hair: '#2f2a26', hairAlt: '#1f1c19', style: 'pony', shirt: '#0d9488' } },
+    /* Illustrated round avatars (SVG) */
+    { id: 'hex-luna', label: 'Luna', anim: 'pm-anim-3d', hex: { bg: ['#b8e986', '#76c442'], skin: '#f7d3b2', hair: '#1f6f63', hairAlt: '#17554c', style: 'bob', shirt: '#2fa36b' } },
+    { id: 'hex-nina', label: 'Nina', anim: 'pm-anim-3d', hex: { bg: ['#ff9db8', '#f9628f'], skin: '#f4c7a3', hair: '#7a4a35', hairAlt: '#633a29', style: 'bun', glasses: '#4b3426', shirt: '#d94f6e' } },
+    { id: 'hex-leo', label: 'Leo', anim: 'pm-anim-3d', hex: { bg: ['#c4a28a', '#a17c63'], skin: '#e8b184', hair: '#6b4130', hairAlt: '#573324', style: 'short', shirt: '#8c4a3a' } },
+    { id: 'hex-ella', label: 'Ella', anim: 'pm-anim-3d', hex: { bg: ['#a78bfa', '#8b5cf6'], skin: '#f7d3b2', hair: '#f9d77a', hairAlt: '#eec25f', style: 'long', shirt: '#f2b33d' } },
+    { id: 'hex-kai', label: 'Kai', anim: 'pm-anim-3d', hex: { bg: ['#7dd3fc', '#3b9ae1'], skin: '#f0bd93', hair: '#232a33', hairAlt: '#161b22', style: 'short', glasses: '#1f242b', shirt: '#232a33' } },
+    { id: 'hex-zara', label: 'Zara', anim: 'pm-anim-3d', hex: { bg: ['#fca5a5', '#f43f5e'], skin: '#8a5a3b', hair: '#241a14', hairAlt: '#171009', style: 'curly', shirt: '#f472b6' } },
+    { id: 'hex-milo', label: 'Milo', anim: 'pm-anim-3d', hex: { bg: ['#fdba74', '#f97316'], skin: '#f2c299', hair: '#3f2d20', hairAlt: '#2f2016', style: 'tuft', shirt: '#ea580c' } },
+    { id: 'hex-ivy', label: 'Ivy', anim: 'pm-anim-3d', hex: { bg: ['#6ee7b7', '#10b981'], skin: '#d99a6c', hair: '#2f2a26', hairAlt: '#1f1c19', style: 'pony', shirt: '#0d9488' } },
+    /* Boys */
+    { id: 'hex-tom', label: 'Tom · Boy', anim: 'pm-anim-3d', hex: { bg: ['#7dd3fc', '#0ea5e9'], skin: '#fad7b5', hair: '#8a5a2b', hairAlt: '#6f4722', style: 'bowl', shirt: '#0284c7' } },
+    { id: 'hex-sam', label: 'Sam · Boy', anim: 'pm-anim-3d', hex: { bg: ['#fde047', '#facc15'], skin: '#f0bd93', hair: '#4b3621', hairAlt: '#382815', style: 'tuft', shirt: '#eab308' } },
+    /* Men */
+    { id: 'hex-david', label: 'David · Man', anim: 'pm-anim-3d', hex: { bg: ['#a5b4fc', '#6366f1'], skin: '#e8b184', hair: '#2f2a26', hairAlt: '#1f1c19', style: 'short', shirt: '#4f46e5' } },
+    { id: 'hex-marco', label: 'Marco · Man', anim: 'pm-anim-3d', hex: { bg: ['#cbd5e1', '#64748b'], skin: '#d99a6c', hair: '#26201b', hairAlt: '#171310', style: 'short', beard: '#2f2721', shirt: '#334155' } },
+    /* Old men */
+    { id: 'hex-walter', label: 'Walter · Elder', anim: 'pm-anim-3d', hex: { bg: ['#86efac', '#22c55e'], skin: '#eec9a4', hair: '#d4d4d4', hairAlt: '#b8b8b8', style: 'bald', beard: '#e2e2e2', shirt: '#166534' } },
+    { id: 'hex-george', label: 'George · Elder', anim: 'pm-anim-3d', hex: { bg: ['#fdba74', '#fb923c'], skin: '#e8bd97', hair: '#c0c0c0', hairAlt: '#a8a8a8', style: 'short', glasses: '#444444', shirt: '#c2410c' } },
+    /* Ladies */
+    { id: 'hex-rose', label: 'Rose · Lady', anim: 'pm-anim-3d', hex: { bg: ['#fca5a5', '#ef4444'], skin: '#f7d3b2', hair: '#a16207', hairAlt: '#854f0d', style: 'long', shirt: '#dc2626' } },
+    { id: 'hex-evelyn', label: 'Evelyn · Elder', anim: 'pm-anim-3d', hex: { bg: ['#67e8f9', '#06b6d4'], skin: '#eec9a4', hair: '#d9d9d9', hairAlt: '#bfbfbf', style: 'bun', glasses: '#555555', shirt: '#0e7490' } },
     /* Emoji characters, ancient ➜ modern. Each with its own motion effect.
        Stored on the account (syncs devices). */
     { id: 'apes', emoji: '🦍', label: 'Prehistoric', anim: 'pm-anim-thump' },
@@ -549,10 +561,11 @@ async function saveAvatarToAccount(user, id) {
 }
 
 /* -------------------------------------------------------------
-   HEXAGON AVATARS — illustrated faces drawn as inline SVG so they
-   scale cleanly at any size (navbar, dashboard, picker, feedback).
+   ROUND AVATARS — illustrated faces drawn as inline SVG inside a
+   round border. The face layer gently tilts in 3D while the frame
+   stays still. Scales cleanly at any size.
 ------------------------------------------------------------- */
-const HEX_POINTS = '50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5';
+const AVATAR_R = 46; /* face layer radius (sits inside the frame) */
 
 function hexHairMarkup(style, h, alt) {
     switch (style) {
@@ -560,6 +573,11 @@ function hexHairMarkup(style, h, alt) {
             return (
                 `<path d="M28,56 Q26,24 50,24 Q74,24 72,56 L68,64 Q66,46 64,40 Q56,31 50,31 Q44,31 36,40 Q34,46 32,64 Z" fill="${h}"/>` +
                 `<path d="M34,38 Q42,29 56,32 Q64,34 67,41 Q58,33 46,35 Q39,36 34,38 Z" fill="${alt}"/>`
+            );
+        case 'bowl':
+            return (
+                `<path d="M30,54 Q28,24 50,24 Q72,24 70,54 L66,58 Q67,40 62,34 Q54,29 46,31 Q35,34 33,44 Q32,50 34,58 Z" fill="${h}"/>` +
+                `<path d="M33,42 Q41,31 55,33 Q64,35 67,43 Q57,35 45,37 Q38,38 33,42 Z" fill="${alt}"/>`
             );
         case 'bun':
             return (
@@ -589,6 +607,13 @@ function hexHairMarkup(style, h, alt) {
                 `<path d="M31,50 Q31,25 50,25 Q69,25 69,50 Q67,38 61,34 Q54,30 44,33 Q34,37 31,50 Z" fill="${h}"/>` +
                 `<path d="M33,40 Q41,31 54,33 Q62,35 66,42 Q56,35 44,37 Q38,38 33,40 Z" fill="${alt}"/>`
             );
+        case 'bald':
+            return (
+                `<path d="M30,52 Q30,36 40,33 Q34,40 33,54 Z" fill="${h}"/>` +
+                `<path d="M70,52 Q70,36 60,33 Q66,40 67,54 Z" fill="${h}"/>` +
+                `<path d="M33,44 Q38,37 45,36 L44,40 Q39,41 36,47 Z" fill="${alt}"/>` +
+                `<path d="M67,44 Q62,37 55,36 L56,40 Q61,41 64,47 Z" fill="${alt}"/>`
+            );
         default: /* short */
             return (
                 `<path d="M32,48 Q32,26 50,26 Q68,26 68,48 Q66,37 59,33 Q54,31 47,32 Q37,35 32,48 Z" fill="${h}"/>` +
@@ -597,7 +622,7 @@ function hexHairMarkup(style, h, alt) {
     }
 }
 
-function hexAvatarSvg(a, sizeClass = '') {
+function roundAvatarSvg(a, sizeClass = '') {
     const p = a.hex;
     const gid = `pmHexBg-${a.id}`;
     const clipId = `pmHexClip-${a.id}`;
@@ -607,15 +632,18 @@ function hexAvatarSvg(a, sizeClass = '') {
         `<linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">` +
         `<stop offset="0" stop-color="${p.bg[0]}"/><stop offset="1" stop-color="${p.bg[1]}"/>` +
         `</linearGradient>` +
-        `<clipPath id="${clipId}"><polygon points="${HEX_POINTS}"/></clipPath>` +
+        `<clipPath id="${clipId}"><circle cx="50" cy="50" r="${AVATAR_R}"/></clipPath>` +
         `</defs>` +
-        `<polygon points="${HEX_POINTS}" fill="url(#${gid})" stroke="url(#${gid})" stroke-width="8" stroke-linejoin="round"/>` +
         `<g clip-path="url(#${clipId})">` +
+        `<circle cx="50" cy="50" r="${AVATAR_R}" fill="url(#${gid})"/>` +
         `<path d="M18,100 Q22,72 50,72 Q78,72 82,100 Z" fill="${p.shirt}"/>` +
         `<rect x="44" y="54" width="12" height="14" rx="5" fill="${p.skin}"/>` +
         hexHairMarkup(p.style, p.hair, p.hairAlt) +
         `<ellipse cx="50" cy="47" rx="16.5" ry="18.5" fill="${p.skin}"/>` +
         hexHairMarkup(p.style, p.hair, p.hairAlt) +
+        (p.beard
+            ? `<path d="M35,52 Q34,70 50,73 Q66,70 65,52 Q63,63 57,66 Q53,68 50,68 Q47,68 43,66 Q37,63 35,52 Z" fill="${p.beard}"/>`
+            : '') +
         `<circle cx="43.5" cy="48" r="2.2" fill="#2b2b2b"/>` +
         `<circle cx="56.5" cy="48" r="2.2" fill="#2b2b2b"/>` +
         `<path d="M45,57 Q50,61.5 55,57" stroke="#b0654f" stroke-width="2" stroke-linecap="round" fill="none"/>` +
@@ -625,14 +653,23 @@ function hexAvatarSvg(a, sizeClass = '') {
               `<path d="M50,48 h0 M49.8,47.4 h0.4"/><path d="M37,47 L31.5,45.5"/><path d="M63,47 L68.5,45.5"/></g>`
             : '') +
         `</g>` +
-        `<polygon points="${HEX_POINTS}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linejoin="round"/>` +
         '</svg>'
     );
 }
 
-/* Inner face markup for any avatar (hex SVG or emoji). */
+/* Round frame + 3D-tilting face layer. */
+function roundAvatarHtml(avatar, sizeClass, extraClasses = '') {
+    return (
+        `<span class="relative inline-flex ${sizeClass} shrink-0 overflow-hidden rounded-full ring-2 ring-white shadow-md dark:ring-slate-700 ${extraClasses}">` +
+        `<span class="pm-avatar-3d block h-full w-full" role="img" aria-label="${avatar.label}">` +
+        roundAvatarSvg(avatar, 'h-full w-full') +
+        '</span></span>'
+    );
+}
+
+/* Inner face markup for any avatar (round SVG or emoji). */
 function avatarFaceHtml(avatar, textClass = 'text-lg') {
-    if (avatar.hex) return hexAvatarSvg(avatar, 'h-full w-full');
+    if (avatar.hex) return roundAvatarSvg(avatar, 'h-full w-full');
     return `<span class="${textClass} ${avatar.anim}" role="img" aria-label="${avatar.label}">${avatar.emoji}</span>`;
 }
 
@@ -645,14 +682,12 @@ function avatarHtml(user, size = 'sm', extraClasses = '') {
         lg: { ring: 'h-14 w-14', text: 'text-2xl' }
     };
     const s = sizes[size] || sizes.sm;
-    const isHex = !!avatar.hex;
-    const wrap = isHex
-        ? `inline-flex ${s.ring} shrink-0 items-center ${extraClasses}`
-        : `inline-flex ${s.ring} shrink-0 items-center justify-center rounded-full bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 ${extraClasses}`;
-    const inner = isHex
-        ? `<span class="h-full w-full ${avatar.anim}">${hexAvatarSvg(avatar, 'h-full w-full')}</span>`
-        : `<span class="${s.text} ${avatar.anim}" role="img" aria-label="${avatar.label}">${avatar.emoji}</span>`;
-    return `<span class="${wrap}">${inner}</span>`;
+    if (avatar.hex) return roundAvatarHtml(avatar, s.ring, extraClasses);
+    return (
+        `<span class="inline-flex ${s.ring} shrink-0 items-center justify-center rounded-full bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 ${extraClasses}">` +
+        `<span class="${s.text} ${avatar.anim}" role="img" aria-label="${avatar.label}">${avatar.emoji}</span>` +
+        '</span>'
+    );
 }
 
 /* Each avatar's motion effect + a reduced-motion opt-out. */
@@ -662,6 +697,7 @@ function injectAvatarStyles() {
     style.id = 'pmAvatarStyles';
     style.textContent = `
 @keyframes pm-thump{0%,100%{transform:translateY(0) scaleY(1)}30%{transform:translateY(-22%) scaleY(1.08)}55%{transform:translateY(0) scaleY(.92)}}
+@keyframes pm-avatar-3d{0%,100%{transform:perspective(300px) rotateY(-14deg) rotateX(5deg) scale(1.12)}25%{transform:perspective(300px) rotateY(0deg) rotateX(0deg) scale(1.12)}50%{transform:perspective(300px) rotateY(14deg) rotateX(-5deg) scale(1.12)}75%{transform:perspective(300px) rotateY(0deg) rotateX(0deg) scale(1.12)}}
 @keyframes pm-wiggle{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
 @keyframes pm-floaty{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-16%) rotate(3deg)}}
 @keyframes pm-nod{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(14%) rotate(-4deg)}}
@@ -672,6 +708,7 @@ function injectAvatarStyles() {
 @keyframes pm-wave{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
 @keyframes pm-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
 .pm-anim-thump{animation:pm-thump 1.6s ease-in-out infinite;transform-origin:center bottom;display:inline-block;will-change:transform}
+.pm-avatar-3d{animation:pm-avatar-3d 5s ease-in-out infinite;transform-origin:center;display:inline-block;will-change:transform}
 .pm-anim-wiggle{animation:pm-wiggle 1.8s ease-in-out infinite;transform-origin:center bottom;display:inline-block;will-change:transform}
 .pm-anim-floaty{animation:pm-floaty 3s ease-in-out infinite;display:inline-block;will-change:transform}
 .pm-anim-nod{animation:pm-nod 2.1s ease-in-out infinite;transform-origin:center top;display:inline-block;will-change:transform}
@@ -682,7 +719,8 @@ function injectAvatarStyles() {
 .pm-anim-wave{animation:pm-wave 1.9s ease-in-out infinite;transform-origin:center bottom;display:inline-block;will-change:transform}
 .pm-anim-pulse{animation:pm-pulse 1.5s ease-in-out infinite;display:inline-block;will-change:transform}
 @media (prefers-reduced-motion: reduce){
-  [class^="pm-anim-"]{animation:none !important}
+  [class^="pm-anim-"],.pm-avatar-3d{animation:none !important}
+  .pm-avatar-3d{transform:scale(1.12) !important}
 }`;
     document.head.appendChild(style);
 }
@@ -696,10 +734,10 @@ function initAvatarPicker() {
     mount.innerHTML = AVATARS.map((a) => {
         const active = a.id === current;
         const inner = a.hex
-            ? `<span class="h-full w-full ${a.anim}">${hexAvatarSvg(a, 'h-full w-full')}</span>`
+            ? `<span class="pm-avatar-3d block h-full w-full">${roundAvatarSvg(a, 'h-full w-full')}</span>`
             : `<span class="text-2xl ${a.anim}">${a.emoji}</span>`;
         const well = a.hex
-            ? `<span class="flex h-14 w-14 items-center justify-center">`
+            ? `<span class="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full ring-2 ring-white shadow-md dark:ring-slate-700">`
             : `<span class="flex h-14 w-14 items-center justify-center rounded-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700">`;
         return (
             `<button type="button" data-avatar="${a.id}" title="${a.label}" aria-label="${a.label}" ` +

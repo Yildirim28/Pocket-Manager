@@ -90,10 +90,7 @@ const FEEDBACK_TABLE = 'feedback';
     function avatarMarkup(post, name) {
         const chosen = AVATARS.find((a) => a.id === post.author_avatar);
         if (chosen && chosen.hex) {
-            return (
-                '<span class="flex h-10 w-10 shrink-0 items-center">' +
-                `<span class="h-full w-full ${chosen.anim}">${hexAvatarSvg(chosen, 'h-full w-full')}</span></span>`
-            );
+            return roundAvatarHtml(chosen, 'h-10 w-10');
         }
         if (chosen) {
             return (
