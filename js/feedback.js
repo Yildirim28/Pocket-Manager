@@ -89,6 +89,12 @@ const FEEDBACK_TABLE = 'feedback';
        a colored initial derived from their name. */
     function avatarMarkup(post, name) {
         const chosen = AVATARS.find((a) => a.id === post.author_avatar);
+        if (chosen && chosen.hex) {
+            return (
+                '<span class="flex h-10 w-10 shrink-0 items-center">' +
+                `<span class="h-full w-full ${chosen.anim}">${hexAvatarSvg(chosen, 'h-full w-full')}</span></span>`
+            );
+        }
         if (chosen) {
             return (
                 '<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">' +

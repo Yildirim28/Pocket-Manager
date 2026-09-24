@@ -506,6 +506,17 @@ function initServiceWorker() {
 const AVATAR_META_KEY = 'avatar';
 
 const AVATARS = [
+    /* Illustrated hexagon faces (SVG) */
+    { id: 'hex-luna', label: 'Luna', anim: 'pm-anim-floaty', hex: { bg: ['#b8e986', '#76c442'], skin: '#f7d3b2', hair: '#1f6f63', hairAlt: '#17554c', style: 'bob', shirt: '#2fa36b' } },
+    { id: 'hex-nina', label: 'Nina', anim: 'pm-anim-nod', hex: { bg: ['#ff9db8', '#f9628f'], skin: '#f4c7a3', hair: '#7a4a35', hairAlt: '#633a29', style: 'bun', glasses: '#4b3426', shirt: '#d94f6e' } },
+    { id: 'hex-leo', label: 'Leo', anim: 'pm-anim-wave', hex: { bg: ['#c4a28a', '#a17c63'], skin: '#e8b184', hair: '#6b4130', hairAlt: '#573324', style: 'short', shirt: '#8c4a3a' } },
+    { id: 'hex-ella', label: 'Ella', anim: 'pm-anim-shine', hex: { bg: ['#a78bfa', '#8b5cf6'], skin: '#f7d3b2', hair: '#f9d77a', hairAlt: '#eec25f', style: 'long', shirt: '#f2b33d' } },
+    { id: 'hex-kai', label: 'Kai', anim: 'pm-anim-peek', hex: { bg: ['#7dd3fc', '#3b9ae1'], skin: '#f0bd93', hair: '#232a33', hairAlt: '#161b22', style: 'short', glasses: '#1f242b', shirt: '#232a33' } },
+    { id: 'hex-zara', label: 'Zara', anim: 'pm-anim-wiggle', hex: { bg: ['#fca5a5', '#f43f5e'], skin: '#8a5a3b', hair: '#241a14', hairAlt: '#171009', style: 'curly', shirt: '#f472b6' } },
+    { id: 'hex-milo', label: 'Milo', anim: 'pm-anim-thump', hex: { bg: ['#fdba74', '#f97316'], skin: '#f2c299', hair: '#3f2d20', hairAlt: '#2f2016', style: 'tuft', shirt: '#ea580c' } },
+    { id: 'hex-ivy', label: 'Ivy', anim: 'pm-anim-floaty', hex: { bg: ['#6ee7b7', '#10b981'], skin: '#d99a6c', hair: '#2f2a26', hairAlt: '#1f1c19', style: 'pony', shirt: '#0d9488' } },
+    /* Emoji characters, ancient ➜ modern. Each with its own motion effect.
+       Stored on the account (syncs devices). */
     { id: 'apes', emoji: '🦍', label: 'Prehistoric', anim: 'pm-anim-thump' },
     { id: 'caveman', emoji: '🧔', label: 'Stone Age', anim: 'pm-anim-wiggle' },
     { id: 'sage', emoji: '👳', label: 'Ancient Sage', anim: 'pm-anim-floaty' },
@@ -537,6 +548,94 @@ async function saveAvatarToAccount(user, id) {
     return true;
 }
 
+/* -------------------------------------------------------------
+   HEXAGON AVATARS — illustrated faces drawn as inline SVG so they
+   scale cleanly at any size (navbar, dashboard, picker, feedback).
+------------------------------------------------------------- */
+const HEX_POINTS = '50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5';
+
+function hexHairMarkup(style, h, alt) {
+    switch (style) {
+        case 'bob':
+            return (
+                `<path d="M28,56 Q26,24 50,24 Q74,24 72,56 L68,64 Q66,46 64,40 Q56,31 50,31 Q44,31 36,40 Q34,46 32,64 Z" fill="${h}"/>` +
+                `<path d="M34,38 Q42,29 56,32 Q64,34 67,41 Q58,33 46,35 Q39,36 34,38 Z" fill="${alt}"/>`
+            );
+        case 'bun':
+            return (
+                `<circle cx="50" cy="21" r="7.5" fill="${h}"/>` +
+                `<path d="M31,52 Q31,26 50,26 Q69,26 69,52 Q67,40 62,36 Q54,31 44,34 Q34,38 31,52 Z" fill="${h}"/>` +
+                `<path d="M33,40 Q42,31 55,33 Q63,35 67,42 Q57,35 45,37 Q38,38 33,40 Z" fill="${alt}"/>`
+            );
+        case 'long':
+            return (
+                `<path d="M27,70 Q24,24 50,24 Q76,24 73,70 L67,74 Q68,46 64,38 Q56,30 50,30 Q44,30 36,38 Q32,46 33,74 Z" fill="${h}"/>` +
+                `<path d="M31,42 Q36,29 50,29 Q64,29 69,42 Q60,33 48,35 Q38,36 31,42 Z" fill="${alt}"/>`
+            );
+        case 'curly':
+            return (
+                `<g fill="${h}"><circle cx="35" cy="34" r="9"/><circle cx="50" cy="27" r="10"/><circle cx="65" cy="34" r="9"/><circle cx="31" cy="45" r="7"/><circle cx="69" cy="45" r="7"/></g>` +
+                `<path d="M35,44 Q42,34 55,36 Q63,38 66,45 Q57,38 46,40 Q39,41 35,44 Z" fill="${alt}"/>`
+            );
+        case 'tuft':
+            return (
+                `<path d="M32,46 Q33,27 50,27 Q67,27 68,46 Q64,36 56,33 Q52,28 55,24 Q46,26 44,32 Q36,35 32,46 Z" fill="${h}"/>` +
+                `<path d="M36,37 Q44,30 55,32 Q62,34 65,39 Q56,33 45,35 Q40,36 36,37 Z" fill="${alt}"/>`
+            );
+        case 'pony':
+            return (
+                `<path d="M67,38 Q81,44 74,62 Q77,44 67,38 Z" fill="${alt}"/>` +
+                `<circle cx="71" cy="36" r="6" fill="${h}"/>` +
+                `<path d="M31,50 Q31,25 50,25 Q69,25 69,50 Q67,38 61,34 Q54,30 44,33 Q34,37 31,50 Z" fill="${h}"/>` +
+                `<path d="M33,40 Q41,31 54,33 Q62,35 66,42 Q56,35 44,37 Q38,38 33,40 Z" fill="${alt}"/>`
+            );
+        default: /* short */
+            return (
+                `<path d="M32,48 Q32,26 50,26 Q68,26 68,48 Q66,37 59,33 Q54,31 47,32 Q37,35 32,48 Z" fill="${h}"/>` +
+                `<path d="M36,38 Q44,30 56,32 Q63,34 66,40 Q56,33 45,35 Q40,36 36,38 Z" fill="${alt}"/>`
+            );
+    }
+}
+
+function hexAvatarSvg(a, sizeClass = '') {
+    const p = a.hex;
+    const gid = `pmHexBg-${a.id}`;
+    const clipId = `pmHexClip-${a.id}`;
+    return (
+        `<svg viewBox="0 0 100 100" class="${sizeClass}" role="img" aria-label="${a.label}" xmlns="http://www.w3.org/2000/svg">` +
+        `<defs>` +
+        `<linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">` +
+        `<stop offset="0" stop-color="${p.bg[0]}"/><stop offset="1" stop-color="${p.bg[1]}"/>` +
+        `</linearGradient>` +
+        `<clipPath id="${clipId}"><polygon points="${HEX_POINTS}"/></clipPath>` +
+        `</defs>` +
+        `<polygon points="${HEX_POINTS}" fill="url(#${gid})" stroke="url(#${gid})" stroke-width="8" stroke-linejoin="round"/>` +
+        `<g clip-path="url(#${clipId})">` +
+        `<path d="M18,100 Q22,72 50,72 Q78,72 82,100 Z" fill="${p.shirt}"/>` +
+        `<rect x="44" y="54" width="12" height="14" rx="5" fill="${p.skin}"/>` +
+        hexHairMarkup(p.style, p.hair, p.hairAlt) +
+        `<ellipse cx="50" cy="47" rx="16.5" ry="18.5" fill="${p.skin}"/>` +
+        hexHairMarkup(p.style, p.hair, p.hairAlt) +
+        `<circle cx="43.5" cy="48" r="2.2" fill="#2b2b2b"/>` +
+        `<circle cx="56.5" cy="48" r="2.2" fill="#2b2b2b"/>` +
+        `<path d="M45,57 Q50,61.5 55,57" stroke="#b0654f" stroke-width="2" stroke-linecap="round" fill="none"/>` +
+        (p.glasses
+            ? `<g stroke="${p.glasses}" stroke-width="2" fill="none">` +
+              `<circle cx="43.5" cy="48" r="6.5"/><circle cx="56.5" cy="48" r="6.5"/>` +
+              `<path d="M50,48 h0 M49.8,47.4 h0.4"/><path d="M37,47 L31.5,45.5"/><path d="M63,47 L68.5,45.5"/></g>`
+            : '') +
+        `</g>` +
+        `<polygon points="${HEX_POINTS}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linejoin="round"/>` +
+        '</svg>'
+    );
+}
+
+/* Inner face markup for any avatar (hex SVG or emoji). */
+function avatarFaceHtml(avatar, textClass = 'text-lg') {
+    if (avatar.hex) return hexAvatarSvg(avatar, 'h-full w-full');
+    return `<span class="${textClass} ${avatar.anim}" role="img" aria-label="${avatar.label}">${avatar.emoji}</span>`;
+}
+
 /* Animated avatar markup. size: 'sm' (navbar) | 'md' | 'lg' (picker). */
 function avatarHtml(user, size = 'sm', extraClasses = '') {
     const avatar = avatarFor(user);
@@ -546,11 +645,14 @@ function avatarHtml(user, size = 'sm', extraClasses = '') {
         lg: { ring: 'h-14 w-14', text: 'text-2xl' }
     };
     const s = sizes[size] || sizes.sm;
-    return (
-        `<span class="inline-flex ${s.ring} shrink-0 items-center justify-center rounded-full bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 ${extraClasses}">` +
-        `<span class="${s.text} ${avatar.anim}" role="img" aria-label="${avatar.label}">${avatar.emoji}</span>` +
-        '</span>'
-    );
+    const isHex = !!avatar.hex;
+    const wrap = isHex
+        ? `inline-flex ${s.ring} shrink-0 items-center ${extraClasses}`
+        : `inline-flex ${s.ring} shrink-0 items-center justify-center rounded-full bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 ${extraClasses}`;
+    const inner = isHex
+        ? `<span class="h-full w-full ${avatar.anim}">${hexAvatarSvg(avatar, 'h-full w-full')}</span>`
+        : `<span class="${s.text} ${avatar.anim}" role="img" aria-label="${avatar.label}">${avatar.emoji}</span>`;
+    return `<span class="${wrap}">${inner}</span>`;
 }
 
 /* Each avatar's motion effect + a reduced-motion opt-out. */
@@ -593,6 +695,12 @@ function initAvatarPicker() {
 
     mount.innerHTML = AVATARS.map((a) => {
         const active = a.id === current;
+        const inner = a.hex
+            ? `<span class="h-full w-full ${a.anim}">${hexAvatarSvg(a, 'h-full w-full')}</span>`
+            : `<span class="text-2xl ${a.anim}">${a.emoji}</span>`;
+        const well = a.hex
+            ? `<span class="flex h-14 w-14 items-center justify-center">`
+            : `<span class="flex h-14 w-14 items-center justify-center rounded-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700">`;
         return (
             `<button type="button" data-avatar="${a.id}" title="${a.label}" aria-label="${a.label}" ` +
             'class="group flex flex-col items-center gap-1.5 rounded-2xl p-2 transition-colors ' +
@@ -600,8 +708,9 @@ function initAvatarPicker() {
                 ? 'bg-indigo-50 dark:bg-indigo-500/15 ring-2 ring-indigo-400'
                 : 'hover:bg-slate-100 dark:hover:bg-slate-800 ring-1 ring-transparent') +
             '">' +
-            `<span class="flex h-14 w-14 items-center justify-center rounded-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700">` +
-            `<span class="text-2xl ${a.anim}">${a.emoji}</span></span>` +
+            well +
+            inner +
+            '</span>' +
             `<span class="text-[10px] font-semibold ${active ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-400 dark:text-slate-500'}">${a.label}</span>` +
             '</button>'
         );
@@ -622,7 +731,7 @@ function initAvatarPicker() {
             initAvatarPicker();
             renderNavbar({ user });
             const avatar = avatarById(id);
-            showToast(`Avatar set to ${avatar.emoji} ${avatar.label}`, 'success');
+            showToast(`Avatar set to ${avatar.emoji ? avatar.emoji + ' ' : ''}${avatar.label}`, 'success');
         });
     });
 }
