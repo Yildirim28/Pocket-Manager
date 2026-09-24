@@ -14,7 +14,8 @@
     /* ---------------- ELEMENTS ---------------- */
     const els = {
         refresh: document.getElementById('refreshButton'),
-
+        pdf: document.getElementById('pdfButton'),
+        pdfText: document.getElementById('pdfButtonText'),
         fullPdf: document.getElementById('fullPdfButton'),
         fullPdfText: document.getElementById('fullPdfButtonText'),
         statTotal: document.getElementById('statTotal'),
