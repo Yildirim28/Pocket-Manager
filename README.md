@@ -93,15 +93,17 @@ Use the **Add Transactions** form:
 3. A preview shows each share, e.g. `Alice $10.00 · Bob $10.00`
 
 ### 5. Read the dashboard
+- **🎯 Monthly Budget** — the first card you see: a dark hero with mood feedback (🤩 😌 😬 💥), a sand-timer that drains as you spend, pace + allowance tiles, and one-tap budget setting
 - **Total Spent This Month** — tap the card to flip and see your **remaining budget**
 - **Highest Expense Category** — tap to flip and see the **lowest**
 - **Utilities This Month** — tap to flip and see the **per-type breakdown**
 - **Total Transactions** — glowing count; tap to flip and see your **top 5 biggest expenses**
-- **🎯 Monthly Budget** — dark card with mood feedback (🤩 😌 😬 💥)
 - **👥 Spending by Person** — totals, percentages, and itemized details per person
 
 ### 6. Set your budget
-In the 🎯 Monthly Budget card, change the **Target** amount. It saves automatically in your browser.
+1. On the 🎯 **Monthly Budget** card, click **Set budget** (or the ✨ suggestion chip in the footer)
+2. A modern panel opens with a **smart suggestion** built from your recent months, quick-pick amounts, and a custom field
+3. Pick a value and hit **Save budget** — it applies instantly and syncs to your account across every device
 
 ### 7. Settings
 Open **Settings** from the navbar:

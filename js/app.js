@@ -65,6 +65,18 @@ const budgetDailyValueEl = document.getElementById('budgetDailyValue');
 const budgetDailyNoteEl = document.getElementById('budgetDailyNote');
 const budgetDaysLeftEl = document.getElementById('budgetDaysLeft');
 const budgetDaysNoteEl = document.getElementById('budgetDaysNote');
+const budgetSuggestChipEl = document.getElementById('budgetSuggestChip');
+const budgetSuggestChipTextEl = document.getElementById('budgetSuggestChipText');
+const openBudgetDialogButton = document.getElementById('openBudgetDialog');
+const budgetDialogEl = document.getElementById('budgetDialog');
+const budgetDialogBackdrop = document.getElementById('budgetDialogBackdrop');
+const budgetDialogCloseButton = document.getElementById('budgetDialogClose');
+const budgetDialogCancelButton = document.getElementById('budgetDialogCancel');
+const saveBudgetDialogButton = document.getElementById('budgetDialogSave');
+const budgetSuggestionValueEl = document.getElementById('budgetSuggestionValue');
+const budgetSuggestionReasonEl = document.getElementById('budgetSuggestionReason');
+const budgetSuggestionApplyButton = document.getElementById('budgetSuggestionApply');
+const budgetQuickPicksEl = document.getElementById('budgetQuickPicks');
 const peopleCardSubtitleEl = document.getElementById('peopleCardSubtitle');
 
 const orbitMonthEl = document.getElementById('orbitMonth');
@@ -820,6 +832,164 @@ function renderSummary() {
                 leftFraction <= 0.005 ? 'Glass empty' : `${Math.round(leftFraction * 100)}% left`;
         }
     }
+
+    // Smart budget nudge shown in the card footer.
+    renderBudgetSuggestion();
+}
+
+/* -------------------------------------------------------------
+   BUDGET SETTER (modern dialog + smart suggestions)
+   The suggestion engine is deliberately simple and deterministic,
+   so it can be swapped for AI-based tracking later without
+   touching the dialog wiring below.
+------------------------------------------------------------- */
+function monthlyTotalsByKey() {
+    const totals = {};
+    expenses.forEach((expense) => {
+        const key = String(expense.expense_date || '').slice(0, 7);
+        if (!/^\d{4}-\d{2}$/.test(key)) return;
+        totals[key] = (totals[key] || 0) + Number(expense.amount || 0);
+    });
+    return totals;
+}
+
+/* Recommend a monthly target from recent, completed months. */
+function suggestBudget() {
+    const totals = monthlyTotalsByKey();
+    const currentKey = currentMonthKey();
+    const completed = Object.keys(totals)
+        .filter((key) => key !== currentKey)
+        .sort((a, b) => b.localeCompare(a))
+        .slice(0, 3);
+
+    if (completed.length === 0) {
+        return {
+            value: Math.max(monthlyBudget, 1000),
+            reason: 'Add a full month of expenses and we\u2019ll suggest a target that fits your spending.',
+            confident: false
+        };
+    }
+
+    const average = completed.reduce((sum, key) => sum + totals[key], 0) / completed.length;
+    const value = Math.max(100, Math.round((average * 1.1) / 50) * 50);
+    const window = completed.length === 1 ? 'last month' : `last ${completed.length} months`;
+    return {
+        value,
+        reason: `Based on ${formatCurrency(average)} average spending over the ${window}, with a little headroom for surprises.`,
+        confident: true
+    };
+}
+
+/* A small nudge in the card footer so the suggestion is visible
+   without opening the dialog. */
+function renderBudgetSuggestion() {
+    if (!budgetSuggestChipEl || !budgetSuggestChipTextEl) return;
+    const suggestion = suggestBudget();
+    if (suggestion.confident) {
+        budgetSuggestChipTextEl.textContent = `Try ${formatCurrency(suggestion.value)}`;
+        budgetSuggestChipEl.classList.remove('pm-force-hidden');
+    } else {
+        budgetSuggestChipEl.classList.add('pm-force-hidden');
+    }
+}
+
+function renderBudgetDialog() {
+    const suggestion = suggestBudget();
+    if (budgetSuggestionValueEl) budgetSuggestionValueEl.textContent = formatCurrency(suggestion.value);
+    if (budgetSuggestionReasonEl) budgetSuggestionReasonEl.textContent = suggestion.reason;
+
+    if (budgetQuickPicksEl) {
+        const picks = new Set([
+            suggestion.value,
+            Math.round((suggestion.value * 1.5) / 50) * 50,
+            1000,
+            2000,
+            5000
+        ]);
+        budgetQuickPicksEl.innerHTML = Array.from(picks)
+            .filter((value) => Number.isFinite(value) && value > 0)
+            .sort((a, b) => a - b)
+            .map(
+                (value) =>
+                    `<button type="button" data-budget-pick="${value}" class="pm-chip transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-300">${formatCurrency(value)}</button>`
+            )
+            .join('');
+    }
+
+    if (budgetInput) budgetInput.value = monthlyBudget;
+    window.lucide?.createIcons();
+}
+
+function openBudgetDialog() {
+    if (!budgetDialogEl) return;
+    renderBudgetDialog();
+    budgetDialogEl.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+    setTimeout(() => budgetInput?.focus(), 40);
+}
+
+function closeBudgetDialog() {
+    if (!budgetDialogEl) return;
+    budgetDialogEl.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+}
+
+/* Validate, persist, and re-render a new budget target. */
+function applyBudget(value) {
+    const amount = Number(value);
+    if (!Number.isFinite(amount) || amount <= 0) {
+        showToast('Budget target must be a positive number.', 'error');
+        return false;
+    }
+    monthlyBudget = amount;
+    if (budgetInput) budgetInput.value = amount;
+    renderSummary();
+    saveBudget(amount, currentUserId, currentUser).then((synced) => {
+        showToast(
+            synced
+                ? `Budget saved as ${formatCurrency(amount)} — synced to your account.`
+                : 'Budget saved on this device (offline — will sync when connected).',
+            synced ? 'success' : 'info'
+        );
+    });
+    return true;
+}
+
+function initBudgetDialog() {
+    openBudgetDialogButton?.addEventListener('click', openBudgetDialog);
+    budgetSuggestChipEl?.addEventListener('click', openBudgetDialog);
+    budgetDialogCloseButton?.addEventListener('click', closeBudgetDialog);
+    budgetDialogCancelButton?.addEventListener('click', closeBudgetDialog);
+    budgetDialogBackdrop?.addEventListener('click', closeBudgetDialog);
+
+    saveBudgetDialogButton?.addEventListener('click', () => {
+        if (applyBudget(budgetInput?.value)) closeBudgetDialog();
+    });
+
+    budgetSuggestionApplyButton?.addEventListener('click', () => {
+        const suggestion = suggestBudget();
+        if (budgetInput) budgetInput.value = suggestion.value;
+        if (applyBudget(suggestion.value)) closeBudgetDialog();
+    });
+
+    budgetQuickPicksEl?.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-budget-pick]');
+        if (!button || !budgetInput) return;
+        budgetInput.value = button.getAttribute('data-budget-pick');
+    });
+
+    budgetInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (applyBudget(budgetInput.value)) closeBudgetDialog();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && budgetDialogEl && !budgetDialogEl.classList.contains('hidden')) {
+            closeBudgetDialog();
+        }
+    });
 }
 
 const AVATAR_GRADIENTS = [
@@ -1394,24 +1564,7 @@ async function init() {
         if (button) deletePerson(button.getAttribute('data-person-id'));
     });
 
-    budgetInput.addEventListener('change', () => {
-        const value = Number(budgetInput.value);
-        if (!Number.isFinite(value) || value <= 0) {
-            budgetInput.value = monthlyBudget;
-            showToast('Budget target must be a positive number.', 'error');
-            return;
-        }
-        monthlyBudget = value;
-        renderSummary();
-        saveBudget(value, currentUserId, currentUser).then((synced) => {
-            showToast(
-                synced
-                    ? `Budget saved as ${formatCurrency(value)} — synced to your account.`
-                    : `Budget saved on this device (offline — will sync when connected).`,
-                synced ? 'success' : 'info'
-            );
-        });
-    });
+    initBudgetDialog();
 
 }
 
