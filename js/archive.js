@@ -69,6 +69,7 @@
     let trashedExpenses = [];  // counted nowhere
     let monthKeys = [];        // descending
     const expanded = new Set();
+    const openPanels = new Set();  // drill-down <details> the user expanded
     let monthlyBudget = DEFAULT_MONTHLY_BUDGET;
     let currentUser = null;
     let armTimer = null;
@@ -366,7 +367,7 @@
         );
     }
 
-    function peopleBlockHtml(rows) {
+    function peopleBlockHtml(rows, monthKey) {
         const byPerson = {};
         rows.forEach((expense) => {
             (Array.isArray(expense.participants) ? expense.participants : []).forEach((p) => {
@@ -386,67 +387,115 @@
 
         return (
             '<div class="rounded-2xl border border-slate-200/70 p-4 dark:border-slate-800">' +
-            '<p class="pm-eyebrow"><i data-lucide="users" class="h-3.5 w-3.5"></i> By person</p>' +
-            '<div class="mt-3 space-y-4">' +
-            entries
-                .map(([name, info]) => {
-                    const colors = personColors(name);
-                    const share = Math.round((info.total / grand) * 100);
-                    return (
-                        '<div>' +
-                        '<div class="flex items-center gap-2">' +
-                        `<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base" style="background:linear-gradient(135deg, ${colors.from}, ${colors.to})">${mascotFor(name)}</span>` +
-                        '<span class="min-w-0 flex-1">' +
-                        `<span class="block truncate text-sm font-semibold">${escapeHTML(name)}</span>` +
-                        `<span class="pm-faint block text-xs">${info.details.length} expense${info.details.length === 1 ? '' : 's'}</span>` +
-                        '</span>' +
-                        `<span class="whitespace-nowrap text-sm font-bold tabular-nums">${formatCurrency(info.total)} <span class="pm-faint text-[11px] font-semibold">· ${share}%</span></span>` +
-                        '</div>' +
-                        `<ul class="mt-2 space-y-1 border-l-2 pl-3" style="border-color:${colors.from}">` +
-                        info.details
-                            .map(
-                                (d) =>
-                                    '<li class="flex items-baseline justify-between gap-2 text-xs">' +
-                                    `<span class="pm-muted truncate">${escapeHTML(d.description || 'Untitled')} <span class="pm-faint">${formatDate(d.date)}</span></span>` +
-                                    `<span class="whitespace-nowrap font-semibold tabular-nums" style="color:${colors.from}">${formatCurrency(d.share)}</span>` +
-                                    '</li>'
-                            )
-                            .join('') +
-                        '</ul>' +
-                        '</div>'
-                    );
-                })
-                .join('') +
+            '<div class="flex flex-wrap items-center justify-between gap-2">' +
+            '<span class="pm-eyebrow"><i data-lucide="users" class="h-3.5 w-3.5"></i> By person</span>' +
+            `<span class="pm-faint text-xs">${entries.length} ${entries.length === 1 ? 'person' : 'people'} · tap a row for the full breakdown</span>` +
+            '</div>' +
+            '<div class="mt-1 divide-y divide-slate-100 dark:divide-slate-800">' +
+            entries.map(([name, info]) => personPanelHtml(name, info, grand, monthKey)).join('') +
             '</div></div>'
         );
     }
 
-    function expenseListHtml(rows) {
-        if (rows.length === 0) return '';
+    /* One person = a dropdown (<details>) whose body is the itemised
+       table of every share that person carries this month. */
+    function personPanelHtml(name, info, grand, monthKey) {
+        const colors = personColors(name);
+        const share = Math.round((info.total / grand) * 100);
+        const panelKey = `person:${monthKey}:${name}`;
+        const count = info.details.length;
+        const rows = [...info.details].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
         return (
-            '<div class="rounded-2xl border border-slate-200/70 dark:border-slate-800">' +
-            '<div class="flex items-center justify-between gap-2 border-b border-slate-200/70 px-4 py-3 dark:border-slate-800">' +
-            '<p class="pm-eyebrow"><i data-lucide="receipt-text" class="h-3.5 w-3.5"></i> Every expense</p>' +
-            `<span class="pm-faint text-xs">${rows.length} item${rows.length === 1 ? '' : 's'}</span>` +
-            '</div>' +
-            '<ul class="divide-y divide-slate-100 dark:divide-slate-800">' +
+            `<details data-pm-details="${escapeHTML(panelKey)}"${openPanels.has(panelKey) ? ' open' : ''}>` +
+            '<summary class="flex cursor-pointer select-none items-center gap-2 px-1 py-2.5 transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/50">' +
+            `<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base" style="background:linear-gradient(135deg, ${colors.from}, ${colors.to})">${mascotFor(name)}</span>` +
+            '<span class="min-w-0 flex-1">' +
+            `<span class="block truncate text-sm font-semibold">${escapeHTML(name)}</span>` +
+            `<span class="pm-faint block text-xs">${count} expense${count === 1 ? '' : 's'} · tap for details</span>` +
+            '</span>' +
+            `<span class="whitespace-nowrap text-sm font-bold tabular-nums">${formatCurrency(info.total)} <span class="pm-faint text-[11px] font-semibold">· ${share}%</span></span>` +
+            `<i data-lucide="chevron-right" class="pm-chevron h-4 w-4 shrink-0" style="color:${colors.from}"></i>` +
+            '</summary>' +
+            '<div class="mb-3 mt-1 overflow-x-auto rounded-xl border border-slate-200/70 dark:border-slate-800">' +
+            '<table class="w-full text-left text-xs">' +
+            '<thead class="border-b border-slate-200/70 bg-slate-50/80 text-[10px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400">' +
+            '<tr>' +
+            '<th scope="col" class="px-3 py-2 font-semibold">Description</th>' +
+            '<th scope="col" class="whitespace-nowrap px-3 py-2 font-semibold">Date</th>' +
+            '<th scope="col" class="px-3 py-2 text-right font-semibold">Amount</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody class="divide-y divide-slate-100 dark:divide-slate-800">' +
             rows
-                .map((e) => {
-                    const date = formatDate(e.expense_date);
-                    const desc = escapeHTML(e.description || 'Untitled');
-                    const categories = `${badgeHtml(e.category)} ${utilityChipHtml(e)}`;
-                    const people = participantsHtml(e);
-                    return (
-                        '<li class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">' +
-                        `<span class="pm-faint w-16 shrink-0 text-xs font-medium">${date}</span>` +
-                        `<span class="min-w-0 flex-1 font-medium">${desc}` +
-                        `<span class="mt-1 flex flex-wrap items-center gap-1">${categories}${people ? ` ${people}` : ''}</span></span>` +
-                        `<span class="whitespace-nowrap text-sm font-bold tabular-nums">${formatCurrency(e.amount)}</span>` +
-                        '</li>'
-                    );
-                })
+                .map(
+                    (d) =>
+                        '<tr class="pm-row">' +
+                        `<td class="px-3 py-2">${escapeHTML(d.description || 'Untitled')}</td>` +
+                        `<td class="pm-faint whitespace-nowrap px-3 py-2">${formatDate(d.date)}</td>` +
+                        `<td class="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums" style="color:${colors.from}">${formatCurrency(d.share)}</td>` +
+                        '</tr>'
+                )
                 .join('') +
-            '</ul></div>'
+            '</tbody>' +
+            '<tfoot class="border-t border-slate-200/70 dark:border-slate-800">' +
+            '<tr>' +
+            `<th scope="row" colspan="2" class="pm-faint px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider">Total · ${escapeHTML(name)}</th>` +
+            `<td class="whitespace-nowrap px-3 py-2 text-right text-xs font-bold tabular-nums">${formatCurrency(info.total)}</td>` +
+            '</tr>' +
+            '</tfoot>' +
+            '</table>' +
+            '</div>' +
+            '</details>'
+        );
+    }
+
+    function expenseListHtml(rows, monthKey) {
+        if (rows.length === 0) return '';
+        const panelKey = `all:${monthKey}`;
+        const label = `${rows.length} item${rows.length === 1 ? '' : 's'}`;
+
+        return (
+            `<details class="overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800" data-pm-details="${escapeHTML(panelKey)}"${openPanels.has(panelKey) ? ' open' : ''}>` +
+            '<summary class="flex cursor-pointer select-none items-center justify-between gap-2 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">' +
+            '<span class="pm-eyebrow"><i data-lucide="receipt-text" class="h-3.5 w-3.5"></i> Every expense</span>' +
+            '<span class="flex items-center gap-2">' +
+            `<span class="pm-faint text-xs">${label} · ${formatCurrency(sum(rows))}</span>` +
+            '<i data-lucide="chevron-right" class="pm-chevron h-4 w-4"></i>' +
+            '</span>' +
+            '</summary>' +
+            '<div class="overflow-x-auto border-t border-slate-200/70 dark:border-slate-800">' +
+            '<table class="w-full text-left text-sm">' +
+            '<thead class="border-b border-slate-200/70 bg-slate-50/80 text-[10px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400">' +
+            '<tr>' +
+            '<th scope="col" class="whitespace-nowrap px-4 py-2 font-semibold">Date</th>' +
+            '<th scope="col" class="px-4 py-2 font-semibold">Description</th>' +
+            '<th scope="col" class="px-4 py-2 text-right font-semibold">Amount</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody class="divide-y divide-slate-100 dark:divide-slate-800">' +
+            rows.map(expenseRowHtml).join('') +
+            '</tbody>' +
+            '</table>' +
+            '</div>' +
+            '</details>'
+        );
+    }
+
+    /* Table row for the "Every expense" drill-down (same shape as the
+       history table: date, description + category chips, amount). */
+    function expenseRowHtml(expense) {
+        const categories = `${badgeHtml(expense.category)} ${utilityChipHtml(expense)}`.trim();
+        const people = participantsHtml(expense);
+        return (
+            '<tr class="pm-row align-top">' +
+            `<td class="pm-faint whitespace-nowrap px-4 py-3 text-xs">${formatDate(expense.expense_date)}</td>` +
+            '<td class="px-4 py-3">' +
+            `<p class="font-medium">${escapeHTML(expense.description || 'Untitled')}</p>` +
+            `<div class="mt-1 flex flex-wrap items-center gap-1">${categories}${people ? ` ${people}` : ''}</div>` +
+            '</td>' +
+            `<td class="whitespace-nowrap px-4 py-3 text-right font-bold tabular-nums">${formatCurrency(expense.amount)}</td>` +
+            '</tr>'
         );
     }
 
@@ -461,8 +510,8 @@
             budgetBlockHtml(rows),
             grid,
             topFiveBlockHtml(rows),
-            peopleBlockHtml(rows),
-            expenseListHtml(rows)
+            peopleBlockHtml(rows, month.key),
+            expenseListHtml(rows, month.key)
         ].filter(Boolean);
 
         return (
@@ -511,6 +560,16 @@
             card.outerHTML = monthCardHtml(month);
             window.lucide?.createIcons();
         }
+    }
+
+    /* Keeps the open/closed state of a drill-down <details> in memory so
+       re-rendering a month card doesn't collapse what the user opened. */
+    function rememberPanel(target) {
+        if (!target || typeof target.getAttribute !== 'function') return;
+        const key = target.getAttribute('data-pm-details');
+        if (!key) return;
+        if (target.open) openPanels.add(key);
+        else openPanels.delete(key);
     }
 
     /* ---------------- PDF LIST ---------------- */
@@ -777,6 +836,11 @@
     function wireEvents() {
         els.refresh?.addEventListener('click', refresh);
         els.fullPdf?.addEventListener('click', exportFullPdf);
+
+        // <details> toggle events don't bubble, so listen in the capture
+        // phase: this remembers which drill-downs are open and keeps them
+        // open when a month card is re-rendered.
+        els.monthsList.addEventListener('toggle', (event) => rememberPanel(event.target), true);
 
         els.monthsList.addEventListener('click', (event) => {
             const pdfButton = event.target.closest('[data-month-pdf]');

@@ -120,7 +120,8 @@ Open **History** from the navbar:
 ### 9. Archive
 Open **Archive** from the navbar to see every past month in full detail:
 - Hero stats — all-time spent, months tracked, transactions and items in trash
-- **Month by month** — tap a month to expand totals, budget progress, utilities breakdown, category bars, biggest expenses, per-person totals and the full list of individual expenses
+- **Month by month** — tap a month to expand totals, budget progress, utilities breakdown, category bars and the biggest expenses
+- **Drill-down tables** — tap any person to unfold a table of every share they carry, and unfold **Every expense** for the month's full ledger (description, date, category/people chips and amount)
 - **PDF list** — download a single month or the entire archive as a PDF (generated on your device)
 - **Deleted expenses** — the trash bin (see below)
 
