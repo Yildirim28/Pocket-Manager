@@ -39,6 +39,15 @@ alter table public.expenses
 comment on column public.expenses.utility_type
     is 'Utilities sub-type: Wifi, Gas, Electricity, Other';
 
+-- v5: soft delete (trash). Trashed rows keep deleted_at set and are
+-- filtered out of every calculation; the Archive tab lets you restore
+-- or permanently delete them.
+alter table public.expenses
+    add column if not exists deleted_at timestamptz;
+
+comment on column public.expenses.deleted_at
+    is 'Soft delete: set when trashed; NULL means the expense is active';
+
 -- The Bills category is replaced by Utilities sub-types.
 update public.expenses
    set category = 'Utilities', utility_type = 'Other'
@@ -53,6 +62,8 @@ create index if not exists expenses_expense_date_idx
     on public.expenses (expense_date desc);
 create index if not exists expenses_user_id_idx
     on public.expenses (user_id);
+create index if not exists expenses_user_deleted_idx
+    on public.expenses (user_id, deleted_at);
 
 comment on table public.expenses is 'Pocket Manager: per-user manual expense records';
 

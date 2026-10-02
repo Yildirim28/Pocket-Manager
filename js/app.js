@@ -1115,7 +1115,9 @@ async function fetchExpenses() {
 
         if (error) throw error;
 
-        expenses = data ?? [];
+        // Trashed rows (deleted_at set) are excluded from every
+        // calculation on the dashboard.
+        expenses = (data ?? []).filter((expense) => !expense.deleted_at);
         renderAll();
     } catch (error) {
         showToast(`Could not load expenses: ${error.message}`, 'error');

@@ -16,7 +16,10 @@ A simple, free, and private expense tracker. Log your daily spending in seconds,
 - **Interactive cards** — tap cards to flip: remaining balance, lowest category, utilities breakdown, top 5 transactions
 - **Installable (PWA)** — install it on your phone or desktop and use it like a native app
 - **Offline-ready** — pages load even without internet (data syncs when back online)
-- **Export** — download all expenses as CSV (spreadsheet) or PNG (report card)
+- **History ledger** — search, filter (category, person, month) and sort every expense, with a downloadable PDF
+- **Archive** — every past month in full detail (totals, budget, utilities, categories, people and each expense) with per-month and full-history PDF exports
+- **Trash bin** — deleted expenses are soft-deleted to a trash that is excluded from every total, chart and export; restore them or delete them forever
+- **Export** — download all expenses as CSV (spreadsheet), PNG (report card) or PDF
 - **Accent colors** — 6 themes; pick your favorite in Settings
 - **Contact owner** — send messages via WhatsApp or email
 
@@ -38,16 +41,24 @@ A simple, free, and private expense tracker. Log your daily spending in seconds,
 ├── login.html        # Sign in
 ├── signup.html       # Create account
 ├── app.html          # Dashboard (main app)
+├── history.html      # Full transaction history + PDF export
+├── archive.html      # Monthly archive, PDF list and trash
 ├── settings.html     # Account, appearance, exports
+├── feedback.html     # Feedback form
 ├── contact.html      # Contact the owner
 ├── manifest.json     # PWA manifest
 ├── sw.js             # Service worker (offline support)
+├── schema.sql        # Supabase schema + migrations
 ├── icon-192.png      # App icon (small)
 ├── icon-512.png      # App icon (large)
 └── js/
     ├── config.js     # Supabase keys + app settings
     ├── site.js       # Navbar, theme, toasts, PWA install
     ├── app.js        # Dashboard logic
+    ├── charts.js     # Area + orbit SVG charts
+    ├── pdf.js        # Shared PDF export (History + Archive)
+    ├── history.js    # History ledger + soft delete
+    ├── archive.js    # Monthly archive, PDF list, trash manager
     ├── auth.js       # Sign in / sign up
     ├── settings.js   # Settings + exports
     └── contact.js    # Contact form
@@ -100,14 +111,31 @@ Open **Settings** from the navbar:
 - **Change password**
 - **Sign out**
 
-### 8. Delete an expense
-In Transaction History, click the 🗑 button → it turns red asking **Confirm?** → click again within 3 seconds to delete.
+### 8. Transaction History
+Open **History** from the navbar:
+- Search by description, filter by **category**, **person** or **month**, and sort to taste
+- Paginate through results; totals update to match the filters
+- Click **Download PDF** to export exactly what you see, or **Download full history** for everything
 
-### 9. Install as an app
+### 9. Archive
+Open **Archive** from the navbar to see every past month in full detail:
+- Hero stats — all-time spent, months tracked, transactions and items in trash
+- **Month by month** — tap a month to expand totals, budget progress, utilities breakdown, category bars, biggest expenses, per-person totals and the full list of individual expenses
+- **PDF list** — download a single month or the entire archive as a PDF (generated on your device)
+- **Deleted expenses** — the trash bin (see below)
+
+### 10. Delete, restore and empty the trash
+Deleting never destroys anything right away:
+1. In **History**, click the 🗑 button → it turns red asking **Confirm?** → click again within 3 seconds to move the expense to the trash.
+2. The expense disappears from every total, chart and export and now waits in **Archive → Deleted expenses**.
+3. Click **Restore** to bring it back, or **Delete** (confirm when it turns red) to remove it forever.
+4. **Empty trash** clears the whole bin at once (with a confirm step).
+
+### 11. Install as an app
 **Chrome/Edge (desktop & Android):** click **Install app** in the navbar.
 **iPhone/iPad (Safari):** Share button → **Add to Home Screen**.
 
-### 10. Contact the owner
+### 12. Contact the owner
 Go to **Contact** — fill the form and send via WhatsApp or email, or use the direct buttons.
 
 ---
@@ -116,7 +144,7 @@ Go to **Contact** — fill the form and send via WhatsApp or email, or use the d
 
 1. **Fork or clone** this repo
 2. Create a free project at [supabase.com](https://supabase.com)
-3. In Supabase **SQL Editor**, paste and run `schema.sql`
+3. In Supabase **SQL Editor**, paste and run `schema.sql` (it is idempotent — re-run it any time to apply new migrations, e.g. the v5 `deleted_at` column that powers the trash bin)
 4. In Supabase → **Authentication → Sign In / Providers**, turn OFF **Confirm email** (so users can sign in right away)
 5. Open `js/config.js` and replace:
    ```js

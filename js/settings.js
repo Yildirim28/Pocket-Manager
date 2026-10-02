@@ -110,7 +110,8 @@
                 .order('expense_date', { ascending: false });
             if (error) throw error;
 
-            const rows = data ?? [];
+            // Skip trashed rows — they belong to the Archive tab's trash.
+            const rows = (data ?? []).filter((e) => !e.deleted_at);
             if (rows.length === 0) {
                 showToast('No expenses to export yet.', 'info');
                 return;
@@ -231,13 +232,13 @@
         try {
             const { data, error } = await sb
                 .from(EXPENSES_TABLE)
-                .select('expense_date, description, category, utility_type, amount, participants, created_at')
+                .select('*')
                 .order('expense_date', { ascending: false });
 
             if (error) throw error;
 
             const header = 'Date,Description,Category,Utility Type,Amount,People,Added At';
-            const rows = (data ?? []).map((e) => {
+            const rows = (data ?? []).filter((e) => !e.deleted_at).map((e) => {
                 const people = Array.isArray(e.participants)
                     ? e.participants.map((p) => `${p.name}: ${p.amount}`).join('; ')
                     : '';

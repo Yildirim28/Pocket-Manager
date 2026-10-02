@@ -820,6 +820,7 @@ function renderNavbar(session) {
     const privateLinks = [
         { page: 'dashboard', href: 'app.html', label: 'Dashboard' },
         { page: 'history', href: 'history.html', label: 'History' },
+        { page: 'archive', href: 'archive.html', label: 'Archive' },
         { page: 'feedback', href: 'feedback.html', label: 'Feedback' },
         { page: 'settings', href: 'settings.html', label: 'Settings' }
     ];
@@ -910,6 +911,7 @@ function renderNavbar(session) {
     const tabLinks = [
         { page: 'dashboard', href: 'app.html', label: 'Home', icon: 'house' },
         { page: 'history', href: 'history.html', label: 'History', icon: 'receipt-text' },
+        { page: 'archive', href: 'archive.html', label: 'Archive', icon: 'archive' },
         { page: 'feedback', href: 'feedback.html', label: 'Feedback', icon: 'message-square' },
         { page: 'settings', href: 'settings.html', label: 'Settings', icon: 'settings' }
     ];
