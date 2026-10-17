@@ -143,22 +143,6 @@ Go to **Contact** — fill the form and send via WhatsApp or email, or use the d
 
 ---
 
-## 🚀 Run It Yourself
-
-1. **Fork or clone** this repo
-2. Create a free project at [supabase.com](https://supabase.com)
-3. In Supabase **SQL Editor**, paste and run `schema.sql` (it is idempotent — re-run it any time to apply new migrations, e.g. the v5 `deleted_at` column that powers the trash bin)
-4. In Supabase → **Authentication → Sign In / Providers**, turn OFF **Confirm email** (so users can sign in right away)
-5. Open `js/config.js` and replace:
-   ```js
-   const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
-   const SUPABASE_ANON_KEY = 'YOUR-PUBLISHABLE-KEY';
-   ```
-6. Host it anywhere static (GitHub Pages, Netlify, Vercel) — done!
-
-> ⚠️ Use the **publishable/anon key** (safe with RLS), never the secret key.
-
----
 
 ## 🔒 Privacy
 
